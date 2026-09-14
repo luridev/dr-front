@@ -1,0 +1,29 @@
+:root {
+  --dr-border-radius-small: 4px;
+  --dr-border-radius-medium: 8px;
+  --dr-border-radius-large: 16px;
+
+  --dr-border-radius-control: var(--dr-border-radius-small);
+  --dr-border-radius-field: var(--dr-border-radius-medium);
+  --dr-border-radius-surface: var(--dr-border-radius-medium);
+  --dr-border-radius-dialog: var(--dr-border-radius-large);
+
+  --dr-space-xsmall: 4px;
+  --dr-space-small: 8px;
+  --dr-space-medium: 16px;
+  --dr-space-large: 24px;
+
+  --dr-opacity-50: 0.5;
+  --dr-opacity-65: 0.65;
+  --dr-opacity-80: 0.8;
+
+  --dr-font-size-small: 0.875rem;
+  --dr-font-size-medium: 1rem;
+  --dr-font-size-large: 1.25rem;
+
+  --dr-font-family-base: system-ui, -apple-system, blinkmacsystemfont, 'Segoe UI', sans-serif;
+  --dr-font-family-mono:
+    ui-monospace, sfmono-regular, menlo, monaco, consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --dr-disabled-cursor: not-allowed;
+}

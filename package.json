@@ -1,0 +1,94 @@
+{
+  "name": "@protoapps/dr-front",
+  "version": "0.1.0",
+  "description": "Vue 3 UI components with sensible defaults and useful extras.",
+  "author": "Anton V.",
+  "license": "MIT",
+  "homepage": "https://github.com/luridev/dr-front#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luridev/dr-front.git"
+  },
+  "bugs": {
+    "url": "https://github.com/luridev/dr-front/issues"
+  },
+  "keywords": ["vue", "vue3", "ui", "components"],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test:e2e:serve": "vite --config vite.playwright.config.ts",
+    "generate:icons": "jiti config/icons/generate.ts",
+    "generate:icons:check": "jiti config/icons/generate.ts --check",
+    "lint": "eslint \"**/*.{js,ts,vue}\" --cache --cache-strategy metadata --concurrency auto && stylelint \"**/*.{css,vue}\" --cache --cache-strategy metadata && vue-tsc --noEmit",
+    "fix": "eslint \"**/*.{js,ts,vue}\" --fix --cache --cache-strategy metadata --concurrency auto && stylelint \"**/*.{css,vue}\" --fix --cache --cache-strategy metadata && vue-tsc --noEmit",
+    "typecheck": "vue-tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test --project=components",
+    "test:mutation": "stryker run",
+    "build": "jiti config/icons/generate.ts --check && vite build",
+    "test:package": "jiti config/package/verifyPackage.ts",
+    "validate": "npm run test:unit && npm run lint && npm run test:e2e && npm run test:package",
+    "prepublishOnly": "npm --dry-run=false run validate"
+  },
+  "dependencies": {
+    "@maskito/core": "5.3.1",
+    "@maskito/kit": "5.3.1",
+    "@maskito/vue": "5.3.1"
+  },
+  "devDependencies": {
+    "cross-spawn": "7.0.6",
+    "@types/cross-spawn": "6.0.6",
+    "@types/node": "26.1.0",
+    "@vitejs/plugin-vue": "6.0.7",
+    "@vue/language-core": "3.3.6",
+    "jiti": "2.7.0",
+    "svgo": "4.0.1",
+    "typescript": "6.0.3",
+    "unplugin-dts": "1.1.0",
+    "vite": "8.1.3",
+    "vitest": "4.1.10",
+    "vue-tsc": "3.3.6",
+    "vue": "3.5.39",
+    "@playwright/test": "1.62.1",
+    "@protoapps/eslint-config": "0.1.0",
+    "@stryker-mutator/core": "9.6.1",
+    "@stryker-mutator/vitest-runner": "9.6.1",
+    "eslint": "10.6.0",
+    "globals": "17.7.0",
+    "lefthook": "2.1.9",
+    "postcss-html": "2.0.0",
+    "stylelint": "17.14.0",
+    "stylelint-config-html": "2.0.0",
+    "stylelint-config-recommended-vue": "2.0.0",
+    "stylelint-config-standard": "40.0.0",
+    "stylelint-config-standard-vue": "2.0.0",
+    "temporal-polyfill": "1.0.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./icons": {
+      "types": "./dist/types/icons.d.ts",
+      "import": "./dist/icons.js"
+    },
+    "./lib": {
+      "types": "./dist/types/lib.d.ts",
+      "import": "./dist/lib.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "peerDependencies": {
+    "vue": "^3.5.39"
+  }
+}

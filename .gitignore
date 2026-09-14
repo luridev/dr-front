@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.eslintcache
+.stylelintcache
+test-results/
+playwright-report/
+reports/
+.stryker-tmp/
+*.tgz
+.env
+.env.*
+!.env.example

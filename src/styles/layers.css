@@ -1,0 +1,5 @@
+:root {
+  --dr-layer-floating: 1000;
+  --dr-layer-overlay: 1100;
+  --dr-layer-toast: 1200;
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.vitest.ts",
+    "!src/**/*.pwtest.ts",
+    "!src/**/*.support.ts",
+    "!src/**/config.ts"
+  ],
+  "ignoreStatic": true,
+  "cleanTempDir": "always",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.config.ts",
+    "related": false
+  },
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "thresholds": {
+    "break": null
+  }
+}
