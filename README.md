@@ -26,6 +26,10 @@ import { formatNumber } from '@protoapps/dr-front/lib';
 import '@protoapps/dr-front/styles.css';
 ```
 
+## TypeScript
+
+Dr Front is intended for bundler-based Vue applications. Its published declarations are validated with TypeScript `moduleResolution: "Bundler"`.
+
 ## Temporal
 
 `DrInputDate` and `DrInputTime` use the global `Temporal` API.

@@ -72,6 +72,8 @@ try {
   assert.equal(dirname(archive), consumer, 'npm pack archive must stay inside the temporary directory.');
   assert.ok(statSync(archive).isFile(), 'npm pack archive must exist as a file.');
 
+  runNpm(['exec', '--offline', '--no', '--', 'publint', archive, '--strict'], { cwd: root });
+
   for (const file of files) {
     assert.match(file.path, publishedFilePattern, `Unexpected published file: ${file.path}`);
   }
