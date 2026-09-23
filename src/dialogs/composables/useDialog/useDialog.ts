@@ -10,7 +10,7 @@ function isDrComponentEventHandler(value: unknown): value is DrComponentEventHan
   return typeof value === 'function';
 }
 
-export function useDialog<TProps extends object = Record<never, never>, TEvents extends object = Record<never, never>>(
+export function useDialog<TProps extends object = object, TEvents extends object = object>(
   options: UseDialogOptions<TProps>,
 ): UseDialog<TEvents> {
   const overlay = useOverlay();
