@@ -26,6 +26,10 @@ import { formatNumber } from '@protoapps/dr-front/lib';
 import '@protoapps/dr-front/styles.css';
 ```
 
+## Browser requirements
+
+Core functionality targets Baseline Widely Available as of **2026-09-25**. Changing this snapshot is an explicit change to the library's browser requirements.
+
 ## TypeScript
 
 Dr Front is intended for bundler-based Vue applications. Its published declarations are validated with TypeScript `moduleResolution: "Bundler"`.

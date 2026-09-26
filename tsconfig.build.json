@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "ESNext.Temporal"],
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,

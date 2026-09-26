@@ -1,8 +1,10 @@
 import { fileURLToPath } from 'node:url';
+import { getBrowserTargets } from '@protoapps/browser-targets';
 import vue from '@vitejs/plugin-vue';
 import ts from 'typescript';
 import dts from 'unplugin-dts/vite';
 import { defineConfig } from 'vite';
+import { widelyAvailableOnDate } from './config/browserPolicy/config.ts';
 
 export default defineConfig({
   plugins: [
@@ -24,7 +26,7 @@ export default defineConfig({
   ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {
-    target: 'esnext',
+    target: getBrowserTargets({ widelyAvailableOnDate }),
     lib: {
       entry: {
         index: fileURLToPath(new URL('./config/build/index.ts', import.meta.url)),
