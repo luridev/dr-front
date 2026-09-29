@@ -69,7 +69,7 @@
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@protoapps/browser-targets": "^0.1.0",
-    "@protoapps/eslint-config-vue": "^0.1.0",
+    "@protoapps/eslint-config-vue": "^0.1.1",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/vitest-runner": "^9.6.1",
     "@types/cross-spawn": "^6.0.6",
