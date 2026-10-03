@@ -38,7 +38,8 @@ export async function openReadyHost(page: Page, baseURL: string): Promise<void> 
 
       return (
         document.documentElement.dataset.hostReady === 'true' &&
-        typeof hostWindow.mount === 'function'
+        typeof hostWindow.mount === 'function' &&
+        typeof hostWindow.unmount === 'function'
       );
     });
   } catch (error) {
@@ -80,6 +81,11 @@ export const test = componentTest.extend({
 
       return Object.assign(page.locator('#root'), {
         update: (newProps?: unknown) => callMount({ story: storyId, props: newProps as StoryProps | undefined }),
+        unmount: () => page.evaluate(async () => {
+          const hostWindow = window as unknown as HostWindow;
+
+          await hostWindow.unmount();
+        }),
       });
     });
   },

@@ -2,11 +2,11 @@ import { defineConfig } from '@playwright/test';
 
 const host = '127.0.0.1';
 const port = 4323;
-const hostURL = `http://${host}:${port}/tests/playwright/host/`;
+const hostURL = `http://${host}:${port}/?view=canvas&theme=light`;
 
 export default defineConfig({
   testDir: '.',
-  testMatch: 'src/**/*.pwtest.ts',
+  testMatch: ['src/**/*.pwtest.ts', 'gallery/**/*.pwtest.ts'],
   projects: [{
     name: 'components',
     use: {
@@ -18,7 +18,7 @@ export default defineConfig({
     },
   }],
   webServer: {
-    command: `npm run test:e2e:serve -- --host ${host} --port ${port}`,
+    command: 'npm run test:e2e:serve',
     url: hostURL,
     reuseExistingServer: false,
   },

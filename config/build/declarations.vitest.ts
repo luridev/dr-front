@@ -9,7 +9,6 @@ import viteConfig from '../../vite.config';
 it('rewrites declaration module aliases without changing string literal types', async () => {
   const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
   const dependenciesRoot = join(projectRoot, 'node_modules');
-  // Keep the fixture isolated while retaining access to the installed compiler typings.
   const fixtureRoot = mkdtempSync(join(dependenciesRoot, '.dr-front-declarations-'));
 
   try {

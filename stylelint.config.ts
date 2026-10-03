@@ -2,6 +2,6 @@ import { createProtoConfig } from '@protoapps/stylelint-config';
 
 export default createProtoConfig({
   config: {
-    ignoreFiles: ['dist/**', '.stryker-tmp/**'],
+    ignoreFiles: ['dist/**', 'gallery-dist/**', '.stryker-tmp/**'],
   },
 });

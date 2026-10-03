@@ -37,11 +37,14 @@
     "tests/**/*.ts",
     "tests/**/*.vue",
     "*.config.ts",
-    "config/**/*.vue"
+    "config/**/*.vue",
+    "gallery/**/*.ts",
+    "gallery/**/*.vue"
   ],
   "exclude": [
     "node_modules",
     "dist",
+    "gallery-dist",
     "tests/fixtures/package-consumer"
   ],
   "vueCompilerOptions": {

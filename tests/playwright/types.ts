@@ -6,16 +6,14 @@ import type {
   PlaywrightWorkerOptions,
   TestType,
 } from '@playwright/test';
-import type { Component } from 'vue';
+import type { StoryProps } from '~/gallery/types';
 
-export type StoryProps = Record<string, unknown>;
-export type StoryModule = { default: Component };
-export type MountParams = { story: string; props?: StoryProps };
-export type HostState = { component: Component | null; props: StoryProps };
-export type HostProps = { backgroundRoot: HTMLElement; state: HostState };
-export type HostWindow = Window & { mount: (params: MountParams) => Promise<void> };
+export type { HostWindow, MountParams, StoryProps } from '~/gallery/types';
 
-export type MountedStory = Locator & { update: (props?: StoryProps) => Promise<void> };
+export type MountedStory = Locator & {
+  update: (props?: StoryProps) => Promise<void>;
+  unmount: () => Promise<void>;
+};
 
 export type ComponentTestArgs = Omit<PlaywrightTestArgs, 'mount'> & {
   mount: (storyId: string, props?: StoryProps) => Promise<MountedStory>;

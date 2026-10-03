@@ -26,6 +26,14 @@ import { formatNumber } from '@protoapps/dr-front/lib';
 import '@protoapps/dr-front/styles.css';
 ```
 
+## Component gallery
+
+Run locally:
+
+```sh
+npm run dev
+```
+
 ## Browser requirements
 
 Core functionality targets Baseline Widely Available as of **2026-09-25**. Changing this snapshot is an explicit change to the library's browser requirements.

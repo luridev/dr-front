@@ -5,15 +5,14 @@ import { globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
 const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
-const browserFiles = ['src/**/*.{js,ts}', '**/*.vue', 'tests/playwright/host/main.ts'];
+const browserFiles = ['src/**/*.{js,ts}', '**/*.vue', 'gallery/**/*.{js,ts}'];
 const browserFileIgnores = ['**/*.vitest.ts', '**/*.pwtest.ts'];
-const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'tests/**/*.{js,ts}', 'src/**/*.{vitest,pwtest}.ts'];
-const nodeFileIgnores = ['tests/playwright/host/main.ts'];
+const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'tests/**/*.{js,ts}', '**/*.{vitest,pwtest}.ts'];
 
 export default createProtoConfig(
   { tsconfigRootDir, vueVersion: '3.5.39' },
   globalIgnores([
-    'node_modules/**', 'dist/**', 'coverage/**', '*.log',
+    'node_modules/**', 'dist/**', 'gallery-dist/**', 'coverage/**', '*.log',
     'test-results/**', 'playwright-report/**', '.stryker-tmp/**', 'reports/**',
     'tests/fixtures/package-consumer/**',
   ], 'dr-front/ignores'),
@@ -26,7 +25,6 @@ export default createProtoConfig(
   {
     name: 'dr-front/node',
     files: nodeFiles,
-    ignores: nodeFileIgnores,
     languageOptions: { globals: globals.node },
   },
   {
