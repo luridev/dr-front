@@ -105,10 +105,14 @@ defineExpose({
   }
 
   .DrTextareaBase_resize_none {
-    resize: none;
+    @supports (resize: none) {
+      resize: none;
+    }
   }
 
   .DrTextareaBase_resize_vertical {
-    resize: vertical;
+    @supports (resize: vertical) {
+      resize: vertical;
+    }
   }
 </style>

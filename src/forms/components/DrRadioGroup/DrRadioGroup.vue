@@ -131,8 +131,11 @@ function isChecked(item: T) {
     width: 16px;
     height: 16px;
     margin: 4px 0 0;
-    accent-color: var(--dr-color-background-accent);
     cursor: inherit;
+
+    @supports (accent-color: var(--dr-color-background-accent)) {
+      accent-color: var(--dr-color-background-accent);
+    }
   }
 
   .DrRadioGroup__input:focus-visible {
@@ -149,7 +152,9 @@ function isChecked(item: T) {
     color: var(--dr-color-text-secondary);
 
     .DrRadioGroup__input {
-      accent-color: var(--dr-color-text-secondary);
+      @supports (accent-color: var(--dr-color-text-secondary)) {
+        accent-color: var(--dr-color-text-secondary);
+      }
     }
   }
 </style>
