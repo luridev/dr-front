@@ -3,7 +3,7 @@ import type { DrButtonContractProps } from '@/actions/components/DrButton/DrButt
 
 const storyId = 'actions/components/DrButton/DrButtonContract/DrButtonContract';
 
-test('DrButton сохраняет root class, explicit emits и native button props', async ({ mount }) => {
+test('DrButton preserves the root class, explicit emits and native button props', async ({ mount }) => {
   const props: DrButtonContractProps = {};
   const component = await mount(storyId, props);
   const root = component.locator('.DrButtonRoot');

@@ -24,7 +24,7 @@ describe('useDrInputNumberModel', () => {
     { value: 42, inputValue: '42', canToggleSign: true },
     { value: -42, inputValue: '-42', canToggleSign: true },
     { value: -0, inputValue: '0', canToggleSign: false },
-  ])('инициализирует model $value', ({ value, inputValue, canToggleSign }) => {
+  ])('initializes model $value', ({ value, inputValue, canToggleSign }) => {
     const result = setupModel(value);
 
     expect(result.inputValue.value).toBe(inputValue);
@@ -37,7 +37,7 @@ describe('useDrInputNumberModel', () => {
     { source: '12', expected: 12 },
     { source: '-12', expected: -12 },
     { source: 'invalid', expected: null },
-  ])('синхронизирует пользовательский input $source с model', ({ source, expected }) => {
+  ])('synchronizes user input $source with the model', ({ source, expected }) => {
     const result = setupModel(7);
 
     result.updateInputValue(source);
@@ -46,7 +46,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.model.value).toBe(expected);
   });
 
-  it('сохраняет pending minus до blur или внешнего обновления', async () => {
+  it('preserves a pending minus sign until blur or an external update', async () => {
     const result = setupModel(7);
 
     result.updateInputValue('-');
@@ -62,7 +62,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.inputValue.value).toBe('5');
   });
 
-  it('канонизирует только pending minus', () => {
+  it('canonicalizes only a pending minus sign', () => {
     const result = setupModel(null);
 
     result.updateInputValue('-');
@@ -77,7 +77,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.inputValue.value).toBe('12');
   });
 
-  it('нормализует numeric model для -0, сохраняя введённый знак до внешней синхронизации', async () => {
+  it('normalizes -0 in the model while preserving the entered sign until external synchronization', async () => {
     const result = setupModel(null);
 
     result.updateInputValue('-0');
@@ -96,7 +96,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.inputValue.value).toBe('0');
   });
 
-  it('переключает pending sign для null model', () => {
+  it('toggles the pending sign for a null model', () => {
     const result = setupModel(null);
 
     expect(result.toggleSign()).toBe(true);
@@ -108,7 +108,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.model.value).toBeNull();
   });
 
-  it('переключает знак числовой model и синхронизирует input', async () => {
+  it('toggles the numeric model sign and synchronizes the input', async () => {
     const result = setupModel(12);
 
     expect(result.toggleSign()).toBe(true);
@@ -124,7 +124,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.inputValue.value).toBe('12');
   });
 
-  it('не переключает знак для zero и invalid input', () => {
+  it('does not toggle the sign for zero or invalid input', () => {
     const zeroResult = setupModel(0);
 
     expect(zeroResult.toggleSign()).toBe(false);
@@ -140,7 +140,7 @@ describe('useDrInputNumberModel', () => {
     expect(invalidResult.inputValue.value).toBe('invalid');
   });
 
-  it('синхронизирует positive, negative и null внешние model updates', async () => {
+  it('synchronizes positive, negative and null external model updates', async () => {
     const result = setupModel(1);
 
     result.model.value = 5;

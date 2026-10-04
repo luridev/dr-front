@@ -6,7 +6,7 @@ import { defaultDrAlertTitle } from '@/feedback/config';
 import type { DrAlertData } from '@/feedback/types';
 
 describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (variant) => {
-  it('подставляет текущий default для data без title', async () => {
+  it('uses the current default when data has no title', async () => {
     const data: DrAlertData = { variant, message: 'Подробности операции' };
     const html = await renderToString(createSSRApp(() => h(DrAlert, data)));
 
@@ -14,7 +14,7 @@ describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (vari
     expect(html).toContain(data.message);
   });
 
-  it('сохраняет явный consumer title', async () => {
+  it('preserves an explicit consumer title', async () => {
     const title = 'Заголовок приложения';
 
     const html = await renderToString(createSSRApp(() => h(DrAlert, {
@@ -27,7 +27,7 @@ describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (vari
     expect(html).not.toContain(defaultDrAlertTitle);
   });
 
-  it('не заменяет явно пустой title default-значением', async () => {
+  it('does not replace an explicitly empty title with the default', async () => {
     const html = await renderToString(createSSRApp(() => h(DrAlert, {
       variant,
       title: '',
@@ -39,7 +39,7 @@ describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (vari
   });
 });
 
-it('DrAlert без variant и title остаётся error alert', async () => {
+it('DrAlert remains an error alert when variant and title are omitted', async () => {
   const html = await renderToString(createSSRApp(() => h(DrAlert, {
     message: 'Подробности операции',
   })));

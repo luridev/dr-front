@@ -4,7 +4,7 @@ import { expect, test } from '~/tests/playwright/fixtures';
 const selectDialogStoryId = 'forms/components/DrSelect/DrSelectDialog/DrSelectDialog';
 
 for (const focusTarget of ['trigger', 'listbox'] as const) {
-  test(`Escape с focus=${focusTarget} закрывает select, затем dialog`, async ({ mount, page }) => {
+  test(`Escape with focus=${focusTarget} closes the select, then the dialog`, async ({ mount, page }) => {
     await page.setViewportSize(standardDesktopViewport);
 
     const component = await mount(selectDialogStoryId);
@@ -32,3 +32,32 @@ for (const focusTarget of ['trigger', 'listbox'] as const) {
     await expect(dialog).toHaveCount(0);
   });
 }
+
+test('nested mobile Select keeps Tab navigation within the topmost dialog', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  const component = await mount(selectDialogStoryId);
+  const outerDialog = page.getByRole('dialog', { name: 'Select dialog', exact: true });
+  const trigger = outerDialog.getByRole('combobox', { name: 'Dialog select', exact: true });
+  const innerDialog = page.getByRole('dialog', { name: 'Dialog select', exact: true });
+  const listbox = innerDialog.getByRole('listbox');
+  const innerClose = innerDialog.getByRole('button', { name: 'Закрыть', exact: true });
+
+  await component.getByRole('button', { name: 'Open dialog', exact: true }).click();
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(listbox).toBeFocused();
+
+  await page.keyboard.press('Tab');
+  await expect(innerClose).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(listbox).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(innerDialog).toHaveCount(0);
+  await expect(outerDialog).toBeVisible();
+  await expect(trigger).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(outerDialog).toHaveCount(0);
+});

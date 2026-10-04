@@ -76,7 +76,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.123', smallestUnit: 'millisecond' as const, expected: '12:34:56.123' },
     { source: '12:34:56.123456', smallestUnit: 'microsecond' as const, expected: '12:34:56.123456' },
     { source: '12:34:56.123456789', smallestUnit: 'nanosecond' as const, expected: '12:34:56.123456789' },
-  ])('разбирает $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
+  ])('parses $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
     expectValidTime(source, smallestUnit, expected);
   });
 
@@ -88,7 +88,7 @@ describe('parseTimeInputValue', () => {
     { source: '23:59:59.999', smallestUnit: 'millisecond' as const, expected: '23:59:59.999' },
     { source: '23:59:59.999999', smallestUnit: 'microsecond' as const, expected: '23:59:59.999999' },
     { source: '23:59:59.999999999', smallestUnit: 'nanosecond' as const, expected: '23:59:59.999999999' },
-  ])('принимает boundary $source для $smallestUnit', ({ source, smallestUnit, expected }) => {
+  ])('accepts time boundary $source for $smallestUnit', ({ source, smallestUnit, expected }) => {
     expectValidTime(source, smallestUnit, expected);
   });
 
@@ -101,7 +101,7 @@ describe('parseTimeInputValue', () => {
     { source: '23:59:60.000', smallestUnit: 'millisecond' as const },
     { source: '24:00:00.000000', smallestUnit: 'microsecond' as const },
     { source: '00:60:00.000000000', smallestUnit: 'nanosecond' as const },
-  ])('отклоняет time boundary $source для $smallestUnit', ({ source, smallestUnit }) => {
+  ])('rejects out-of-range time $source for $smallestUnit', ({ source, smallestUnit }) => {
     expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
   });
 
@@ -111,7 +111,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56', smallestUnit: 'millisecond' as const, expected: '12:34:56' },
     { source: '12:34', smallestUnit: 'microsecond' as const, expected: '12:34:00' },
     { source: '12:34:56', smallestUnit: 'nanosecond' as const, expected: '12:34:56' },
-  ])('заполняет нулями отсутствующую меньшую precision в $source', ({ source, smallestUnit, expected }) => {
+  ])('fills missing lower-precision units with zeros in $source', ({ source, smallestUnit, expected }) => {
     expectValidTime(source, smallestUnit, expected);
   });
 
@@ -126,7 +126,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.1234567', smallestUnit: 'nanosecond' as const, expected: '12:34:56.123456700' },
     { source: '12:34:56.000000001', smallestUnit: 'nanosecond' as const, expected: '12:34:56.000000001' },
     { source: '12:34:56.999999999', smallestUnit: 'nanosecond' as const, expected: '12:34:56.999999999' },
-  ])('дополняет fraction справа для $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
+  ])('right-pads the fraction for $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
     expectValidTime(source, smallestUnit, expected);
   });
 
@@ -134,7 +134,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.1234', smallestUnit: 'millisecond' as const },
     { source: '12:34:56.1234567', smallestUnit: 'microsecond' as const },
     { source: '12:34:56.1234567890', smallestUnit: 'nanosecond' as const },
-  ])('отклоняет fraction длиннее precision для $smallestUnit', ({ source, smallestUnit }) => {
+  ])('rejects fractions exceeding $smallestUnit precision', ({ source, smallestUnit }) => {
     expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
   });
 
@@ -149,7 +149,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.', smallestUnit: 'millisecond' as const, expected: 'incomplete' },
     { source: '12:34:56.', smallestUnit: 'microsecond' as const, expected: 'incomplete' },
     { source: '12:34:56.', smallestUnit: 'nanosecond' as const, expected: 'incomplete' },
-  ])('возвращает $expected для незавершённого $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
+  ])('returns $expected for incomplete $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
     expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: expected });
   });
 
@@ -165,7 +165,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56..1', smallestUnit: 'millisecond' as const },
     { source: '12:34:56.1a', smallestUnit: 'microsecond' as const },
     { source: '12:34:56.123:4', smallestUnit: 'nanosecond' as const },
-  ])('отклоняет invalid syntax $source для $smallestUnit', ({ source, smallestUnit }) => {
+  ])('rejects invalid syntax $source for $smallestUnit', ({ source, smallestUnit }) => {
     expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
   });
 });
@@ -179,11 +179,11 @@ describe('stringifyTimeInputValue', () => {
     { smallestUnit: 'millisecond' as const, expected: '01:02:03.004' },
     { smallestUnit: 'microsecond' as const, expected: '01:02:03.004005' },
     { smallestUnit: 'nanosecond' as const, expected: '01:02:03.004005006' },
-  ])('форматирует model с precision $smallestUnit как $expected', ({ smallestUnit, expected }) => {
+  ])('formats the model with $smallestUnit precision as $expected', ({ smallestUnit, expected }) => {
     expect(stringifyTimeInputValue(fullPrecisionValue, smallestUnit)).toBe(expected);
   });
 
-  it('форматирует null как empty string', () => {
+  it('formats null as an empty string', () => {
     expect(stringifyTimeInputValue(null, 'minute')).toBe('');
   });
 
@@ -193,7 +193,7 @@ describe('stringifyTimeInputValue', () => {
     { value: Temporal.PlainTime.from('12:34:56.123'), smallestUnit: 'millisecond' as const },
     { value: Temporal.PlainTime.from('12:34:56.123456'), smallestUnit: 'microsecond' as const },
     { value: Temporal.PlainTime.from('12:34:56.123456789'), smallestUnit: 'nanosecond' as const },
-  ])('поддерживает round trip для $smallestUnit model $value', ({ value, smallestUnit }) => {
+  ])('supports round trips for $smallestUnit model $value', ({ value, smallestUnit }) => {
     const result = parseTimeInputValue(stringifyTimeInputValue(value, smallestUnit), smallestUnit);
 
     expect(result.status).toBe('valid');
@@ -211,7 +211,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { data: '123.', expectedData: '123.' },
     { data: '.123', expectedData: '123' },
     { data: '1:2:3', expectedData: '123' },
-  ])('сохраняет только trailing separator во вставке $data', ({ data, expectedData }) => {
+  ])('preserves only the trailing separator in inserted data $data', ({ data, expectedData }) => {
     expect(preprocessTimeInput({ value: '', selection: [0, 0] }, data, 'insert', 'nanosecond')).toEqual({
       elementState: {
         value: '',
@@ -221,7 +221,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     });
   });
 
-  it('не включает separator в число заменяемых digits', () => {
+  it('excludes separators from the number of digits to replace', () => {
     expect(preprocessTimeInput({ value: '12:34', selection: [2, 2] }, ':', 'insert', 'minute')).toEqual({
       elementState: {
         value: '12:34',
@@ -231,7 +231,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     });
   });
 
-  it('сохраняет selection при rejected insertion без digits', () => {
+  it('preserves selection when rejecting an insertion without digits', () => {
     expect(preprocessTimeInput({ value: '12:34', selection: [0, 2] }, 'letters', 'insert', 'minute')).toEqual({
       elementState: {
         value: '12:34',
@@ -245,7 +245,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { selection: [6, 8] as const, data: '5', expectedSelection: [6, 8] as const },
     { selection: [2, 3] as const, data: '12', expectedSelection: [2, 3] as const },
     { selection: [0, 2] as const, data: '5', expectedSelection: [0, 1] as const },
-  ])('ограничивает replacement исходным selection $selection', ({ selection, data, expectedSelection }) => {
+  ])('limits replacement to the original selection $selection', ({ selection, data, expectedSelection }) => {
     expect(preprocessTimeInput({ value: '12:34:56', selection }, data, 'insert', 'second')).toEqual({
       elementState: {
         value: '12:34:56',
@@ -255,7 +255,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     });
   });
 
-  it('заменяет удаляемые digits нулями и переносит caret в начало selection', () => {
+  it('replaces deleted digits with zeros and moves the caret to the selection start', () => {
     expect(preprocessTimeInput({ value: '12:34', selection: [1, 2] }, '', 'deleteBackward', 'minute')).toEqual({
       elementState: {
         value: '10:34',
@@ -271,7 +271,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { source: '123456789', smallestUnit: 'millisecond' as const, expected: '12:34:56.789' },
     { source: '123456123456', smallestUnit: 'microsecond' as const, expected: '12:34:56.123456' },
     { source: '123456123456789', smallestUnit: 'nanosecond' as const, expected: '12:34:56.123456789' },
-  ])('вставляет структуру $smallestUnit в whole value $source', ({ source, smallestUnit, expected }) => {
+  ])('applies the $smallestUnit structure to the whole value $source', ({ source, smallestUnit, expected }) => {
     expect(maskitoTransform(source, timeInputMaskOptionsBySmallestUnit[smallestUnit])).toBe(expected);
   });
 
@@ -280,7 +280,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { source: '123', expected: '12:3' },
     { source: '12345', expected: '12:34:5' },
     { source: '1234561', expected: '12:34:56.1' },
-  ])('сохраняет incomplete nanosecond input $source', ({ source, expected }) => {
+  ])('preserves incomplete nanosecond input $source', ({ source, expected }) => {
     expect(maskitoTransform(source, timeInputMaskOptionsBySmallestUnit.nanosecond)).toBe(expected);
   });
 
@@ -290,16 +290,16 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { data: '12:34:56.123', smallestUnit: 'millisecond' as const, expected: '12:34:56.123' },
     { data: '12:34:56.123456', smallestUnit: 'microsecond' as const, expected: '12:34:56.123456' },
     { data: '12:34:56.123456789', smallestUnit: 'nanosecond' as const, expected: '12:34:56.123456789' },
-  ])('нормализует paste $data для $smallestUnit', ({ data, smallestUnit, expected }) => {
+  ])('normalizes pasted data $data for $smallestUnit', ({ data, smallestUnit, expected }) => {
     expect(insertTimeInput({ value: '', selection: [0, 0] }, data, smallestUnit).value).toBe(expected);
   });
 
-  it('сохраняет trailing separators при вводе следующего segment', () => {
+  it('preserves trailing separators when entering the next segment', () => {
     expect(insertTimeInput({ value: '12', selection: [2, 2] }, ':', 'second').value).toBe('12:');
     expect(insertTimeInput({ value: '12:34:56', selection: [8, 8] }, '.', 'millisecond').value).toBe('12:34:56.');
   });
 
-  it.each(['letters', ' / '])('не меняет значение при вставке без digits: %j', (data) => {
+  it.each(['letters', ' / '])('preserves the value when inserting data without digits: %j', (data) => {
     expect(insertTimeInput({ value: '12:34', selection: [0, 0] }, data, 'minute').value).toBe('12:34');
   });
 
@@ -309,11 +309,11 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { selection: [6, 6] as const, data: '60', expected: '12:34:60.123456789' },
     { selection: [9, 9] as const, data: '999', expected: '12:34:56.999456789' },
     { selection: [15, 15] as const, data: '000', expected: '12:34:56.123456000' },
-  ])('заменяет segment из позиции $selection', ({ selection, data, expected }) => {
+  ])('replaces a segment starting at $selection', ({ selection, data, expected }) => {
     expect(insertTimeInput({ value: '12:34:56.123456789', selection }, data, 'nanosecond').value).toBe(expected);
   });
 
-  it('сохраняет временно invalid hour/minute/second без clamp', () => {
+  it('preserves temporarily invalid hours, minutes and seconds without clamping', () => {
     const invalidValues = [
       insertTimeInput({ value: '12:34:56', selection: [0, 2] }, '24', 'second').value,
       insertTimeInput({ value: '12:34:56', selection: [3, 5] }, '60', 'second').value,
@@ -332,7 +332,7 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { selection: [3, 3] as const, data: '5', expectedSelection: [3, 4] as const },
     { selection: [6, 6] as const, data: '12a3', expectedSelection: [6, 10] as const },
     { selection: [2, 3] as const, data: '5', expectedSelection: [2, 2] as const },
-  ])('выбирает digits для replacement из позиции $selection', ({ selection, data, expectedSelection }) => {
+  ])('selects digits for replacement starting at $selection', ({ selection, data, expectedSelection }) => {
     expect(preprocessTimeInput({ value: '12:34:56.123', selection }, data, 'insert', 'millisecond')).toEqual({
       elementState: {
         value: '12:34:56.123',
@@ -346,11 +346,11 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     { actionType: 'deleteBackward' as const, selection: [1, 2] as const, expected: '10:34:56.123' },
     { actionType: 'deleteForward' as const, selection: [3, 5] as const, expected: '12:00:56.123' },
     { actionType: 'deleteBackward' as const, selection: [9, 11] as const, expected: '12:34:56.003' },
-  ])('заменяет удаляемые digits нулями для $actionType', ({ actionType, selection, expected }) => {
+  ])('replaces deleted digits with zeros for $actionType', ({ actionType, selection, expected }) => {
     expect(deleteTimeInput({ value: '12:34:56.123', selection }, actionType, 'millisecond').value).toBe(expected);
   });
 
-  it('оставляет fixed separator при deletion', () => {
+  it('preserves fixed separators during deletion', () => {
     expect(deleteTimeInput({ value: '12:34:56.123', selection: [2, 3] }, 'deleteForward', 'millisecond').value).toBe(
       '12:34:56.123',
     );
@@ -360,13 +360,13 @@ describe('timeInputMaskOptionsBySmallestUnit', () => {
     );
   });
 
-  it('позволяет удалить fraction до incomplete separator', () => {
+  it('allows deleting the fraction while preserving the trailing separator', () => {
     expect(deleteTimeInput({ value: '12:34:56.123', selection: [9, 12] }, 'deleteBackward', 'millisecond').value).toBe(
       '12:34:56.',
     );
   });
 
-  it('позволяет удалить time value целиком', () => {
+  it('allows deleting the entire time value', () => {
     expect(deleteTimeInput({ value: '12:34', selection: [0, 5] }, 'deleteBackward', 'minute').value).toBe('');
   });
 });

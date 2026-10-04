@@ -4,7 +4,7 @@ import type { DrTextareaPlaygroundProps } from '@/forms/components/DrTextarea/Dr
 
 const compositionStoryId = 'forms/components/DrTextarea/DrTextareaPlayground/DrTextareaPlayground';
 
-test('generic textarea отклоняет oversized paste и передаёт limitExceeded наружу', async ({ mount }) => {
+test('generic textarea rejects oversized paste and emits limitExceeded', async ({ mount }) => {
   const maxLength = 10;
   const props: DrTextareaPlaygroundProps = { maxLength };
   const component = await mount(compositionStoryId, props);
@@ -41,7 +41,7 @@ test('generic textarea отклоняет oversized paste и передаёт li
   await expect(eventCount).toHaveText('1');
 });
 
-test('generic textarea передаёт content/actions context и фокусируется после clear пустого content mode', async ({ mount }) => {
+test('generic textarea exposes slot contexts and regains focus after clearing empty content', async ({ mount }) => {
   const feedback = 'External feedback';
   const props: DrTextareaPlaygroundProps = { state: 'error', message: feedback };
   const component = await mount(compositionStoryId, props);

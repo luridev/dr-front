@@ -9,7 +9,7 @@ describe('useControlsState', () => {
     { commonDisabled: false, localDisabled: true, expected: true },
     { commonDisabled: true, localDisabled: true, expected: true },
   ])(
-    'возвращает $expected при общем disabled=$commonDisabled и локальном disabled=$localDisabled',
+    'returns $expected with shared disabled=$commonDisabled and local disabled=$localDisabled',
     ({ commonDisabled, localDisabled, expected }) => {
       const commonDisabledState = ref(commonDisabled);
       const localDisabledState = ref(localDisabled);
@@ -28,7 +28,7 @@ describe('useControlsState', () => {
     },
   );
 
-  it('обновляет disabled при изменении isDisabled', () => {
+  it('updates disabled when isDisabled changes', () => {
     const commonDisabledState = ref(false);
 
     const { controls } = useControlsState({
@@ -50,7 +50,7 @@ describe('useControlsState', () => {
     expect(controls.control.disabled).toBe(false);
   });
 
-  it('реактивно обновляет локальный disabled независимо для каждого control', () => {
+  it('reactively updates local disabled state independently for each control', () => {
     const disabled = ref(false);
 
     const { controls } = useControlsState({
@@ -73,7 +73,7 @@ describe('useControlsState', () => {
     expect(controls.field.disabled).toBe(false);
   });
 
-  it('возвращает normal state без payload и реактивные normal messages', () => {
+  it('returns normal state without a payload and reactive normal messages', () => {
     const message = ref('first');
 
     const { controls, showValidationErrors } = useControlsState({
@@ -99,7 +99,7 @@ describe('useControlsState', () => {
     expect(controls.optional.state).toBe('normal');
   });
 
-  it('показывает error payload вместо normal и сбрасывает только видимость validation', () => {
+  it('shows the error payload instead of the normal payload and resets only validation visibility', () => {
     const isValid = ref(false);
     const errorMessage = ref('invalid');
 
@@ -139,7 +139,7 @@ describe('useControlsState', () => {
     expect(hasVisibleValidationErrors.value).toBe(true);
   });
 
-  it('сохраняет disabled при error без messages и возвращается к normal при исчезновении ошибки', () => {
+  it('preserves disabled for errors without messages and returns to normal when the error clears', () => {
     const invalid = ref(true);
 
     const { controls, showValidationErrors, hasVisibleValidationErrors } = useControlsState({

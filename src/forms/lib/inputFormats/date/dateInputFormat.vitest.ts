@@ -10,7 +10,7 @@ import type { MaskitoPreprocessor } from '@maskito/core';
 
 const dateInputPreprocessor = dateInputMaskOptions.preprocessors[0];
 
-it('загружает date input format без глобального Temporal', async () => {
+it('loads the date input format without a global Temporal', async () => {
   vi.resetModules();
   vi.stubGlobal('Temporal', undefined);
 
@@ -86,18 +86,18 @@ describe('parseDateInputValue', () => {
     { source: '30.04.2026', expected: '2026-04-30' },
     { source: '30.06.2026', expected: '2026-06-30' },
     { source: '28.02.2026', expected: '2026-02-28' },
-  ])('разбирает календарную дату $source', ({ source, expected }) => {
+  ])('parses calendar date $source', ({ source, expected }) => {
     expectValidDate(source, expected);
   });
 
   it.each([
     { source: '29.02.2024', expected: '2024-02-29' },
     { source: '29.02.2000', expected: '2000-02-29' },
-  ])('принимает 29 февраля в високосном году $source', ({ source, expected }) => {
+  ])('accepts February 29 in a leap year: $source', ({ source, expected }) => {
     expectValidDate(source, expected);
   });
 
-  it.each(['29.02.2023', '29.02.1900'])('отклоняет 29 февраля в невисокосном году: %s', (source) => {
+  it.each(['29.02.2023', '29.02.1900'])('rejects February 29 in a non-leap year: %s', (source) => {
     expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
   });
 
@@ -110,12 +110,12 @@ describe('parseDateInputValue', () => {
     '31.06.2026',
     '30.02.2026',
     '31.02.999999',
-  ])('отклоняет несуществующую календарную дату: %s', (source) => {
+  ])('rejects nonexistent calendar dates: %s', (source) => {
     expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
   });
 
   it.each(['', '1', '01', '01.', '01.0', '01.01', '01.01.', '01.01.-'])(
-    'различает empty и incomplete input %j',
+    'distinguishes empty and incomplete input %j',
     (source) => {
       expect(parseDateInputValue(source)).toEqual({
         status: source === '' ? 'empty' : 'incomplete',
@@ -137,7 +137,7 @@ describe('parseDateInputValue', () => {
     '01.01.--1',
     '01.01.1234567',
     '01.01.2026.1',
-  ])('отклоняет invalid syntax %j', (source) => {
+  ])('rejects invalid syntax %j', (source) => {
     expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
   });
 
@@ -149,11 +149,11 @@ describe('parseDateInputValue', () => {
     { source: '01.03.-1', expected: '-000001-03-01' },
     { source: '01.01.10000', expected: '+010000-01-01' },
     { source: '01.01.-10000', expected: '-010000-01-01' },
-  ])('поддерживает фактическую семантику расширенного года $source', ({ source, expected }) => {
+  ])('supports extended year semantics for $source', ({ source, expected }) => {
     expectValidDate(source, expected);
   });
 
-  it('принимает обе границы диапазона Temporal.PlainDate', () => {
+  it('accepts both boundaries of the Temporal.PlainDate range', () => {
     expectValidDate('19.04.-271821', getTemporalPlainDateMin().toString());
     expectValidDate('13.09.275760', getTemporalPlainDateMax().toString());
   });
@@ -167,7 +167,7 @@ describe('parseDateInputValue', () => {
     '01.01.275761',
     '01.01.-999999',
     '01.01.999999',
-  ])('возвращает out-of-range за границами Temporal: %s', (source) => {
+  ])('returns out-of-range beyond Temporal boundaries: %s', (source) => {
     expect(parseDateInputValue(source)).toEqual({ status: 'out-of-range' });
   });
 });
@@ -182,7 +182,7 @@ describe('stringifyDateInputValue', () => {
     { value: Temporal.PlainDate.from('+010000-01-01'), expected: '01.01.10000' },
     { value: getTemporalPlainDateMin(), expected: '19.04.-271821' },
     { value: getTemporalPlainDateMax(), expected: '13.09.275760' },
-  ])('форматирует model date как $expected', ({ value, expected }) => {
+  ])('formats the model date as $expected', ({ value, expected }) => {
     expect(stringifyDateInputValue(value)).toBe(expected);
   });
 
@@ -194,7 +194,7 @@ describe('stringifyDateInputValue', () => {
     Temporal.PlainDate.from('+010000-01-01'),
     getTemporalPlainDateMin(),
     getTemporalPlainDateMax(),
-  ])('поддерживает round trip для $value', (value) => {
+  ])('supports round trips for $value', (value) => {
     const result = parseDateInputValue(stringifyDateInputValue(value));
 
     expect(result.status).toBe('valid');
@@ -211,7 +211,7 @@ describe('dateInputMaskOptions', () => {
     { value: '01.01', selection: [5, 5] as const },
     { value: '01.01.2026', selection: [2, 2] as const },
     { value: '01.01.2026', selection: [5, 5] as const },
-  ])('сохраняет ручной separator в позиции $selection', ({ value, selection }) => {
+  ])('preserves a manually entered separator at $selection', ({ value, selection }) => {
     expect(preprocessDateInput({ value, selection }, '.', 'insert')).toEqual({
       elementState: { value, selection },
       data: '.',
@@ -223,14 +223,14 @@ describe('dateInputMaskOptions', () => {
     { value: '01.01.2026', selection: [2, 3] as const, data: '.' },
     { value: '0', selection: [2, 2] as const, data: '.' },
     { value: '01.01.2026', selection: [2, 2] as const, data: ',' },
-  ])('отклоняет separator $data вне допустимого перехода $selection', ({ value, selection, data }) => {
+  ])('rejects separator $data outside a valid transition at $selection', ({ value, selection, data }) => {
     expect(preprocessDateInput({ value, selection }, data, 'insert')).toEqual({
       elementState: { value, selection },
       data: '',
     });
   });
 
-  it('при вводе минуса после месяца сначала материализует year separator', () => {
+  it('inserts the year separator before a minus sign entered after the month', () => {
     expect(preprocessDateInput({ value: '01.01', selection: [5, 5] }, '-', 'insert')).toEqual({
       elementState: {
         value: '01.01.',
@@ -240,7 +240,7 @@ describe('dateInputMaskOptions', () => {
     });
   });
 
-  it('сохраняет позицию минуса в уже начатом year segment', () => {
+  it('preserves the minus sign position in a year segment already started', () => {
     expect(preprocessDateInput({ value: '01.01.', selection: [6, 6] }, '-', 'insert')).toEqual({
       elementState: {
         value: '01.01.',
@@ -254,7 +254,7 @@ describe('dateInputMaskOptions', () => {
     { value: 'x01.01', selection: [5, 5] as const },
     { value: '01.01x', selection: [5, 5] as const },
     { value: '01.01', selection: [4, 4] as const },
-  ])('не принимает похожее на pending year состояние $value', ({ value, selection }) => {
+  ])('rejects $value that only resembles a pending year', ({ value, selection }) => {
     expect(preprocessDateInput({ value, selection }, '-', 'insert')).toEqual({
       elementState: { value, selection },
       data: '',
@@ -268,14 +268,14 @@ describe('dateInputMaskOptions', () => {
     { value: '01.01.2026', selection: [3, 3] as const, data: '-' },
     { value: '01.01', selection: [5, 5] as const, data: '2026-' },
     { value: '01.01.', selection: [6, 6] as const, data: '2026-' },
-  ])('очищает insertion с минусом вне начала года: $data', ({ value, selection, data }) => {
+  ])('clears inserted data with a minus sign outside the year start: $data', ({ value, selection, data }) => {
     expect(preprocessDateInput({ value, selection }, data, 'insert')).toEqual({
       elementState: { value, selection },
       data: '',
     });
   });
 
-  it('не применяет minus preprocessing к цифре в pending year segment', () => {
+  it('skips minus preprocessing for a digit in a pending year segment', () => {
     expect(preprocessDateInput({ value: '01.01', selection: [5, 5] }, '2', 'insert')).toEqual({
       elementState: {
         value: '01.01',
@@ -291,7 +291,7 @@ describe('dateInputMaskOptions', () => {
     { selection: [4, 4] as const, data: '2', expectedSelection: [4, 5] as const },
     { selection: [6, 6] as const, data: '2024', expectedSelection: [6, 10] as const },
     { selection: [4, 4] as const, data: '2a0', expectedSelection: [4, 7] as const },
-  ])('выбирает editable characters для замены из позиции $selection', ({ selection, data, expectedSelection }) => {
+  ])('selects editable characters for replacement from $selection', ({ selection, data, expectedSelection }) => {
     expect(preprocessDateInput({ value: '31.01.2026', selection }, data, 'insert')).toEqual({
       elementState: {
         value: '31.01.2026',
@@ -305,7 +305,7 @@ describe('dateInputMaskOptions', () => {
     { value: '31.01.2026', selection: [4, 5] as const, data: '12' },
     { value: '31.01.-2026', selection: [6, 7] as const, data: '2' },
     { value: '31.01.2026', selection: [9, 10] as const, data: '7' },
-  ])('сохраняет явный selection $selection при replacement', ({ value, selection, data }) => {
+  ])('preserves explicit selection $selection during replacement', ({ value, selection, data }) => {
     expect(preprocessDateInput({ value, selection }, data, 'insert')).toEqual({
       elementState: { value, selection },
       data,
@@ -318,7 +318,7 @@ describe('dateInputMaskOptions', () => {
     { value: '31.01.-2026', selection: [0, 2] as const, data: '2', expectedSelection: [0, 1] as const },
     { value: '31.01.-2026', selection: [6, 8] as const, data: '2', expectedSelection: [6, 8] as const },
     { value: '31.01.2026', selection: [8, 10] as const, data: '7', expectedSelection: [8, 10] as const },
-  ])('ограничивает replacement исходным selection $selection', ({ value, selection, data, expectedSelection }) => {
+  ])('limits replacement to the original selection $selection', ({ value, selection, data, expectedSelection }) => {
     expect(preprocessDateInput({ value, selection }, data, 'insert')).toEqual({
       elementState: {
         value,
@@ -329,7 +329,7 @@ describe('dateInputMaskOptions', () => {
   });
 
   it.each(['validation', 'deleteBackward', 'deleteForward'] as const)(
-    'не применяет insert preprocessing к empty input для $actionType',
+    'skips insert preprocessing for empty input during $actionType',
     (actionType) => {
       expect(preprocessDateInput({ value: '', selection: [0, 0] }, '', actionType)).toEqual({
         elementState: { value: '', selection: [0, 0] },
@@ -342,7 +342,7 @@ describe('dateInputMaskOptions', () => {
     { actionType: 'deleteBackward' as const, selection: [1, 2] as const, expected: '10.08.2026' },
     { actionType: 'deleteForward' as const, selection: [0, 1] as const, expected: '09.08.2026' },
     { actionType: 'deleteBackward' as const, selection: [0, 5] as const, expected: '00.00.2026' },
-  ])('подменяет выбранные digits нулями для $actionType', ({ actionType, selection, expected }) => {
+  ])('replaces selected digits with zeros for $actionType', ({ actionType, selection, expected }) => {
     expect(preprocessDateInput({ value: '19.08.2026', selection }, '', actionType)).toEqual({
       elementState: {
         value: expected,
@@ -356,7 +356,7 @@ describe('dateInputMaskOptions', () => {
     { value: '19.08.2026', selection: [2, 3] as const },
     { value: '01.01.-2026', selection: [6, 7] as const },
     { value: '19.08.2026', selection: [0, 10] as const },
-  ])('не подменяет нулями special deletion $selection', ({ value, selection }) => {
+  ])('does not substitute zeros for special deletion $selection', ({ value, selection }) => {
     expect(preprocessDateInput({ value, selection }, '', 'deleteForward')).toEqual({
       elementState: { value, selection },
       data: '',
@@ -369,7 +369,7 @@ describe('dateInputMaskOptions', () => {
     { source: '0101', expected: '01.01' },
     { source: '01012026', expected: '01.01.2026' },
     { source: '0101-2026', expected: '01.01.-2026' },
-  ])('вставляет разделители при преобразовании whole value $source', ({ source, expected }) => {
+  ])('inserts separators when transforming the whole value $source', ({ source, expected }) => {
     expect(maskitoTransform(source, dateInputMaskOptions)).toBe(expected);
   });
 
@@ -377,27 +377,27 @@ describe('dateInputMaskOptions', () => {
     { data: '31/12/2026', expected: '31.12.2026' },
     { data: '29-02-2024', expected: '' },
     { data: '01.01.-2026', expected: '01.01.-2026' },
-  ])('нормализует вставку полной даты $data', ({ data, expected }) => {
+  ])('normalizes a pasted full date $data', ({ data, expected }) => {
     expect(insertDateInput({ value: '', selection: [0, 0] }, data).value).toBe(expected);
   });
 
-  it.each(['letters', '...', ' / '])('не меняет значение при вставке без editable characters: %j', (data) => {
+  it.each(['letters', '...', ' / '])('preserves the value for insertions without editable characters: %j', (data) => {
     expect(insertDateInput({ value: '19.08.2026', selection: [0, 0] }, data).value).toBe('19.08.2026');
   });
 
-  it('не дублирует введённые пользователем разделители', () => {
+  it('does not duplicate user-entered separators', () => {
     expect(insertDateInput({ value: '01.01.2026', selection: [2, 2] }, '.').value).toBe('01.01.2026');
     expect(insertDateInput({ value: '01.01.2026', selection: [5, 5] }, '.').value).toBe('01.01.2026');
   });
 
-  it('отклоняет разделитель в позиции editable character', () => {
+  it('rejects a separator at an editable character position', () => {
     expect(insertDateInput({ value: '01.01.2026', selection: [1, 1] }, '.').value).toBe('01.01.2026');
   });
 
   it.each([
     { value: '01.01', selection: [5, 5] as const },
     { value: '01.01.', selection: [6, 6] as const },
-  ])('добавляет минус в начало года для $value', ({ value, selection }) => {
+  ])('adds a minus sign at the year start for $value', ({ value, selection }) => {
     expect(insertDateInput({ value, selection }, '-').value).toBe('01.01.-');
   });
 
@@ -406,15 +406,15 @@ describe('dateInputMaskOptions', () => {
     { value: '', selection: [0, 0] as const, data: '01-012026' },
     { value: '', selection: [0, 0] as const, data: '0101--2026' },
     { value: '01.01.2026', selection: [3, 3] as const, data: '-' },
-  ])('отклоняет минус вне начала года: $data', ({ value, selection, data }) => {
+  ])('rejects a minus sign outside the year start: $data', ({ value, selection, data }) => {
     expect(insertDateInput({ value, selection }, data).value).toBe(value);
   });
 
-  it('заменяет выбранную положительную дату отрицательной при paste', () => {
+  it('replaces a selected positive-year date with a negative-year date on paste', () => {
     expect(insertDateInput({ value: '19.08.2026', selection: [0, 10] }, '0101-44').value).toBe('01.01.-44');
   });
 
-  it('заменяет отрицательный год положительным при paste', () => {
+  it('replaces a negative year with a positive year on paste', () => {
     expect(insertDateInput({ value: '01.01.-2026', selection: [6, 11] }, '44').value).toBe('01.01.44');
   });
 
@@ -424,48 +424,48 @@ describe('dateInputMaskOptions', () => {
     { selection: [4, 4] as const, data: '2', expected: '31.02.2026' },
     { selection: [6, 6] as const, data: '2024', expected: '31.01.2024' },
     { selection: [9, 9] as const, data: '7', expected: '31.01.2027' },
-  ])('заменяет editable characters существующей даты из позиции $selection', ({ selection, data, expected }) => {
+  ])('replaces editable characters of an existing date from $selection', ({ selection, data, expected }) => {
     expect(insertDateInput({ value: '31.01.2026', selection }, data).value).toBe(expected);
   });
 
-  it('сохраняет временно invalid дату при смене месяца', () => {
+  it('preserves a temporarily invalid date when changing the month', () => {
     const edited = insertDateInput({ value: '31.01.2026', selection: [4, 5] }, '2').value;
 
     expect(edited).toBe('31.02.2026');
     expect(parseDateInputValue(edited)).toEqual({ status: 'invalid' });
   });
 
-  it('сохраняет временно invalid дату при смене високосного года', () => {
+  it('preserves a temporarily invalid date when changing the leap year', () => {
     const edited = insertDateInput({ value: '29.02.2024', selection: [6, 10] }, '2023').value;
 
     expect(edited).toBe('29.02.2023');
     expect(parseDateInputValue(edited)).toEqual({ status: 'invalid' });
   });
 
-  it('добавляет данные в конец incomplete input', () => {
+  it('appends data to incomplete input', () => {
     expect(insertDateInput({ value: '01.01.20', selection: [8, 8] }, '26').value).toBe('01.01.2026');
   });
 
   it.each([
     { actionType: 'deleteBackward' as const, selection: [1, 2] as const, expected: '10.08.2026' },
     { actionType: 'deleteForward' as const, selection: [0, 1] as const, expected: '09.08.2026' },
-  ])('заменяет удаляемую цифру нулём для $actionType', ({ actionType, selection, expected }) => {
+  ])('replaces the deleted digit with zero for $actionType', ({ actionType, selection, expected }) => {
     expect(deleteDateInput({ value: '19.08.2026', selection }, actionType).value).toBe(expected);
   });
 
-  it('заменяет нулями несколько удаляемых сегментов, сохраняя разделитель', () => {
+  it('replaces multiple deleted segments with zeros while preserving the separator', () => {
     expect(deleteDateInput({ value: '19.08.2026', selection: [0, 5] }, 'deleteBackward').value).toBe('00.00.2026');
   });
 
-  it('оставляет separator-only deletion на обработку Maskito', () => {
+  it('leaves separator-only deletion to Maskito', () => {
     expect(deleteDateInput({ value: '19.08.2026', selection: [2, 3] }, 'deleteForward').value).toBe('19.08.2026');
   });
 
-  it('позволяет удалить минус отрицательного года', () => {
+  it('allows deleting the minus sign from a negative year', () => {
     expect(deleteDateInput({ value: '01.01.-2026', selection: [6, 7] }, 'deleteForward').value).toBe('01.01.2026');
   });
 
-  it('позволяет удалить значение целиком', () => {
+  it('allows deleting the entire value', () => {
     expect(deleteDateInput({ value: '19.08.2026', selection: [0, 10] }, 'deleteBackward').value).toBe('');
   });
 });

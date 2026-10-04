@@ -22,7 +22,7 @@ function setupNavigation(initialItems: Array<string> = ['alpha', 'beta', 'gamma'
 }
 
 describe('useDrSelectNavigation', () => {
-  it('не активирует option до явной инициализации и затем выбирает selected option', () => {
+  it('leaves options inactive until explicit initialization, then activates the selected option', () => {
     const { navigation, getActiveItem } = setupNavigation(undefined, 'beta');
 
     expect(getActiveItem()).toBeUndefined();
@@ -32,7 +32,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('beta');
   });
 
-  it.each([undefined, 'missing'])('активирует первую option, когда selected item равен $selected', (selected) => {
+  it.each([undefined, 'missing'])('activates the first option when the selected item is $selected', (selected) => {
     const { navigation, getActiveItem } = setupNavigation(undefined, selected);
 
     navigation.activateInitialItem();
@@ -46,7 +46,7 @@ describe('useDrSelectNavigation', () => {
     { position: 'last' as const, expected: 'gamma' },
     { position: 'next' as const, expected: 'gamma' },
     { position: 'previous' as const, expected: 'alpha' },
-  ])('активирует $expected для initial position $position', ({ position, expected }) => {
+  ])('activates $expected for initial position $position', ({ position, expected }) => {
     const { navigation, getActiveItem } = setupNavigation(undefined, 'beta');
 
     navigation.activateInitialItem(position);
@@ -54,7 +54,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe(expected);
   });
 
-  it('циклически инициализирует next после последней и previous перед первой option', () => {
+  it('wraps next initialization after the last option and previous initialization before the first', () => {
     const next = setupNavigation(undefined, 'gamma');
     const previous = setupNavigation(undefined, 'alpha');
 
@@ -65,7 +65,7 @@ describe('useDrSelectNavigation', () => {
     expect(previous.getActiveItem()).toBe('gamma');
   });
 
-  it('различает next и last при selected первой option', () => {
+  it('distinguishes next from last when the first option is selected', () => {
     const next = setupNavigation(undefined, 'alpha');
     const last = setupNavigation(undefined, 'alpha');
 
@@ -76,7 +76,7 @@ describe('useDrSelectNavigation', () => {
     expect(last.getActiveItem()).toBe('gamma');
   });
 
-  it('использует первую и последнюю option для next/previous без selected item', () => {
+  it('uses the first and last options for next/previous when no item is selected', () => {
     const next = setupNavigation();
     const previous = setupNavigation();
 
@@ -87,7 +87,7 @@ describe('useDrSelectNavigation', () => {
     expect(previous.getActiveItem()).toBe('gamma');
   });
 
-  it('переходит next/previous и циклически проходит обе границы списка', () => {
+  it('moves next/previous and wraps at both list boundaries', () => {
     const { navigation, getActiveItem } = setupNavigation();
 
     navigation.activateFirstItem();
@@ -109,7 +109,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('alpha');
   });
 
-  it('начинает move от selected option, если active option ещё не задана', () => {
+  it('starts moving from the selected option when no active option is set', () => {
     const next = setupNavigation(undefined, 'beta');
     const previous = setupNavigation(undefined, 'beta');
 
@@ -120,7 +120,7 @@ describe('useDrSelectNavigation', () => {
     expect(previous.getActiveItem()).toBe('alpha');
   });
 
-  it('активирует first/last напрямую и сбрасывает active option для недопустимой позиции', () => {
+  it('activates first/last directly and resets the active option for an invalid position', () => {
     const { navigation, getActiveItem } = setupNavigation();
 
     navigation.activateLastItem();
@@ -142,7 +142,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('alpha');
   });
 
-  it('остаётся на singleton option при движении в обе стороны', () => {
+  it('stays on the only option when moving in either direction', () => {
     const { navigation, getActiveItem } = setupNavigation(['only']);
 
     navigation.activateInitialItem();
@@ -153,7 +153,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('only');
   });
 
-  it('не активирует option для пустого списка ни одним публичным переходом', () => {
+  it('leaves options inactive in an empty list for all public navigation methods', () => {
     const { navigation, getActiveItem } = setupNavigation([]);
 
     navigation.activateInitialItem();
@@ -169,7 +169,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBeUndefined();
   });
 
-  it('после сокращения списка восстанавливает selected option, если active вышла за границу', async () => {
+  it('restores the selected option when the active index is out of bounds after the list shrinks', async () => {
     const { items, navigation, getActiveItem } = setupNavigation(undefined, 'beta');
 
     navigation.activateLastItem();
@@ -181,7 +181,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('beta');
   });
 
-  it('сбрасывает active option при очистке списка', async () => {
+  it('resets the active option when the list is cleared', async () => {
     const { items, navigation, getActiveItem } = setupNavigation();
 
     navigation.activateFirstItem();
@@ -196,7 +196,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBeUndefined();
   });
 
-  it('сохраняет active позицию при замене списка той же длины', async () => {
+  it('preserves the active position when replacing the list with one of the same length', async () => {
     const { items, navigation, getActiveItem } = setupNavigation();
 
     navigation.activateItem(1);
@@ -206,7 +206,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBe('two');
   });
 
-  it('не активирует option автоматически при заполнении ранее пустого списка', async () => {
+  it('does not automatically activate an option when a previously empty list is populated', async () => {
     const { items, getActiveItem } = setupNavigation([]);
 
     items.value = ['alpha', 'beta'];
@@ -215,7 +215,7 @@ describe('useDrSelectNavigation', () => {
     expect(getActiveItem()).toBeUndefined();
   });
 
-  it('учитывает внешнее изменение selected item при следующей явной инициализации', () => {
+  it('uses an externally changed selected item on the next explicit initialization', () => {
     const { selectedItem, navigation, getActiveItem } = setupNavigation(undefined, 'alpha');
 
     navigation.activateInitialItem();

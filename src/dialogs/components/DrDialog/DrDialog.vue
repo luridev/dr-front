@@ -14,6 +14,31 @@ const slots = defineSlots<DrDialogSlots>();
 const titleId = useId();
 const panel = useTemplateRef<HTMLElement>('panel');
 
+function handlePanelKeydown(event: KeyboardEvent) {
+  const element = panel.value;
+
+  if (
+    event.key !== 'Tab' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
+    element == null || element.closest('[inert]') != null
+  ) {
+    return;
+  }
+
+  const initialFocusElement = element.querySelector<HTMLElement>('[data-dr-dialog-initial-focus]');
+  const closeButton = element.querySelector<HTMLButtonElement>('.DrDialog__close');
+
+  if (initialFocusElement == null || initialFocusElement.tabIndex < 0 || closeButton == null) {
+    return;
+  }
+
+  if (event.target !== (event.shiftKey ? closeButton : initialFocusElement)) {
+    return;
+  }
+
+  event.preventDefault();
+  (event.shiftKey ? initialFocusElement : closeButton).focus();
+}
+
 onMounted(async () => {
   await nextTick();
 
@@ -24,6 +49,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- Delegated Tab boundaries. -->
   <section
     :id="props.id"
     ref="panel"
@@ -33,6 +59,7 @@ onMounted(async () => {
     aria-modal="true"
     :aria-labelledby="titleId"
     tabindex="-1"
+    @keydown="handlePanelKeydown"
   >
     <header class="DrDialog__header">
       <h2

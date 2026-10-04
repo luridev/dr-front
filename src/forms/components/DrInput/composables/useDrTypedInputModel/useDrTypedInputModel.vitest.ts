@@ -149,7 +149,7 @@ function setupModel(value: number | null, initialFormat = 'A', mount = true) {
 }
 
 describe('useDrTypedInputModel', () => {
-  it('не эмитит status до mount и публикует последнее состояние при mount', () => {
+  it('emits no status before mount and publishes the latest status on mount', () => {
     const result = setupModel(null, 'A', false);
 
     expect(result.statuses).toEqual([]);
@@ -166,7 +166,7 @@ describe('useDrTypedInputModel', () => {
   it.each([
     { modelValue: null, expectedInput: '', expectedStatus: 'empty' },
     { modelValue: 7, expectedInput: 'A:7', expectedStatus: 'valid' },
-  ] as const)('инициализирует model $modelValue', ({ modelValue, expectedInput, expectedStatus }) => {
+  ] as const)('initializes model $modelValue', ({ modelValue, expectedInput, expectedStatus }) => {
     const result = setupModel(modelValue);
 
     expect(result.inputValue.value).toBe(expectedInput);
@@ -179,7 +179,7 @@ describe('useDrTypedInputModel', () => {
     { source: 'pending', expectedModel: null, expectedStatus: 'incomplete' },
     { source: 'invalid', expectedModel: null, expectedStatus: 'invalid' },
     { source: 'out-of-range', expectedModel: null, expectedStatus: 'out-of-range' },
-  ] as const)('применяет пользовательский input $source', ({ source, expectedModel, expectedStatus }) => {
+  ] as const)('applies user input $source', ({ source, expectedModel, expectedStatus }) => {
     const result = setupModel(7);
 
     result.updateInputValue(source);
@@ -190,7 +190,7 @@ describe('useDrTypedInputModel', () => {
   });
 
   it.each(['pending', 'invalid', 'out-of-range'] as const)(
-    'сохраняет pending текст $source после model watcher',
+    'preserves pending text $source after the model watcher runs',
     async (source) => {
       const result = setupModel(7);
 
@@ -203,7 +203,7 @@ describe('useDrTypedInputModel', () => {
     },
   );
 
-  it('не форматирует обратно собственный valid update после nextTick', async () => {
+  it('does not reformat its own valid update after nextTick', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('value:007');
@@ -217,7 +217,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.inputValue.value).toBe('value:007');
   });
 
-  it('сохраняет последний из нескольких собственных updates одного tick', async () => {
+  it('preserves the latest of its own updates within a single tick', async () => {
     const result = setupModel(0);
 
     result.updateInputValue('value:1');
@@ -229,7 +229,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid']);
   });
 
-  it('очищает pending request, если ModelRef отложил его применение', async () => {
+  it('clears the pending request when ModelRef defers applying it', async () => {
     const controlledModel = createControlledModel(1, false);
     const result = setupWithModel(controlledModel.model);
 
@@ -248,7 +248,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.inputValue.value).toBe('A:2');
   });
 
-  it('синхронизирует повторно опубликованное собственное значение после cleanup', async () => {
+  it('synchronizes its own value when republished after cleanup', async () => {
     const controlledModel = createControlledModel(1, true);
     const result = setupWithModel(controlledModel.model);
 
@@ -263,7 +263,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.inputValue.value).toBe('A:2');
   });
 
-  it('не создаёт pending update для эквивалентного model value', async () => {
+  it('does not create a pending update for an equivalent model value', async () => {
     const result = setupModel(7);
 
     result.updateInputValue('value:007');
@@ -274,7 +274,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid']);
   });
 
-  it('синхронизирует внешние переходы value → value → null → value', async () => {
+  it('synchronizes external value → value → null → value transitions', async () => {
     const result = setupModel(1);
 
     result.model.value = 2;
@@ -291,7 +291,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'empty', 'valid']);
   });
 
-  it('внешний update перебивает pending пользовательский текст', async () => {
+  it('lets an external update override pending user text', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('pending');
@@ -303,7 +303,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'incomplete', 'valid']);
   });
 
-  it('внешний null перебивает pending valid пользовательский текст', async () => {
+  it('lets an external null override pending valid user text', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('value:2');
@@ -315,7 +315,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'empty']);
   });
 
-  it('смена format dependency канонизирует собственный valid input', async () => {
+  it('canonicalizes its own valid input when a format dependency changes', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('value:002');
@@ -327,7 +327,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid']);
   });
 
-  it('смена format dependency сбрасывает invalid pending input', async () => {
+  it('resets invalid pending input when a format dependency changes', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('invalid');
@@ -339,7 +339,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'invalid', 'empty']);
   });
 
-  it('после смены format dependency принимает внешний переход model в null', async () => {
+  it('accepts an external model transition to null after a format dependency changes', async () => {
     const result = setupModel(1);
 
     result.formatSource.value = 'B';
@@ -354,7 +354,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'empty']);
   });
 
-  it('обрабатывает одновременную смену внешней model и format dependency', async () => {
+  it('handles simultaneous changes to the external model and a format dependency', async () => {
     const result = setupModel(1);
 
     result.updateInputValue('pending');
@@ -366,7 +366,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['valid', 'incomplete', 'valid']);
   });
 
-  it('эмитит только фактические изменения status', () => {
+  it('emits only actual status changes', () => {
     const result = setupModel(null);
 
     result.updateInputValue('pending');
@@ -380,7 +380,7 @@ describe('useDrTypedInputModel', () => {
     expect(result.statuses).toEqual(['empty', 'incomplete', 'valid', 'invalid', 'valid']);
   });
 
-  it('интегрируется с реальным time format interface', async () => {
+  it('integrates with the real time format interface', async () => {
     const initialValue = Temporal.PlainTime.from('12:34');
     const model = createModel(initialValue);
     const statuses: Array<DrTypedInputStatus> = [];

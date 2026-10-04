@@ -37,7 +37,7 @@ function setupControls(
 }
 
 describe('useDrInputNumberControls', () => {
-  it('увеличивает и уменьшает обычное значение с базовым step', () => {
+  it('increments and decrements a regular value with the default step', () => {
     const result = setupControls(10);
 
     expect(result.canIncrement.value).toBe(true);
@@ -51,7 +51,7 @@ describe('useDrInputNumberControls', () => {
     expect(result.model.value).toBe(9);
   });
 
-  it('применяет custom integer step в обе стороны', () => {
+  it('applies a custom integer step in both directions', () => {
     const result = setupControls(10, undefined, undefined, 5);
 
     expect(result.increment()).toBe(true);
@@ -63,7 +63,7 @@ describe('useDrInputNumberControls', () => {
     expect(result.model.value).toBe(5);
   });
 
-  it('начинает null model со step в разрешённом направлении', () => {
+  it('starts a null model with a step in an allowed direction', () => {
     const result = setupControls(null, undefined, undefined, 3);
 
     expect(result.canIncrement.value).toBe(true);
@@ -77,7 +77,7 @@ describe('useDrInputNumberControls', () => {
     expect(result.model.value).toBe(-3);
   });
 
-  it('выбирает ближайшую одностороннюю bound для null model', () => {
+  it('chooses the nearest bound for a null model in a range on one side of zero', () => {
     const positive = setupControls(null, 5, 10, 3);
 
     expect(positive.increment()).toBe(true);
@@ -95,7 +95,7 @@ describe('useDrInputNumberControls', () => {
     expect(negative.increment()).toBe(false);
   });
 
-  it('отключает оба направления для zero-only диапазона', () => {
+  it('disables both directions for a zero-only range', () => {
     const result = setupControls(null, 0, 0);
 
     expect(result.isBoundsValid.value).toBe(true);
@@ -107,7 +107,7 @@ describe('useDrInputNumberControls', () => {
     expect(result.model.value).toBeNull();
   });
 
-  it('соблюдает exact и пересекаемые max boundaries', () => {
+  it('respects the maximum when a step reaches or crosses it', () => {
     const atMax = setupControls(10, 0, 10, 3);
 
     expect(atMax.canIncrement.value).toBe(false);
@@ -125,7 +125,7 @@ describe('useDrInputNumberControls', () => {
     expect(crossesMax.model.value).toBe(10);
   });
 
-  it('соблюдает exact и пересекаемые min boundaries', () => {
+  it('respects the minimum when a step reaches or crosses it', () => {
     const atMin = setupControls(-10, -10, 0, 3);
 
     expect(atMin.canDecrement.value).toBe(false);
@@ -143,7 +143,7 @@ describe('useDrInputNumberControls', () => {
     expect(crossesMin.model.value).toBe(-10);
   });
 
-  it('возвращает out-of-bounds model в диапазон только разрешённым направлением', () => {
+  it('returns an out-of-bounds model to the range only in the allowed direction', () => {
     const belowMin = setupControls(-5, 0, 10);
 
     expect(belowMin.canDecrement.value).toBe(false);
@@ -164,7 +164,7 @@ describe('useDrInputNumberControls', () => {
     { value: 0, direction: 'decrement', expected: -1 },
     { value: -2, direction: 'increment', expected: 3 },
     { value: 2, direction: 'decrement', expected: -3 },
-  ])('пересекает sign boundary: $value $direction → $expected', ({ value, direction, expected }) => {
+  ])('crosses the sign boundary: $value $direction → $expected', ({ value, direction, expected }) => {
     const result = setupControls(value, -10, 10, Math.abs(expected - value));
     const changed = direction === 'increment' ? result.increment() : result.decrement();
 
@@ -173,7 +173,7 @@ describe('useDrInputNumberControls', () => {
     expect(Object.is(result.model.value, -0)).toBe(false);
   });
 
-  it('не допускает unsafe arithmetic около safe integer boundaries', () => {
+  it('prevents unsafe arithmetic near safe integer boundaries', () => {
     const nearMax = setupControls(Number.MAX_SAFE_INTEGER - 2, undefined, undefined, 5);
 
     expect(nearMax.increment()).toBe(true);
@@ -195,7 +195,7 @@ describe('useDrInputNumberControls', () => {
   });
 
   it.each([0, -1, 1.5, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
-    'отключает controls для invalid step %s',
+    'disables controls for invalid step %s',
     (step) => {
       const result = setupControls(1, -10, 10, step);
 
@@ -221,7 +221,7 @@ describe('useDrInputNumberControls', () => {
     { min: 1, max: 2.5 },
     { min: Number.NEGATIVE_INFINITY, max: 2 },
     { min: 1, max: Number.POSITIVE_INFINITY },
-  ])('отключает controls для invalid bounds $min…$max', ({ min, max }) => {
+  ])('disables controls for invalid bounds $min…$max', ({ min, max }) => {
     const result = setupControls(1, min, max);
 
     expect(result.isBoundsValid.value).toBe(false);
@@ -232,7 +232,7 @@ describe('useDrInputNumberControls', () => {
     expect(result.decrement()).toBe(false);
   });
 
-  it('реактивно учитывает max, min, step и disabled', () => {
+  it('reactively responds to max, min, step and disabled', () => {
     const result = setupControls(5, 0, 10);
 
     result.maxSource.value = 4;

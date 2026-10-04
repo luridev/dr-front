@@ -58,7 +58,7 @@ const textFormat = {
 } satisfies DrInputInternalFormat;
 
 describe('useDrInputFormat', () => {
-  it('использует default settings без provider и public format', async () => {
+  it('uses default settings without a provider or public format', async () => {
     const { Input, settings } = createFormatProbe();
 
     await renderToString(createSSRApp(() => h(Input, { name: 'input' })));
@@ -66,7 +66,7 @@ describe('useDrInputFormat', () => {
     expect(settings()).toEqual(defaultDrInputFormatSettings);
   });
 
-  it('реактивно выбирает public integer и возвращается к обычному input', async () => {
+  it('reactively selects the public integer format and returns to plain input', async () => {
     const publicFormat = ref<DrInputFormat>();
     const { Input, settings } = createFormatProbe(publicFormat);
 
@@ -80,7 +80,7 @@ describe('useDrInputFormat', () => {
     expect(settings()).toEqual(defaultDrInputFormatSettings);
   });
 
-  it('выбирает injected settings целиком вместо public integer', async () => {
+  it('uses all injected settings instead of the public integer format', async () => {
     const { Input, provider, settings } = createFormatProbe(ref({ type: 'integer' }));
     const Provider = provider(textFormat);
 
@@ -90,7 +90,7 @@ describe('useDrInputFormat', () => {
     expect(settings().maskitoOptions).toBe(textFormat.maskitoOptions);
   });
 
-  it('не заменяет явную internal null mask публичной маской', async () => {
+  it('does not replace an explicit internal null mask with the public mask', async () => {
     const internalFormat = { maskitoOptions: null, inputMode: 'text' } satisfies DrInputInternalFormat;
     const { Input, provider, settings } = createFormatProbe(ref({ type: 'integer' }));
     const Provider = provider(internalFormat);
@@ -100,7 +100,7 @@ describe('useDrInputFormat', () => {
     expect(settings()).toEqual(internalFormat);
   });
 
-  it('сохраняет реактивную связь с предоставленным computed source', async () => {
+  it('preserves the reactive connection to the provided computed source', async () => {
     const value = shallowRef<DrInputInternalFormat>(textFormat);
     const source = computed(() => value.value);
     const { Input, provider, settings } = createFormatProbe();
@@ -115,7 +115,7 @@ describe('useDrInputFormat', () => {
     expect(settings().maskitoOptions).toBe(integerDrInputFormatSettings.maskitoOptions);
   });
 
-  it('сбрасывает наследование для потомков, сохраняя source у самого input и sibling', async () => {
+  it('resets inheritance for descendants while preserving the source for the input and its sibling', async () => {
     const { Input, provider, settings } = createFormatProbe();
     const Provider = provider(textFormat);
 
@@ -129,7 +129,7 @@ describe('useDrInputFormat', () => {
     expect(settings('slot')).toEqual(defaultDrInputFormatSettings);
   });
 
-  it('применяет ближайший nested provider и снова изолирует его descendants', async () => {
+  it('uses the nearest nested provider and isolates its descendants again', async () => {
     const { Input, provider, settings } = createFormatProbe();
     const Outer = provider(textFormat);
     const Inner = provider(integerDrInputFormatSettings);

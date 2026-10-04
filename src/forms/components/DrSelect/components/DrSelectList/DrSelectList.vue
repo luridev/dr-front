@@ -13,7 +13,10 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<DrSelectListProps<T>>();
+const props = withDefaults(defineProps<DrSelectListProps<T>>(), {
+  tabindex: -1,
+});
+
 const emit = defineEmits<DrSelectListEmits<T>>();
 defineSlots<DrSelectListSlots<T>>();
 
@@ -147,12 +150,13 @@ watch(
 </script>
 
 <template>
+  <!-- eslint-disable-next-line vuejs-accessibility/interactive-supports-focus -- Typed -1/0 tabindex. -->
   <div
     :id="props.id"
     class="DrSelectList"
     :class="$attrs.class"
     role="listbox"
-    tabindex="-1"
+    :tabindex="props.tabindex"
     :aria-label="props.accessibleLabel"
     :aria-activedescendant="activeDescendant"
     data-dr-dialog-initial-focus

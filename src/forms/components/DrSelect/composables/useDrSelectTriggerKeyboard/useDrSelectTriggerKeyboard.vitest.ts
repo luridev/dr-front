@@ -30,7 +30,7 @@ function setupKeyboard(isOpen: boolean) {
 }
 
 describe('useDrSelectTriggerKeyboard', () => {
-  it.each(['Enter', ' '])('открывает закрытый select по клавише %j', (key) => {
+  it.each(['Enter', ' '])('opens a closed select on %j', (key) => {
     const { openOptions, selectActiveItem, press } = setupKeyboard(false);
 
     const preventDefault = press(key);
@@ -41,7 +41,7 @@ describe('useDrSelectTriggerKeyboard', () => {
     expect(selectActiveItem).not.toHaveBeenCalled();
   });
 
-  it.each(['Enter', ' '])('выбирает active option в открытом select по клавише %j', (key) => {
+  it.each(['Enter', ' '])('selects the active option in an open select on %j', (key) => {
     const { openOptions, selectActiveItem, press } = setupKeyboard(true);
 
     const preventDefault = press(key);
@@ -56,7 +56,7 @@ describe('useDrSelectTriggerKeyboard', () => {
     { key: 'ArrowUp', initial: 'previous' as const },
     { key: 'Home', initial: 'first' as const },
     { key: 'End', initial: 'last' as const },
-  ])('открывает закрытый select с initial=$initial по $key', ({ key, initial }) => {
+  ])('opens a closed select with initial=$initial on $key', ({ key, initial }) => {
     const { navigation, openOptions, press } = setupKeyboard(false);
 
     const preventDefault = press(key);
@@ -73,7 +73,7 @@ describe('useDrSelectTriggerKeyboard', () => {
     { key: 'ArrowUp', action: 'move', offset: -1 },
     { key: 'Home', action: 'first' },
     { key: 'End', action: 'last' },
-  ] as const)('выполняет navigation action $action по $key в открытом select', ({ key, action, offset }) => {
+  ] as const)('performs navigation action $action on $key in an open select', ({ key, action, offset }) => {
     const { navigation, openOptions, press } = setupKeyboard(true);
 
     const preventDefault = press(key);
@@ -96,7 +96,7 @@ describe('useDrSelectTriggerKeyboard', () => {
     }
   });
 
-  it.each([false, true])('закрывает select по Tab при isOpen=$isOpen без preventDefault', (isOpen) => {
+  it.each([false, true])('closes the select on Tab with isOpen=$isOpen without preventDefault', (isOpen) => {
     const { popup, press } = setupKeyboard(isOpen);
 
     const preventDefault = press('Tab');
@@ -105,7 +105,7 @@ describe('useDrSelectTriggerKeyboard', () => {
     expect(popup.close).toHaveBeenCalledOnce();
   });
 
-  it('игнорирует нерелевантную клавишу без callbacks и preventDefault', () => {
+  it('ignores unrelated keys without invoking callbacks or preventDefault', () => {
     const { popup, navigation, openOptions, selectActiveItem, press } = setupKeyboard(true);
 
     const preventDefault = press('PageDown');

@@ -17,7 +17,7 @@ describe('parseIntegerInputValue', () => {
     { source: '00042', expected: 42 },
     { source: `1${thousandSeparator}234`, expected: 1234 },
     { source: `-1${thousandSeparator}234`, expected: -1234 },
-  ])('разбирает integer $source как $expected', ({ source, expected }) => {
+  ])('parses integer $source as $expected', ({ source, expected }) => {
     const result = parseIntegerInputValue(source);
 
     expect(result).toBe(expected);
@@ -25,13 +25,13 @@ describe('parseIntegerInputValue', () => {
   });
 
   it.each(['', '-', '+', '+1', ' 1', '1 ', '1 000', '1.0', '1,0', '1.5', '1e3', 'Infinity', 'NaN', '12a', 'a12'])(
-    'отклоняет invalid или incomplete input %j',
+    'rejects invalid or incomplete input %j',
     (source) => {
       expect(parseIntegerInputValue(source)).toBeNull();
     },
   );
 
-  it('принимает границы safe integer', () => {
+  it('accepts safe integer boundaries', () => {
     expect(parseIntegerInputValue(String(Number.MAX_SAFE_INTEGER))).toBe(Number.MAX_SAFE_INTEGER);
     expect(parseIntegerInputValue(String(Number.MIN_SAFE_INTEGER))).toBe(Number.MIN_SAFE_INTEGER);
   });
@@ -41,7 +41,7 @@ describe('parseIntegerInputValue', () => {
     String(Number.MIN_SAFE_INTEGER - 1),
     '9007199254740993',
     '1'.repeat(400),
-  ])('отклоняет integer вне безопасного диапазона: %s', (source) => {
+  ])('rejects integers outside the safe range: %s', (source) => {
     expect(parseIntegerInputValue(source)).toBeNull();
   });
 });
@@ -59,7 +59,7 @@ describe('stringifyIntegerInputValue', () => {
       value: Number.MAX_SAFE_INTEGER,
       expected: `9${thousandSeparator}007${thousandSeparator}199${thousandSeparator}254${thousandSeparator}740${thousandSeparator}991`,
     },
-  ])('форматирует $value как $expected', ({ value, expected }) => {
+  ])('formats $value as $expected', ({ value, expected }) => {
     expect(stringifyIntegerInputValue(value)).toBe(expected);
   });
 
@@ -67,11 +67,11 @@ describe('stringifyIntegerInputValue', () => {
     { value: 1.5, expected: '1.5' },
     { value: Number.POSITIVE_INFINITY, expected: 'Infinity' },
     { value: Number.NaN, expected: 'NaN' },
-  ])('сохраняет диагностическое представление не-integer model $value', ({ value, expected }) => {
+  ])('preserves the diagnostic representation of non-integer model $value', ({ value, expected }) => {
     expect(stringifyIntegerInputValue(value)).toBe(expected);
   });
 
-  it.each([0, 1, -1, 42, -42, 1234, -1234])('поддерживает round trip для %s', (value) => {
+  it.each([0, 1, -1, 42, -42, 1234, -1234])('supports round trips for %s', (value) => {
     expect(parseIntegerInputValue(stringifyIntegerInputValue(value))).toBe(value);
   });
 });

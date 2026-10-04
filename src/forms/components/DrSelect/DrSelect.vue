@@ -110,6 +110,7 @@ const {
   component: DrSelectList,
   props: {
     id: mobileListboxId,
+    tabindex: 0,
     items,
     selectedItem: model,
     hasSelection,

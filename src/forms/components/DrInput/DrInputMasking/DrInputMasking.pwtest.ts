@@ -21,7 +21,7 @@ function readSelection(input: Locator): Promise<Array<number | null>> {
   return input.evaluate((element: HTMLInputElement) => [element.selectionStart, element.selectionEnd]);
 }
 
-test('typed wrappers изолируют slot inputs и выбирают ближайший provider', async ({ mount }) => {
+test('typed wrappers isolate slot inputs and use the nearest provider', async ({ mount }) => {
   const component = await mount(storyId);
   const date = getInput(component, 'date');
   const plain = getInput(component, 'dateSlot');
@@ -52,7 +52,7 @@ test('typed wrappers изолируют slot inputs и выбирают ближ
   await expect(nestedPlain).not.toHaveAttribute('inputmode');
 });
 
-test('number label slot изолирован, integer model и controls продолжают работать', async ({ mount }) => {
+test('number label slot is isolated while the integer model and controls keep working', async ({ mount }) => {
   const component = await mount(storyId);
   const number = getInput(component, 'number');
   const plain = getInput(component, 'numberSlot');
@@ -72,7 +72,7 @@ test('number label slot изолирован, integer model и controls прод
   await expect(component.getByTestId('number-model')).toHaveText('-22');
 });
 
-test('смена time precision обновляет реальную маску без remount, изменения модели и потери focus', async ({ mount }) => {
+test('time precision changes update the mask without remounting, model changes or focus loss', async ({ mount }) => {
   const component = await mount(storyId);
   const time = getInput(component, 'time');
   const nativeInput = await time.elementHandle();
@@ -102,7 +102,7 @@ test('смена time precision обновляет реальную маску �
   }
 });
 
-test('time сохраняет middle editing, selection, delete/backspace и paste lifecycle', async ({ mount }) => {
+test('time preserves mid-value editing, selection, Delete/Backspace and the paste lifecycle', async ({ mount }) => {
   const component = await mount(storyId, { smallestUnit: 'second' });
   const time = getInput(component, 'time');
 
@@ -154,7 +154,7 @@ test('time сохраняет middle editing, selection, delete/backspace и pas
   await expect(time).toBeFocused();
 });
 
-test('conditional remount получает актуальную precision вместо старой mask', async ({ mount }) => {
+test('conditional remount uses the current precision instead of the stale mask', async ({ mount }) => {
   const component = await mount(storyId);
   const time = getInput(component, 'time');
   const nativeInput = await time.elementHandle();
