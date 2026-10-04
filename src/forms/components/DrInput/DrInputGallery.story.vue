@@ -24,6 +24,14 @@ const emailMessage = computed(() => (emailState.value === 'error' ? 'Include an 
       />
 
       <DrInput
+        v-model="name"
+        label="Read-only name"
+        message="Mirrors Name; focus and copy remain available"
+        readonly
+        :aria="{ clearButtonAriaLabel: 'Clear read-only name' }"
+      />
+
+      <DrInput
         v-model="email"
         label="Email"
         type="email"

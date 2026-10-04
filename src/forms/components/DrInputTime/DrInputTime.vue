@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<DrInputTimeProps>(), {
   autocomplete: 'off',
   clearable: true,
   disabled: false,
+  readonly: false,
   smallestUnit: defaultTimeInputSmallestUnit,
   state: 'normal',
 });
@@ -71,6 +72,7 @@ function handleBlur(event: FocusEvent) {
     :placeholder="props.placeholder"
     :clearable="props.clearable"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     :state="props.state"
     :message="props.message"
     :autocomplete="props.autocomplete"

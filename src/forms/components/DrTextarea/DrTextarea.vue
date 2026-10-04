@@ -25,6 +25,7 @@ const props = withDefaults(defineProps<DrTextareaProps & DrTextareaModelProps>()
   kind: 'field',
   labelPosition: 'top',
   mode: 'textarea',
+  readonly: false,
   state: 'normal',
 });
 
@@ -44,7 +45,7 @@ const clearButtonAriaLabel = computed(() =>
 );
 
 const isClearButtonVisible = computed(
-  () => props.clearable && (model.value !== '' || props.mode === 'content') && !props.disabled,
+  () => props.clearable && (model.value !== '' || props.mode === 'content') && !props.disabled && !props.readonly,
 );
 
 function getTextareaAria(state: ControlState, describedBy?: string): DrTextareaBaseAria {
@@ -67,7 +68,7 @@ function focus(options?: FocusOptions): void {
 }
 
 function handleClear(): void {
-  if (props.disabled) {
+  if (props.disabled || props.readonly) {
     return;
   }
 
@@ -111,6 +112,7 @@ defineExpose({
               ref="textarea"
               v-model="model"
               :disabled="slot.disabled || props.mode === 'content'"
+              :readonly="props.readonly"
               :max-length="props.maxLength"
               :placeholder="props.placeholder"
               :rows="props.rows"
@@ -140,6 +142,7 @@ defineExpose({
             :id="slot.id"
             name="actions"
             :disabled="slot.disabled"
+            :readonly="props.readonly"
           ></slot>
 
           <DrButton

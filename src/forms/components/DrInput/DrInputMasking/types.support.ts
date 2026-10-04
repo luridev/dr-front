@@ -3,4 +3,5 @@ import type { DrInputTimeSmallestUnit } from '@/forms/components/DrInputTime/typ
 export type DrInputMaskingProps = {
   smallestUnit?: DrInputTimeSmallestUnit;
   showTime?: boolean;
+  readonly?: boolean;
 };

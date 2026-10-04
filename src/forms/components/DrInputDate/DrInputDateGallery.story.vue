@@ -37,6 +37,13 @@ function handleReset(): void {
       />
 
       <DrInputDate
+        v-model="date"
+        label="Read-only date"
+        message="Mirrors Date"
+        readonly
+      />
+
+      <DrInputDate
         v-model="optionalDate"
         label="Optional"
         placeholder="DD.MM.YYYY"

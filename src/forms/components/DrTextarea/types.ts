@@ -8,7 +8,7 @@ export type DrTextareaAria = {
 export type DrTextareaMode = 'textarea' | 'content';
 
 export type DrTextareaProps = DrControlFieldProps &
-  Pick<DrTextareaBaseProps, 'maxLength' | 'placeholder' | 'rows'> & {
+  Pick<DrTextareaBaseProps, 'maxLength' | 'placeholder' | 'rows' | 'readonly'> & {
     aria?: DrTextareaAria;
     clearable?: boolean;
     kind?: DrControlKind;
@@ -26,6 +26,7 @@ export type DrTextareaContentSlotProps = {
 export type DrTextareaActionsSlotProps = {
   id: string;
   disabled: boolean;
+  readonly: boolean;
 };
 
 export type DrTextareaSlots = {

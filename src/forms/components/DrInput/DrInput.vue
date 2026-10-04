@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<DrInputProps>(), {
   type: 'text',
   clearable: true,
   disabled: false,
+  readonly: false,
   state: 'normal',
 });
 
@@ -28,7 +29,9 @@ const { maskitoOptions, inputMode } = useDrInputFormat({
   inputFormat: () => props.inputFormat,
 });
 
-const isClearButtonVisible = computed(() => props.clearable && model.value !== '' && !props.disabled);
+const isClearButtonVisible = computed(() =>
+  props.clearable && model.value !== '' && !props.disabled && !props.readonly,
+);
 
 const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(props.label, props.aria?.clearButtonAriaLabel),
@@ -55,6 +58,10 @@ function handleWheel(event: WheelEvent) {
 }
 
 function handleClear() {
+  if (props.readonly) {
+    return;
+  }
+
   model.value = '';
   inputElement.value?.focus();
 }
@@ -102,10 +109,11 @@ defineExpose({
         :input-id="slot.id"
       ></slot>
 
+      <!-- Maskito's own editing handlers bypass native readonly. -->
       <input
         :id="slot.id"
         ref="inputElement"
-        v-maskito="maskitoOptions"
+        v-maskito="props.readonly ? null : maskitoOptions"
         :value="model"
         class="DrInput"
         :class="{ DrInput_clearable: isClearButtonVisible }"
@@ -113,6 +121,7 @@ defineExpose({
         :inputmode="inputMode"
         :placeholder="props.placeholder"
         :disabled="slot.disabled"
+        :readonly="props.readonly"
         :autocomplete="props.autocomplete"
         :role="props.aria?.role"
         :aria-valuemin="props.aria?.ariaValueMin"

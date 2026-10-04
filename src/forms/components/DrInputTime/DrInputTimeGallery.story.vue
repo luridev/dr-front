@@ -34,6 +34,13 @@ function handleStatusUpdate(value: DrInputTimeStatus): void {
       />
 
       <DrInputTime
+        v-model="time"
+        label="Read-only time"
+        message="Mirrors Minutes"
+        readonly
+      />
+
+      <DrInputTime
         v-model="preciseTime"
         label="Seconds"
         smallest-unit="second"

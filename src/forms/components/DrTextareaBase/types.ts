@@ -9,6 +9,7 @@ export type DrTextareaBaseProps = {
   placeholder?: string;
   rows?: number;
   disabled?: boolean;
+  readonly?: boolean;
   aria?: DrTextareaBaseAria;
 };
 

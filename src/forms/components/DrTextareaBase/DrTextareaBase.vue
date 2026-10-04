@@ -8,6 +8,7 @@ defineOptions({
 
 const props = withDefaults(defineProps<DrTextareaBaseProps>(), {
   disabled: false,
+  readonly: false,
   rows: 5,
 });
 
@@ -26,7 +27,7 @@ function focus(options?: FocusOptions): void {
 }
 
 function handlePaste(event: ClipboardEvent) {
-  if (props.maxLength == null) {
+  if (props.readonly || props.maxLength == null) {
     return;
   }
 
@@ -69,6 +70,7 @@ defineExpose({
     :rows="props.rows"
     :maxlength="props.maxLength"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     :aria-invalid="props.aria?.ariaInvalid || undefined"
     :aria-describedby="props.aria?.ariaDescribedBy"
     @blur="handleBlur"

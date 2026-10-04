@@ -29,6 +29,7 @@ function handleLimitExceeded(maxLength: number): void {
     :kind="kind"
     label="Source"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     :state="props.state"
     :message="props.message"
     :max-length="props.maxLength"

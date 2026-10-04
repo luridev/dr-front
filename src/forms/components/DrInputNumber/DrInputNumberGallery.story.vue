@@ -31,6 +31,18 @@ const disabled = ref<number | null>(42);
       />
 
       <DrInputNumber
+        v-model="temperature"
+        label="Read-only temperature"
+        readonly
+        clearable
+        :min="-40"
+        :max="40"
+        :step="5"
+        :aria="{ clearButtonAriaLabel: 'Clear read-only temperature' }"
+        message="Mirrors Temperature"
+      />
+
+      <DrInputNumber
         v-model="amount"
         label="Optional"
         placeholder="Enter a number"

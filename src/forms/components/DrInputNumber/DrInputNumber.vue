@@ -20,6 +20,7 @@ defineOptions({
 const props = withDefaults(defineProps<DrInputNumberProps>(), {
   clearable: false,
   disabled: false,
+  readonly: false,
   state: 'normal',
   step: 1,
 });
@@ -50,7 +51,7 @@ const {
   min: () => props.min,
   max: () => props.max,
   step: () => props.step,
-  disabled: () => props.disabled,
+  disabled: () => props.disabled || props.readonly,
 });
 
 const { inputAria, incrementAriaLabel, decrementAriaLabel, signAriaLabel } = useDrInputNumberAria({
@@ -70,10 +71,15 @@ const aria = computed<DrInputAria>(() => ({
 
 provideDrInputInternalFormat(numberDrInputFormatSettings);
 
-const isSignToggleDisabled = computed(() => props.disabled || !isBoundsValid.value || !canToggleSign.value);
+const isSignToggleDisabled = computed(() =>
+  props.disabled || props.readonly || !isBoundsValid.value || !canToggleSign.value,
+);
 
 function handleBlur(event: FocusEvent) {
-  canonicalizeInputValue();
+  if (!props.readonly) {
+    canonicalizeInputValue();
+  }
+
   emit('blur', event);
 }
 
@@ -88,6 +94,10 @@ function setCaretToEndAfterRender() {
 }
 
 function runControlAction(action: () => boolean) {
+  if (props.readonly) {
+    return false;
+  }
+
   const changed = action();
 
   if (changed) {
@@ -117,7 +127,7 @@ function hasModifier(event: KeyboardEvent | WheelEvent) {
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  if (event.isComposing || hasModifier(event)) {
+  if (props.readonly || event.isComposing || hasModifier(event)) {
     return;
   }
 
@@ -134,7 +144,8 @@ function handleWheel(event: WheelEvent) {
   const input = event.currentTarget;
 
   if (
-    !(input instanceof HTMLInputElement) ||
+    props.readonly ||
+      !(input instanceof HTMLInputElement) ||
       document.activeElement !== input ||
       event.deltaY === 0 ||
       hasModifier(event)
@@ -160,6 +171,7 @@ function handleWheel(event: WheelEvent) {
     :placeholder="props.placeholder"
     :clearable="props.clearable"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     :state="props.state"
     :message="props.message"
     autocomplete="off"

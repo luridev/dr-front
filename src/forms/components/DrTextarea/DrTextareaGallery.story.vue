@@ -6,6 +6,8 @@ import type { DrTextareaExposed } from '@/index';
 defineOptions({ inheritAttrs: false });
 
 const text = ref('A short note for the team.');
+const readonlyText = ref('This note is read-only.');
+const preview = ref('');
 const errorText = ref('');
 const disabledText = ref('This note is disabled.');
 const limitMessage = ref('120 characters max');
@@ -22,6 +24,14 @@ function handleLimitExceeded(limit: number): void {
 function handleClear(): void {
   text.value = '';
   note.value?.focus();
+}
+
+function handlePreview(): void {
+  preview.value = readonlyText.value;
+}
+
+function handleRefresh(): void {
+  readonlyText.value = 'Updated by the parent.';
 }
 </script>
 
@@ -41,7 +51,7 @@ function handleClear(): void {
         <DrButton
           variant="ghost"
           size="small"
-          :disabled="slot.disabled"
+          :disabled="slot.disabled || slot.readonly"
           @click="handleExample"
         >Insert example</DrButton>
 
@@ -49,13 +59,37 @@ function handleClear(): void {
           v-if="text !== ''"
           variant="ghost"
           size="small"
-          :disabled="slot.disabled"
+          :disabled="slot.disabled || slot.readonly"
           @click="handleClear"
         >Clear</DrButton>
       </template>
     </DrTextarea>
 
     <div class="GalleryExample__grid">
+      <DrTextarea
+        v-model="readonlyText"
+        label="Read-only"
+        :rows="3"
+        readonly
+        message="Select or read the text; editing actions are unavailable."
+      >
+        <template #actions="slot">
+          <DrButton
+            variant="ghost"
+            size="small"
+            :disabled="slot.disabled"
+            @click="handlePreview"
+          >Show value</DrButton>
+
+          <DrButton
+            variant="ghost"
+            size="small"
+            :disabled="slot.disabled || slot.readonly"
+            @click="handleRefresh"
+          >Replace value</DrButton>
+        </template>
+      </DrTextarea>
+
       <DrTextarea
         v-model="errorText"
         label="Error"
@@ -73,6 +107,13 @@ function handleClear(): void {
         disabled
       />
     </div>
+
+    <DrButton
+      variant="ghost"
+      @click="handleRefresh"
+    >Update from parent</DrButton>
+
+    <p class="GalleryExample__output">Preview: {{ preview || 'No preview' }}</p>
 
     <p class="GalleryExample__output">{{ text || 'Empty note' }}</p>
   </div>

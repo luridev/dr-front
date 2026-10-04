@@ -14,6 +14,7 @@ export type DrInputProps = DrControlFieldProps & {
   type?: string;
   inputFormat?: DrInputFormat;
   clearable?: boolean;
+  readonly?: boolean;
   placeholder?: string;
   autocomplete?: 'on' | 'off';
   aria?: DrInputAria;

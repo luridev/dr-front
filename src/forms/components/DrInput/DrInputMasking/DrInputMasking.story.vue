@@ -13,6 +13,7 @@ import type { DrInputMaskingProps } from '@/forms/components/DrInput/DrInputMask
 const props = withDefaults(defineProps<DrInputMaskingProps>(), {
   smallestUnit: 'minute',
   showTime: true,
+  readonly: false,
 });
 
 const date = shallowRef<Temporal.PlainDate | null>(null);
@@ -32,6 +33,7 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       v-model="date"
       class="DrInputMasking__date"
       label="Date input"
+      :readonly="props.readonly"
     >
       <template #end>
         <div class="DrInputMasking__slots">
@@ -69,6 +71,7 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       v-model="number"
       class="DrInputMasking__number"
       label="Number input"
+      :readonly="props.readonly"
     >
       <template #label>
         <DrInput
@@ -84,6 +87,7 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       v-model="time"
       class="DrInputMasking__time"
       label="Reactive time"
+      :readonly="props.readonly"
       :smallest-unit="props.smallestUnit"
     />
 
