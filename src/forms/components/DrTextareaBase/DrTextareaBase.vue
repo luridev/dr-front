@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
-import type {
-  DrTextareaBaseEmits,
-  DrTextareaBaseProps,
-  DrTextareaBaseResize,
-} from '@/forms/components/DrTextareaBase/types';
+import type { DrTextareaBaseEmits, DrTextareaBaseProps } from '@/forms/components/DrTextareaBase/types';
 
 defineOptions({
   inheritAttrs: false,
@@ -13,7 +9,6 @@ defineOptions({
 const props = withDefaults(defineProps<DrTextareaBaseProps>(), {
   disabled: false,
   rows: 5,
-  resize: 'none',
 });
 
 const emit = defineEmits<DrTextareaBaseEmits>();
@@ -21,11 +16,6 @@ const emit = defineEmits<DrTextareaBaseEmits>();
 const model = defineModel<string>({ required: true });
 
 const textareaElement = useTemplateRef<HTMLTextAreaElement>('textareaElement');
-
-const resizeClasses = {
-  none: 'DrTextareaBase_resize_none',
-  vertical: 'DrTextareaBase_resize_vertical',
-} as const satisfies Record<DrTextareaBaseResize, string>;
 
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
@@ -74,7 +64,7 @@ defineExpose({
     ref="textareaElement"
     v-model="model"
     class="DrTextareaBase"
-    :class="[resizeClasses[props.resize], $attrs.class]"
+    :class="$attrs.class"
     :placeholder="props.placeholder"
     :rows="props.rows"
     :maxlength="props.maxLength"
@@ -98,21 +88,13 @@ defineExpose({
     color: inherit;
     font: inherit;
     outline: none;
-  }
 
-  .DrTextareaBase:disabled {
-    cursor: var(--dr-disabled-cursor);
-  }
-
-  .DrTextareaBase_resize_none {
     @supports (resize: none) {
       resize: none;
     }
   }
 
-  .DrTextareaBase_resize_vertical {
-    @supports (resize: vertical) {
-      resize: vertical;
-    }
+  .DrTextareaBase:disabled {
+    cursor: var(--dr-disabled-cursor);
   }
 </style>

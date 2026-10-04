@@ -66,6 +66,7 @@ function handleFileChange(event: Event): void {
       variant="ghost"
       size="small"
       :disabled="props.disabled || props.loading"
+      :loading="props.loading"
       @click="handleButtonClick"
     >
       {{ props.label }}

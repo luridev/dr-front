@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<DrOutputProps>(), {
   <output
     class="DrOutput"
     :class="$attrs.class"
-    aria-label="Результат"
+    :aria-label="props.accessibleLabel"
     aria-live="polite"
     aria-atomic="true"
     :aria-busy="props.loading"

@@ -38,12 +38,16 @@ function handleRefresh() {
 
       <DrOutput
         class="GalleryExample__panel"
+        accessible-label="Live result"
         :loading="loading"
       >{{ result }}</DrOutput>
     </DrSection>
 
     <DrSection title="Custom content">
-      <DrOutput class="GalleryExample__panel">
+      <DrOutput
+        class="GalleryExample__panel"
+        accessible-label="Export details"
+      >
         <strong>Export ready</strong>
 
         <span>128 rows · CSV</span>

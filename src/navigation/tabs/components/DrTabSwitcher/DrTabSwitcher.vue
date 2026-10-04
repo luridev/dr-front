@@ -1,7 +1,8 @@
 <script setup lang="ts" generic="T extends string">
-import { computed, nextTick, useTemplateRef } from 'vue';
+import { computed, nextTick } from 'vue';
 import { getTabId } from '@/navigation/tabs/lib/getTabId/getTabId';
 import { getTabPanelId } from '@/navigation/tabs/lib/getTabPanelId/getTabPanelId';
+import type { ComponentPublicInstance } from 'vue';
 import type {
   DrTabSwitcherOrientation,
   DrTabSwitcherProps,
@@ -22,7 +23,7 @@ const orientationClasses = {
   vertical: 'DrTabSwitcher_vertical',
 } as const satisfies Record<DrTabSwitcherOrientation, string>;
 
-const tabButtonRefs = useTemplateRef<Array<HTMLButtonElement>>('tabButtons');
+const tabButtonRefs = new Map<T, HTMLButtonElement>();
 
 const rootAriaOrientation = computed(() => (props.orientation === 'vertical' ? 'vertical' : undefined));
 
@@ -67,14 +68,12 @@ function getLoopedIndex(index: number) {
   return (index + itemsCount) % itemsCount;
 }
 
-function focusTabAtIndex(index: number) {
-  const tabButtons = tabButtonRefs.value;
-
-  if (tabButtons == null || index < 0 || index >= tabButtons.length) {
-    return;
+function setTabButtonRef(item: T, element: Element | ComponentPublicInstance | null) {
+  if (element instanceof HTMLButtonElement) {
+    tabButtonRefs.set(item, element);
+  } else {
+    tabButtonRefs.delete(item);
   }
-
-  tabButtons[index].focus();
 }
 
 function activateTabAtIndex(index: number) {
@@ -82,10 +81,12 @@ function activateTabAtIndex(index: number) {
     return;
   }
 
-  model.value = props.items[index];
+  const item = props.items[index];
+
+  model.value = item;
 
   void nextTick(() => {
-    focusTabAtIndex(index);
+    tabButtonRefs.get(item)?.focus();
   });
 }
 
@@ -159,7 +160,7 @@ function handleKeydown(event: KeyboardEvent, index: number) {
       v-for="tab in tabItems"
       :id="tab.id"
       :key="tab.item"
-      ref="tabButtons"
+      :ref="(element) => setTabButtonRef(tab.item, element)"
       class="DrTabSwitcher__tab"
       :class="tab.classes"
       type="button"

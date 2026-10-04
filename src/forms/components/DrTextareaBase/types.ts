@@ -1,5 +1,3 @@
-export type DrTextareaBaseResize = 'none' | 'vertical';
-
 export type DrTextareaBaseAria = {
   ariaInvalid?: boolean;
   ariaDescribedBy?: string;
@@ -10,7 +8,6 @@ export type DrTextareaBaseProps = {
   maxLength?: number;
   placeholder?: string;
   rows?: number;
-  resize?: DrTextareaBaseResize;
   disabled?: boolean;
   aria?: DrTextareaBaseAria;
 };

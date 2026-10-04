@@ -7,8 +7,10 @@ defineOptions({ inheritAttrs: false });
 
 const current = ref<string>('Overview');
 const vertical = ref(false);
+const reverseOrder = ref(false);
 const projectName = ref('Gallery project');
 const orientation = computed(() => (vertical.value ? 'vertical' : 'horizontal'));
+const tabs = computed(() => (reverseOrder.value ? [...galleryTabs].reverse() : galleryTabs));
 </script>
 
 <template>
@@ -19,10 +21,15 @@ const orientation = computed(() => (vertical.value ? 'vertical' : 'horizontal'))
         label="Vertical"
       />
 
+      <DrCheckbox
+        v-model="reverseOrder"
+        label="Reverse order"
+      />
+
       <DrTabSwitcher
         id="gallery-tabs"
         v-model="current"
-        :items="galleryTabs"
+        :items="tabs"
         :orientation="orientation"
         :aria="{ ariaLabel: 'Project sections' }"
       >
