@@ -21,11 +21,12 @@ function resolveInputFormatSettings(
 export function useDrInputFormat({ inputFormat }: UseDrInputFormatParams) {
   const internalFormat = useDrInputInternalFormat();
   const settings = computed(() => internalFormat.value ?? resolveInputFormatSettings(toValue(inputFormat)));
-  const maskitoOptions = computed(() => settings.value.maskitoOptions);
+  const maskOptions = computed(() => settings.value.maskOptions);
   const inputMode = computed(() => settings.value.inputMode);
 
   return {
-    maskitoOptions,
+    settings,
+    maskOptions,
     inputMode,
   };
 }

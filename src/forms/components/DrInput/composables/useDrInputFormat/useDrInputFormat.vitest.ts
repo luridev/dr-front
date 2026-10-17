@@ -44,8 +44,9 @@ function createFormatProbe(inputFormat = ref<DrInputFormat>()) {
     }
 
     return {
-      maskitoOptions: result.maskitoOptions.value,
+      maskOptions: result.maskOptions.value,
       inputMode: result.inputMode.value,
+      ...('format' in result.settings.value ? { format: result.settings.value.format } : {}),
     };
   }
 
@@ -53,7 +54,7 @@ function createFormatProbe(inputFormat = ref<DrInputFormat>()) {
 }
 
 const textFormat = {
-  maskitoOptions: { mask: /^[a-z]*$/ },
+  maskOptions: { mask: /^[a-z]*$/ },
   inputMode: 'text',
 } satisfies DrInputInternalFormat;
 
@@ -74,7 +75,7 @@ describe('useDrInputFormat', () => {
 
     publicFormat.value = { type: 'integer' };
     expect(settings()).toEqual(integerDrInputFormatSettings);
-    expect(settings().maskitoOptions).toBe(integerDrInputFormatSettings.maskitoOptions);
+    expect(settings().maskOptions).toBe(integerDrInputFormatSettings.maskOptions);
 
     publicFormat.value = undefined;
     expect(settings()).toEqual(defaultDrInputFormatSettings);
@@ -87,11 +88,11 @@ describe('useDrInputFormat', () => {
     await renderToString(createSSRApp(() => h(Provider, null, () => h(Input, { name: 'input' }))));
 
     expect(settings()).toEqual(textFormat);
-    expect(settings().maskitoOptions).toBe(textFormat.maskitoOptions);
+    expect(settings().maskOptions).toBe(textFormat.maskOptions);
   });
 
   it('does not replace an explicit internal null mask with the public mask', async () => {
-    const internalFormat = { maskitoOptions: null, inputMode: 'text' } satisfies DrInputInternalFormat;
+    const internalFormat = { maskOptions: null, inputMode: 'text' } satisfies DrInputInternalFormat;
     const { Input, provider, settings } = createFormatProbe(ref({ type: 'integer' }));
     const Provider = provider(internalFormat);
 
@@ -108,11 +109,11 @@ describe('useDrInputFormat', () => {
 
     await renderToString(createSSRApp(() => h(Provider, null, () => h(Input, { name: 'input' }))));
 
-    expect(settings().maskitoOptions).toBe(textFormat.maskitoOptions);
+    expect(settings().maskOptions).toBe(textFormat.maskOptions);
 
     value.value = integerDrInputFormatSettings;
     expect(settings()).toEqual(integerDrInputFormatSettings);
-    expect(settings().maskitoOptions).toBe(integerDrInputFormatSettings.maskitoOptions);
+    expect(settings().maskOptions).toBe(integerDrInputFormatSettings.maskOptions);
   });
 
   it('resets inheritance for descendants while preserving the source for the input and its sibling', async () => {

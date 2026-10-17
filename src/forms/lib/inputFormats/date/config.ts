@@ -1,36 +1,28 @@
-import type { MaskitoMask } from '@maskito/core';
-
-const dateInputDigit = /[0-9]/;
-const dateInputDayMonthMask = [dateInputDigit, dateInputDigit, '.', dateInputDigit, dateInputDigit, '.'];
-
-const dateInputYearMask = [
-  dateInputDigit,
-  dateInputDigit,
-  dateInputDigit,
-  dateInputDigit,
-  dateInputDigit,
-  dateInputDigit,
-];
-
-const dateInputPositiveMask = [...dateInputDayMonthMask, ...dateInputYearMask];
-const dateInputNegativeMask = [...dateInputDayMonthMask, /-/, ...dateInputYearMask];
+import MaskedRange from 'imask/masked/range';
+import type { MaskedPatternOptions } from 'imask/masked/pattern';
 
 let temporalPlainDateMin: Temporal.PlainDate | undefined;
 let temporalPlainDateMax: Temporal.PlainDate | undefined;
 
-function hasNegativeYear(value: string) {
-  const yearStartIndex = value.includes('.') ? dateInputYearStartIndex : dateInputUnmaskedYearStartIndex;
+export const dateInputMaskOptions = {
+  mask: 'D{.}`M{.}`Y',
+  lazy: true,
+  overwrite: false,
+  autofix: true,
+  prepare: (value, _masked, flags) => flags.input === true
+    ? value
+    : value.replace(
+        /(^|\.)(\d)(?=\.)/g, (_match, boundary: string, digit: string) => `${boundary}0${digit}`,
+      ),
+  blocks: {
+    D: { mask: MaskedRange, from: 1, to: 31, maxLength: 2, overwrite: true },
+    M: { mask: MaskedRange, from: 1, to: 12, maxLength: 2, overwrite: true },
+    Y: { mask: /^-?\d{0,6}$/ },
+  },
+} satisfies MaskedPatternOptions;
 
-  return value[yearStartIndex] === '-';
-}
-
-export const dateInputYearStartIndex = 6;
-export const dateInputUnmaskedYearStartIndex = 4;
 export const dateInputPattern = /^(\d{2})\.(\d{2})\.(-?\d{1,6})$/;
 export const dateInputIncompletePattern = /^\d{0,2}(?:\.\d{0,2}(?:\.-?)?)?$/;
-
-export const dateInputMask: MaskitoMask = ({ value }) =>
-  hasNegativeYear(value) ? dateInputNegativeMask : dateInputPositiveMask;
 
 export function getTemporalPlainDateMin() {
   temporalPlainDateMin ??= Temporal.PlainDate.from({

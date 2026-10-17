@@ -1,7 +1,7 @@
-import { dateInputMaskOptions } from '@/forms/lib/inputFormats/date/dateInputFormat';
+import { dateInputMaskOptions } from '@/forms/lib/inputFormats/date/config';
 import type { DrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/types';
 
 export const dateDrInputFormatSettings = {
-  maskitoOptions: dateInputMaskOptions,
+  maskOptions: dateInputMaskOptions,
   inputMode: 'text',
 } satisfies DrInputInternalFormat;

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { customRef, nextTick, ref } from 'vue';
 import { useDrTypedInputModel } from '@/forms/components/DrInput/composables/useDrTypedInputModel/useDrTypedInputModel';
-import { parseTimeInputValue, stringifyTimeInputValue } from '@/forms/lib/inputFormats/time/timeInputFormat';
+import { parseTimeInputValue, retainTimeInputPrecision, stringifyTimeInputValue } from '@/forms/lib/inputFormats/time/timeInputFormat';
 import { createTestEffectScopeCollector } from '~/tests/vitest/lib/createTestEffectScopeCollector/createTestEffectScopeCollector';
 import type * as Vue from 'vue';
 import type { ModelRef } from 'vue';
@@ -149,6 +149,45 @@ function setupModel(value: number | null, initialFormat = 'A', mount = true) {
 }
 
 describe('useDrTypedInputModel', () => {
+  it('retains hidden time through incomplete edits and resets it after external updates and clearing', async () => {
+    const model = createModel(Temporal.PlainTime.from('12:34:56.123456789'));
+
+    const result = scopes.run(() => useDrTypedInputModel<Temporal.PlainTime>({
+      model,
+      parse: (value) => parseTimeInputValue(value, 'minute'),
+      stringify: (value) => stringifyTimeInputValue(value, 'minute'),
+      equals: (first, second) => first.equals(second),
+      merge: (value, previous) => retainTimeInputPrecision(value, previous, 'minute'),
+      onStatusUpdate: () => undefined,
+    }));
+
+    mountComposable();
+    result.updateInputValue('12:4');
+    await nextTick();
+    expect(model.value).toBeNull();
+    result.updateInputValue('12:45');
+    await nextTick();
+    expect(String(model.value)).toBe('12:45:56.123456789');
+
+    model.value = Temporal.PlainTime.from('01:02:03.004005006');
+    await nextTick();
+    result.updateInputValue('01:20');
+    await nextTick();
+    expect(String(model.value)).toBe('01:20:03.004005006');
+
+    result.updateInputValue('');
+    await nextTick();
+    result.updateInputValue('11:22');
+    await nextTick();
+    expect(String(model.value)).toBe('11:22:00');
+
+    model.value = null;
+    await nextTick();
+    result.updateInputValue('23:45');
+    await nextTick();
+    expect(String(model.value)).toBe('23:45:00');
+  });
+
   it('emits no status before mount and publishes the latest status on mount', () => {
     const result = setupModel(null, 'A', false);
 

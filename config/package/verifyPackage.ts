@@ -90,6 +90,7 @@ try {
       build: 'vite build',
     },
     dependencies: { [manifest.name]: `file:./${filename}`, vue: manifest.devDependencies.vue },
+    allowScripts: { 'core-js-pure': false },
     devDependencies: {
       typescript: manifest.devDependencies.typescript,
       'vue-tsc': manifest.devDependencies['vue-tsc'],

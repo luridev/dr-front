@@ -1,18 +1,21 @@
-import { maskitoNumber, maskitoParseNumber, maskitoStringifyNumber } from '@maskito/kit';
 import { integerInputParams } from '@/forms/lib/inputFormats/integer/config';
 import { normalizeNegativeZero } from '@/numbers/lib/normalizeNegativeZero/normalizeNegativeZero';
-import type { MaskitoOptions } from '@maskito/core';
 
-export const integerInputMaskOptions: MaskitoOptions = maskitoNumber(integerInputParams);
+export function formatIntegerInputString(value: string): string {
+  const sign = value.startsWith(integerInputParams.minusSign) ? integerInputParams.minusSign : '';
+  const digits = value.replaceAll(/\D/g, '');
+
+  return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/g, integerInputParams.thousandSeparator);
+}
 
 export function parseIntegerInputValue(value: string): number | null {
-  const normalizedValue = value.replaceAll(integerInputParams.thousandSeparator ?? '', '');
+  const normalizedValue = value.replaceAll(integerInputParams.thousandSeparator, '');
 
   if (!/^-?\d+$/.test(normalizedValue)) {
     return null;
   }
 
-  const numberValue = maskitoParseNumber(value, integerInputParams);
+  const numberValue = Number(normalizedValue);
 
   return Number.isSafeInteger(numberValue) ? normalizeNegativeZero(numberValue) : null;
 }
@@ -22,5 +25,5 @@ export function stringifyIntegerInputValue(value: number | null): string {
     return '';
   }
 
-  return Number.isInteger(value) ? maskitoStringifyNumber(value, integerInputParams) : String(value);
+  return Number.isInteger(value) ? formatIntegerInputString(BigInt(value).toString()) : String(value);
 }

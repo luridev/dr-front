@@ -7,6 +7,7 @@ import { timeDrInputFormatSettingsBySmallestUnit } from '@/forms/components/DrIn
 import { defaultTimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/config';
 import {
   parseTimeInputValue,
+  retainTimeInputPrecision,
   stringifyTimeInputValue,
 } from '@/forms/lib/inputFormats/time/timeInputFormat';
 import type { DrTypedInputStatus } from '@/forms/components/DrInput/composables/useDrTypedInputModel/types';
@@ -53,6 +54,7 @@ const { inputValue, updateInputValue } = useDrTypedInputModel<
   parse: (value) => parseTimeInputValue(value, props.smallestUnit),
   stringify: (value) => stringifyTimeInputValue(value, props.smallestUnit),
   equals: (first, second) => first.equals(second),
+  merge: (value, previous) => retainTimeInputPrecision(value, previous, props.smallestUnit),
   onStatusUpdate: (status) => {
     emit('update:status', status);
   },

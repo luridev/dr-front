@@ -65,9 +65,7 @@
     "components"
   ],
   "dependencies": {
-    "@maskito/core": "^5.3.1",
-    "@maskito/kit": "^5.3.1",
-    "@maskito/vue": "^5.3.1"
+    "imask": "^7.6.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -101,6 +99,7 @@
     "vue": "^3.5.39"
   },
   "allowScripts": {
+    "core-js-pure": false,
     "lefthook@2.1.14": true,
     "unrs-resolver": false
   }

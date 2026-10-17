@@ -1,14 +1,16 @@
-import { integerInputMaskOptions } from '@/forms/lib/inputFormats/integer/integerInputFormat';
+import { integerInputMaskOptions } from '@/forms/lib/inputFormats/integer/config';
+import { formatIntegerInputString } from '@/forms/lib/inputFormats/integer/integerInputFormat';
 import type { DrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/types';
 import type { DrInputFormat } from '@/forms/lib/inputFormats/types';
 
 export const defaultDrInputFormatSettings = {
-  maskitoOptions: null,
+  maskOptions: null,
   inputMode: undefined,
 } satisfies DrInputInternalFormat;
 
 export const integerDrInputFormatSettings = {
-  maskitoOptions: integerInputMaskOptions,
+  maskOptions: integerInputMaskOptions,
+  format: formatIntegerInputString,
   inputMode: 'numeric',
 } satisfies DrInputInternalFormat;
 

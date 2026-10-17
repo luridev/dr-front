@@ -1,26 +1,26 @@
-import { timeInputMaskOptionsBySmallestUnit } from '@/forms/lib/inputFormats/time/timeInputFormat';
+import { createTimeInputMaskOptions } from '@/forms/lib/inputFormats/time/timeInputMask';
 import type { DrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/types';
 import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
 
 export const timeDrInputFormatSettingsBySmallestUnit = {
   minute: {
-    maskitoOptions: timeInputMaskOptionsBySmallestUnit.minute,
+    maskOptions: createTimeInputMaskOptions('minute'),
     inputMode: 'numeric',
   },
   second: {
-    maskitoOptions: timeInputMaskOptionsBySmallestUnit.second,
+    maskOptions: createTimeInputMaskOptions('second'),
     inputMode: 'numeric',
   },
   millisecond: {
-    maskitoOptions: timeInputMaskOptionsBySmallestUnit.millisecond,
+    maskOptions: createTimeInputMaskOptions('millisecond'),
     inputMode: 'numeric',
   },
   microsecond: {
-    maskitoOptions: timeInputMaskOptionsBySmallestUnit.microsecond,
+    maskOptions: createTimeInputMaskOptions('microsecond'),
     inputMode: 'numeric',
   },
   nanosecond: {
-    maskitoOptions: timeInputMaskOptionsBySmallestUnit.nanosecond,
+    maskOptions: createTimeInputMaskOptions('nanosecond'),
     inputMode: 'numeric',
   },
 } satisfies Record<TimeInputSmallestUnit, DrInputInternalFormat>;

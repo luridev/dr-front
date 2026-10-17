@@ -11,9 +11,11 @@ export function useDrTypedInputModel<TValue, TAdditionalStatus extends string = 
   parse,
   stringify,
   equals,
+  merge,
   onStatusUpdate,
 }: UseDrTypedInputModelParams<TValue, TAdditionalStatus, TFormatDependency>): UseDrTypedInputModelResult {
   const inputValue = ref('');
+  let lastValidValue = model.value;
 
   let pendingInputModelValue: TValue | null = null;
   let hasPendingInputModelValue = false;
@@ -50,6 +52,7 @@ export function useDrTypedInputModel<TValue, TAdditionalStatus extends string = 
   }
 
   function syncInputWithModel(value: TValue | null) {
+    lastValidValue = value;
     inputValue.value = stringify(value);
     setStatus(value == null ? 'empty' : 'valid');
   }
@@ -79,8 +82,13 @@ export function useDrTypedInputModel<TValue, TAdditionalStatus extends string = 
     inputValue.value = value;
 
     const result = parse(value);
+    const nextValue = 'value' in result ? merge?.(result.value, lastValidValue) ?? result.value : null;
 
-    updateModelFromInput('value' in result ? result.value : null);
+    if (nextValue !== null || result.status === 'empty') {
+      lastValidValue = nextValue;
+    }
+
+    updateModelFromInput(nextValue);
     setStatus(result.status);
   }
 

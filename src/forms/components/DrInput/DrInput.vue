@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { maskito as vMaskito } from '@maskito/vue';
 import { computed, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import { useDrInputFormat } from '@/forms/components/DrInput/composables/useDrInputFormat/useDrInputFormat';
+import { useDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import { resolveClearButtonAriaLabel } from '@/forms/lib/resolveClearButtonAriaLabel/resolveClearButtonAriaLabel';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
 import type { DrInputEmits, DrInputProps } from '@/forms/components/DrInput/types';
@@ -25,7 +25,7 @@ const model = defineModel<string>({ required: true });
 
 const inputElement = useTemplateRef<HTMLInputElement>('inputElement');
 
-const { maskitoOptions, inputMode } = useDrInputFormat({
+const { settings, inputMode } = useDrInputFormat({
   inputFormat: () => props.inputFormat,
 });
 
@@ -37,13 +37,12 @@ const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(props.label, props.aria?.clearButtonAriaLabel),
 );
 
-function handleInput(event: Event) {
-  const input = event.currentTarget;
-
-  if (input instanceof HTMLInputElement) {
-    model.value = input.value;
-  }
-}
+const { handleInput } = useDrInputMask({
+  input: inputElement,
+  model,
+  settings,
+  readonly: () => props.readonly || props.disabled,
+});
 
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
@@ -109,11 +108,9 @@ defineExpose({
         :input-id="slot.id"
       ></slot>
 
-      <!-- Maskito's own editing handlers bypass native readonly. -->
       <input
         :id="slot.id"
         ref="inputElement"
-        v-maskito="props.readonly ? null : maskitoOptions"
         :value="model"
         class="DrInput"
         :class="{ DrInput_clearable: isClearButtonVisible }"

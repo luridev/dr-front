@@ -1,32 +1,8 @@
 import { timeInputConfigBySmallestUnit } from '@/forms/lib/inputFormats/time/config';
-import type { MaskitoOptions, MaskitoPreprocessor } from '@maskito/core';
 import type { TimeInputParseResult, TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
-
-const timeInputDigitPattern = /[0-9]/;
 
 function stringifyTimeInputSegment(value: number, length: number) {
   return String(value).padStart(length, '0');
-}
-
-function normalizeTimeInputInsertion(data: string) {
-  const digits = data.replaceAll(/\D/g, '');
-  const trailingSeparator = data.endsWith(':') ? ':' : data.endsWith('.') ? '.' : '';
-
-  return `${digits}${trailingSeparator}`;
-}
-
-function findTimeInputReplacementEnd(value: string, from: number, to: number, digitCount: number) {
-  let replacementEnd = from;
-  let remainingDigitCount = digitCount;
-
-  for (let index = from; index < to && remainingDigitCount > 0; index += 1) {
-    if (timeInputDigitPattern.test(value[index] ?? '')) {
-      replacementEnd = index + 1;
-      remainingDigitCount -= 1;
-    }
-  }
-
-  return replacementEnd;
 }
 
 function parseTimeInputFractionSegment(fraction: string, start: number) {
@@ -34,91 +10,6 @@ function parseTimeInputFractionSegment(fraction: string, start: number) {
 
   return segment === '' ? 0 : Number(segment);
 }
-
-const timeInputPreprocessor: MaskitoPreprocessor = ({ elementState, data }, actionType) => {
-  if (actionType === 'deleteBackward' || actionType === 'deleteForward') {
-    const [from, to] = elementState.selection;
-
-    if (elementState.value === '' || to >= elementState.value.length) {
-      return { elementState, data };
-    }
-
-    const selectedValue = elementState.value.slice(from, to);
-    const replacement = selectedValue.replaceAll(/[0-9]/g, '0');
-
-    if (!timeInputDigitPattern.test(replacement)) {
-      return { elementState, data };
-    }
-
-    return {
-      elementState: {
-        value: `${elementState.value.slice(0, from)}${replacement}${elementState.value.slice(to)}`,
-        selection: [from, from],
-      },
-      data,
-    };
-  }
-
-  if (actionType !== 'insert') {
-    return { elementState, data };
-  }
-
-  const normalizedData = normalizeTimeInputInsertion(data);
-
-  if (normalizedData === '') {
-    return { elementState, data: '' };
-  }
-
-  const [from, to] = elementState.selection;
-  const digitCount = normalizedData.replaceAll(/\D/g, '').length;
-
-  if (to > from && (normalizedData.length > 1 || to === elementState.value.length)) {
-    return { elementState, data: normalizedData };
-  }
-
-  if (to === from && from === elementState.value.length) {
-    return { elementState, data: normalizedData };
-  }
-
-  const replacementSearchEnd = to > from ? to : elementState.value.length;
-  const replacementEnd = findTimeInputReplacementEnd(elementState.value, from, replacementSearchEnd, digitCount);
-
-  return {
-    elementState: {
-      ...elementState,
-      selection: [from, replacementEnd],
-    },
-    data: normalizedData,
-  };
-};
-
-export const timeInputMaskOptionsBySmallestUnit = {
-  minute: {
-    mask: timeInputConfigBySmallestUnit.minute.mask,
-    overwriteMode: 'shift',
-    preprocessors: [timeInputPreprocessor],
-  },
-  second: {
-    mask: timeInputConfigBySmallestUnit.second.mask,
-    overwriteMode: 'shift',
-    preprocessors: [timeInputPreprocessor],
-  },
-  millisecond: {
-    mask: timeInputConfigBySmallestUnit.millisecond.mask,
-    overwriteMode: 'shift',
-    preprocessors: [timeInputPreprocessor],
-  },
-  microsecond: {
-    mask: timeInputConfigBySmallestUnit.microsecond.mask,
-    overwriteMode: 'shift',
-    preprocessors: [timeInputPreprocessor],
-  },
-  nanosecond: {
-    mask: timeInputConfigBySmallestUnit.nanosecond.mask,
-    overwriteMode: 'shift',
-    preprocessors: [timeInputPreprocessor],
-  },
-} satisfies Record<TimeInputSmallestUnit, MaskitoOptions>;
 
 export function parseTimeInputValue(value: string, smallestUnit: TimeInputSmallestUnit): TimeInputParseResult {
   if (value === '') {
@@ -195,4 +86,23 @@ export function stringifyTimeInputValue(value: Temporal.PlainTime | null, smalle
   }
 
   return result;
+}
+
+export function retainTimeInputPrecision(
+  value: Temporal.PlainTime,
+  previous: Temporal.PlainTime | null,
+  smallestUnit: TimeInputSmallestUnit,
+): Temporal.PlainTime {
+  if (previous === null) {
+    return value;
+  }
+
+  const fractionDigits = timeInputConfigBySmallestUnit[smallestUnit].maximumFractionDigitLength;
+
+  return value.with({
+    second: smallestUnit === 'minute' ? previous.second : value.second,
+    millisecond: fractionDigits < 3 ? previous.millisecond : value.millisecond,
+    microsecond: fractionDigits < 6 ? previous.microsecond : value.microsecond,
+    nanosecond: fractionDigits < 9 ? previous.nanosecond : value.nanosecond,
+  });
 }

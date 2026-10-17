@@ -21,6 +21,7 @@ export type UseDrTypedInputModelParams<
   parse: (value: string) => DrTypedInputParseResult<TValue, TAdditionalStatus>;
   stringify: (value: TValue | null) => string;
   equals: (first: TValue, second: TValue) => boolean;
+  merge?: (value: TValue, previous: TValue | null) => TValue;
   onStatusUpdate: (status: DrTypedInputStatus | TAdditionalStatus) => void;
 };
 

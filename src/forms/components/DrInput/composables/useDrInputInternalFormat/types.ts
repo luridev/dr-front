@@ -1,8 +1,9 @@
-import type { MaskitoOptions } from '@maskito/core';
+import type { FactoryOpts } from 'imask/masked/factory';
 import type { ComputedRef, HTMLAttributes } from 'vue';
 
 export type DrInputInternalFormat = Readonly<{
-  maskitoOptions: MaskitoOptions | null;
+  maskOptions: FactoryOpts | null;
+  format?: (value: string) => string;
   inputMode: HTMLAttributes['inputmode'];
 }>;
 

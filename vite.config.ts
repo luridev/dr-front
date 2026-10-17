@@ -37,6 +37,6 @@ export default defineConfig({
       fileName: (_format, entryName) => `${entryName}.js`,
       cssFileName: 'styles',
     },
-    rolldownOptions: { external: ['vue', '@maskito/core', '@maskito/kit', '@maskito/vue'] },
+    rolldownOptions: { external: ['vue', /^imask(?:\/|$)/] },
   },
 });

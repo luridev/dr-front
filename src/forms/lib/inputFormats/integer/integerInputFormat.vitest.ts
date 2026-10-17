@@ -1,10 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatIntegerInputString,
   parseIntegerInputValue,
   stringifyIntegerInputValue,
 } from '@/forms/lib/inputFormats/integer/integerInputFormat';
 
 const thousandSeparator = '\u00A0';
+
+describe('formatIntegerInputString', () => {
+  it.each([
+    ['', ''], ['-', '-'], ['0', '0'], ['1234', `1${thousandSeparator}234`],
+    ['-123456789012345678901234567890', `-123${thousandSeparator}456${thousandSeparator}789${thousandSeparator}012${thousandSeparator}345${thousandSeparator}678${thousandSeparator}901${thousandSeparator}234${thousandSeparator}567${thousandSeparator}890`],
+    ['12a34', `1${thousandSeparator}234`],
+  ])('formats string %s without numeric conversion', (source, expected) => {
+    expect(formatIntegerInputString(source)).toBe(expected);
+  });
+
+  it('preserves digits beyond even the finite Number range', () => {
+    const source = '1234567890'.repeat(40);
+    expect(formatIntegerInputString(source).replaceAll(thousandSeparator, '')).toBe(source);
+  });
+});
 
 describe('parseIntegerInputValue', () => {
   it.each([

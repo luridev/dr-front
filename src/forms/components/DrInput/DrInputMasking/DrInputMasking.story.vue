@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import {
   maskingStoryInitialTime,
@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<DrInputMaskingProps>(), {
   smallestUnit: 'minute',
   showTime: true,
   readonly: false,
+  disabled: false,
 });
 
 const date = shallowRef<Temporal.PlainDate | null>(null);
@@ -25,6 +26,40 @@ const nestedTime = shallowRef<Temporal.PlainTime | null>(null);
 const nestedTimeSlot = ref('');
 const initialTime = Temporal.PlainTime.from(maskingStoryInitialTime);
 const time = shallowRef<Temporal.PlainTime | null>(initialTime);
+const dateStatus = ref('empty');
+const timeStatus = ref('valid');
+
+function handleDateStatus(value: string) {
+  dateStatus.value = value;
+}
+
+function handleTimeStatus(value: string) {
+  timeStatus.value = value;
+}
+
+watch(() => props.externalDate, (value) => {
+  if (value !== undefined) {
+    date.value = value === null ? null : Temporal.PlainDate.from(value);
+  }
+}, { immediate: true });
+
+watch(() => props.externalTime, (value) => {
+  if (value !== undefined) {
+    time.value = value === null ? null : Temporal.PlainTime.from(value);
+  }
+}, { immediate: true });
+
+watch(() => props.externalNumber, (value) => {
+  if (value !== undefined) {
+    number.value = value;
+  }
+}, { immediate: true });
+
+watch(() => props.externalInteger, (value) => {
+  if (value !== undefined) {
+    integerSlot.value = value;
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -34,6 +69,8 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       class="DrInputMasking__date"
       label="Date input"
       :readonly="props.readonly"
+      :disabled="props.disabled"
+      @update:status="handleDateStatus"
     >
       <template #end>
         <div class="DrInputMasking__slots">
@@ -48,6 +85,8 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
             class="DrInputMasking__integerSlot"
             label="Integer date slot"
             :input-format="maskingStoryIntegerFormat"
+            :readonly="props.readonly"
+            :disabled="props.disabled"
           />
 
           <DrInputTime
@@ -72,6 +111,11 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       class="DrInputMasking__number"
       label="Number input"
       :readonly="props.readonly"
+      :disabled="props.disabled"
+      :min="props.min"
+      :max="props.max"
+      :step="props.step"
+      clearable
     >
       <template #label>
         <DrInput
@@ -89,6 +133,8 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
       label="Reactive time"
       :readonly="props.readonly"
       :smallest-unit="props.smallestUnit"
+      :disabled="props.disabled"
+      @update:status="handleTimeStatus"
     />
 
     <div data-testid="date-model">{{ date?.toString() ?? 'null' }}</div>
@@ -98,6 +144,12 @@ const time = shallowRef<Temporal.PlainTime | null>(initialTime);
     <div data-testid="time-model">{{ time?.toString() ?? 'null' }}</div>
 
     <div data-testid="time-model-identity">{{ time === initialTime }}</div>
+
+    <div data-testid="integer-model">{{ integerSlot }}</div>
+
+    <div data-testid="date-status">{{ dateStatus }}</div>
+
+    <div data-testid="time-status">{{ timeStatus }}</div>
   </div>
 </template>
 
