@@ -1,7 +1,7 @@
 export const publicRuntimeExports = [
   'DrButton', 'DrIconButton', 'DrOutput', 'DrAlert', 'DrToastHost', 'toast',
   'DrCheckbox', 'DrControl', 'DrControlGroup', 'DrFilePickerButton',
-  'DrInput', 'DrInputDate', 'DrInputNumber', 'DrInputTime', 'DrRadioGroup', 'DrSelect', 'DrTextarea',
+  'DrInput', 'DrMaskedInput', 'DrInputDate', 'DrInputNumber', 'DrInputTime', 'DrRadioGroup', 'DrSelect', 'DrTextarea',
   'useControlsState', 'DrExpandableSection', 'DrGrid', 'DrGridItem', 'DrSection',
   'DrTabPanel', 'DrTabSwitcher', 'DrModalHost',
 ];
@@ -9,7 +9,7 @@ export const publicRuntimeExports = [
 export const publicTypeExports = [
   'DrButtonVariant', 'DrButtonAria', 'DrAlertData', 'DrErrorAlertData', 'DrInputDateStatus',
   'DrInputTimeSmallestUnit', 'DrInputTimeStatus', 'DrTextareaProps', 'DrTextareaEmits', 'DrTextareaExposed',
-  'ControlStateDescriptor',
+  'ControlStateDescriptor', 'DrMask', 'DrMaskedInputStatus',
 ];
 
 export const publicIconExports = [

@@ -64,10 +64,10 @@ export function useDrInputMask({ input, model, settings, readonly }: UseDrInputM
 
   watch(model, write, { flush: 'post' });
 
-  function handleInput() {
+  function handleInput(event?: InputEvent) {
     const element = input.value;
 
-    if (element === null || mask !== undefined || readonly()) {
+    if (element === null || mask !== undefined || readonly() || event?.isComposing === true) {
       return;
     }
 

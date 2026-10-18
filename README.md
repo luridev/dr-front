@@ -49,3 +49,16 @@ Dr Front is intended for bundler-based Vue applications. Its published declarati
 The package references TypeScript's Temporal declarations, but does not install a runtime polyfill. Applications that use date/time components must provide `Temporal` themselves, either natively or with a polyfill.
 
 TypeScript consumers require TypeScript 6.0 or newer.
+
+
+## Masked string inputs
+
+`DrMaskedInput` adds Pattern masks and arbitrary-precision integer input to the standard text field.
+
+```vue
+<DrMaskedInput v-model="code" mask="000-000" />
+<DrMaskedInput v-model="serial" :mask="{ pattern: 'HH-0000', definitions: { H: /[A-F0-9]/ } }" />
+<DrMaskedInput v-model="timestamp" :mask="{ type: 'integer' }" />
+```
+
+`v-model` is a canonical string without decorative separators: Pattern preserves leading zeros, while Integer normalizes leading zeros and negative zero.

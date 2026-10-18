@@ -20,6 +20,11 @@ export const galleryGroups: Array<GalleryGroup> = [
         description: 'Text, validation, and slots.',
       },
       {
+        id: 'forms/components/DrMaskedInput/DrMaskedInputGallery',
+        title: 'DrMaskedInput',
+        description: 'Patterns and arbitrary precision integers with canonical string models.',
+      },
+      {
         id: 'forms/components/DrInputNumber/DrInputNumberGallery',
         title: 'DrInputNumber',
         description: 'Steps and limits.',

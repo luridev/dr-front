@@ -4,10 +4,11 @@ import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import {
   maskingStoryInitialTime,
 } from '@/forms/components/DrInput/DrInputMasking/config.support';
-import { IntegerInput } from '@/forms/components/DrInput/DrInputMasking/integerInput.support';
 import DrInputDate from '@/forms/components/DrInputDate/DrInputDate.vue';
 import DrInputNumber from '@/forms/components/DrInputNumber/DrInputNumber.vue';
 import DrInputTime from '@/forms/components/DrInputTime/DrInputTime.vue';
+import { integerMask } from '@/forms/components/DrMaskedInput/config.support';
+import DrMaskedInput from '@/forms/components/DrMaskedInput/DrMaskedInput.vue';
 import type { DrInputMaskingProps } from '@/forms/components/DrInput/DrInputMasking/types.support';
 
 const props = withDefaults(defineProps<DrInputMaskingProps>(), {
@@ -80,10 +81,11 @@ watch(() => props.externalInteger, (value) => {
             label="Plain date slot"
           />
 
-          <IntegerInput
+          <DrMaskedInput
             v-model="integerSlot"
             class="DrInputMasking__integerSlot"
             label="Integer date slot"
+            :mask="integerMask"
             :readonly="props.readonly"
             :disabled="props.disabled"
           />

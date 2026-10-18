@@ -4,10 +4,12 @@ import { build } from 'vite';
 
 const scenarios = {
   plain: ['DrInput'],
+  pattern: ['DrMaskedInput'],
+  integer: ['DrMaskedInput'],
   number: ['DrInputNumber'],
   date: ['DrInputDate'],
   time: ['DrInputTime'],
-  combined: ['DrInput', 'DrInputNumber', 'DrInputDate', 'DrInputTime'],
+  combined: ['DrInput', 'DrMaskedInput', 'DrInputNumber', 'DrInputDate', 'DrInputTime'],
 };
 
 async function buildConsumer(entries) {
@@ -17,9 +19,10 @@ async function buildConsumer(entries) {
       import { createApp, h, ref } from 'vue';
       import { ${components.join(', ')} } from '@protoapps/dr-front';
       createApp({ setup() {
-        const values = [${components.map((component) => `ref(${component === 'DrInput' ? "'abc'" : component === 'DrInputNumber' ? '42' : 'null'})`).join(', ')}];
+        const values = [${components.map((component) => `ref(${component === 'DrInput' ? "'abc'" : component === 'DrMaskedInput' ? "'123456'" : component === 'DrInputNumber' ? '42' : 'null'})`).join(', ')}];
         return () => h('div', {}, [${components.map((component, index) => `h(${component}, {
           modelValue: values[${index}].value,
+          ${component === 'DrMaskedInput' ? `mask: ${name === 'integer' ? "{ type: 'integer' }" : "'000-000'"},` : ''}
           'onUpdate:modelValue': value => values[${index}].value = value,
         })`).join(', ')}]);
       }}).mount('#app');
@@ -61,7 +64,7 @@ for (const [scenario, components] of Object.entries(scenarios)) {
   process.stdout.write(`[isolation] ${scenario}: ${minified} bytes, gzip ${gzip} bytes, IMask modules ${maskModules.size}\n`);
 }
 
-const chunks = await buildConsumer({ plain: scenarios.plain, masked: ['DrInputNumber', 'DrInputDate', 'DrInputTime'] });
+const chunks = await buildConsumer({ plain: scenarios.plain, masked: ['DrMaskedInput', 'DrInputNumber', 'DrInputDate', 'DrInputTime'] });
 const plain = chunks.find((chunk) => chunk.facadeModuleId === '\0dr-front-consumer-plain');
 
 assert.ok(plain, 'The plain-field entry must exist.');

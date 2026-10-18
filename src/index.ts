@@ -10,6 +10,7 @@ export { default as DrControl } from '@/forms/components/DrControl/DrControl.vue
 export { default as DrControlGroup } from '@/forms/components/DrControlGroup/DrControlGroup.vue';
 export { default as DrFilePickerButton } from '@/forms/components/DrFilePickerButton/DrFilePickerButton.vue';
 export { default as DrInput } from '@/forms/components/DrInput/DrInput.vue';
+export { default as DrMaskedInput } from '@/forms/components/DrMaskedInput/DrMaskedInput.vue';
 export { default as DrInputDate } from '@/forms/components/DrInputDate/DrInputDate.vue';
 export { default as DrInputNumber } from '@/forms/components/DrInputNumber/DrInputNumber.vue';
 export { default as DrInputTime } from '@/forms/components/DrInputTime/DrInputTime.vue';
@@ -27,6 +28,7 @@ export { default as DrModalHost } from '@/overlays/components/DrModalHost/DrModa
 export type { DrButtonVariant, DrButtonAria } from '@/actions/components/DrButton/types';
 export type { DrAlertData, DrErrorAlertData } from '@/feedback/types';
 export type { DrInputDateStatus } from '@/forms/components/DrInputDate/types';
+export type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 export type { DrInputTimeSmallestUnit, DrInputTimeStatus } from '@/forms/components/DrInputTime/types';
 export type { DrTextareaProps, DrTextareaEmits, DrTextareaExposed } from '@/forms/components/DrTextarea/types';
 export type { ControlStateDescriptor } from '@/forms/composables/useControlsState/types';

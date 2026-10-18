@@ -1,4 +1,5 @@
-import { DrButton, DrInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, toast, useControlsState } from '@protoapps/dr-front';
+import { DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, toast, useControlsState } from '@protoapps/dr-front';
+import type { DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 
@@ -19,6 +20,17 @@ textInput.$emit('update:modelValue', 'next');
 const invalidText: typeof textInput.$props = { modelValue: 123 };
 
 declare const numberInput: InstanceType<typeof DrInputNumber>;
+declare const maskedInput: InstanceType<typeof DrMaskedInput>;
+const masks = ['000-000', { pattern: 'HH-0000', definitions: { H: /[A-F0-9]/ } }, { type: 'integer' }] as const satisfies ReadonlyArray<DrMask>;
+const maskedProps: typeof maskedInput.$props = { modelValue: '123456', mask: masks[0] };
+maskedInput.$emit('update:modelValue', '123');
+maskedInput.$emit('update:status', 'incomplete' satisfies DrMaskedInputStatus);
+maskedInput.focus({ preventScroll: true });
+maskedInput.setCaretToEnd();
+// @ts-expect-error Masked string models must not accept numbers.
+maskedInput.$emit('update:modelValue', 42);
+// @ts-expect-error Only Pattern and Integer masks are public.
+const invalidMask: DrMask = { type: 'number', scale: 2 };
 const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2 };
 // @ts-expect-error Number models must not accept strings.
 numberInput.$emit('update:modelValue', '42');
@@ -51,4 +63,4 @@ const disabled: boolean = controls.controls.date.disabled;
 const iconProps: InstanceType<typeof DrCloseIcon>['$props'] = { size: 16 };
 const formatted: string = formatNumber(1234);
 
-void [buttonProps, textProps, invalidText, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
+void [buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
