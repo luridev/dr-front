@@ -1,6 +1,7 @@
 import IMask from 'imask/holder';
 import { describe, expect, it } from 'vitest';
-import { integerInputMaskOptions, integerInputParams } from '@/forms/lib/inputFormats/integer/config';
+import { integerInputParams } from '@/forms/lib/inputFormats/integer/config';
+import { integerInputMaskOptions } from '@/forms/lib/inputFormats/integer/integerInputMask';
 
 describe('integer IMask string contract', () => {
   it.each(['0', '-', '9007199254740991', '-9007199254740993', `-${'1234567890'.repeat(40)}`])(

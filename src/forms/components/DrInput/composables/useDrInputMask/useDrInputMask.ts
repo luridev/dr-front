@@ -1,8 +1,16 @@
 import IMask from 'imask/holder';
-import { onBeforeUnmount, watch } from 'vue';
+import { computed, onBeforeUnmount, unref, watch } from 'vue';
+import { provideDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
 import type InputMask from 'imask/controls/input';
 import type { FactoryOpts } from 'imask/masked/factory';
-import type { UseDrInputMaskParams } from '@/forms/components/DrInput/composables/useDrInputMask/types';
+import type { DrInputMaskSource, UseDrInputMaskParams } from '@/forms/components/DrInput/composables/useDrInputMask/types';
+
+export function provideDrInputMask(source: DrInputMaskSource) {
+  provideDrInputEditor((params) => useDrInputMask({
+    ...params,
+    settings: computed(() => unref(source)),
+  }));
+}
 
 export function useDrInputMask({ input, model, settings, readonly }: UseDrInputMaskParams) {
   let mask: InputMask<FactoryOpts> | undefined;
@@ -68,5 +76,5 @@ export function useDrInputMask({ input, model, settings, readonly }: UseDrInputM
 
   onBeforeUnmount(() => mask?.destroy());
 
-  return { handleInput };
+  return { handleInput, inputMode: computed(() => settings.value.inputMode) };
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { provideDrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/useDrInputInternalFormat';
+import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import { useDrTypedInputModel } from '@/forms/components/DrInput/composables/useDrTypedInputModel/useDrTypedInputModel';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import { timeDrInputFormatSettingsBySmallestUnit } from '@/forms/components/DrInputTime/config';
@@ -42,7 +42,7 @@ defineSlots<DrInputTimeSlots>();
 
 const internalFormat = computed(() => timeDrInputFormatSettingsBySmallestUnit[props.smallestUnit]);
 
-provideDrInputInternalFormat(internalFormat);
+provideDrInputMask(internalFormat);
 
 const { inputValue, updateInputValue } = useDrTypedInputModel<
   Temporal.PlainTime,

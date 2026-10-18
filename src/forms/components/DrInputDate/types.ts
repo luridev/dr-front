@@ -6,7 +6,7 @@ export type DrInputDateStatus = DateInputStatus;
 
 export type DrInputDateAria = Pick<DrInputAria, 'clearButtonAriaLabel'>;
 
-export type DrInputDateProps = Omit<DrInputProps, 'aria' | 'inputFormat' | 'type'> & {
+export type DrInputDateProps = Omit<DrInputProps, 'aria' | 'type'> & {
   aria?: DrInputDateAria;
 };
 

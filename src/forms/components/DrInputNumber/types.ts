@@ -2,7 +2,7 @@ import type { DrInputAria, DrInputEmits, DrInputProps } from '@/forms/components
 
 export type DrInputNumberAria = Pick<DrInputAria, 'clearButtonAriaLabel'>;
 
-export type DrInputNumberProps = Omit<DrInputProps, 'aria' | 'inputFormat' | 'type'> & {
+export type DrInputNumberProps = Omit<DrInputProps, 'aria' | 'type'> & {
   min?: number;
   max?: number;
   step?: number;

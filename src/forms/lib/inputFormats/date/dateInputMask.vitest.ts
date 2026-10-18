@@ -1,7 +1,7 @@
 import IMask from 'imask/holder';
 import { describe, expect, it } from 'vitest';
-import { dateInputMaskOptions } from '@/forms/lib/inputFormats/date/config';
 import { parseDateInputValue } from '@/forms/lib/inputFormats/date/dateInputFormat';
+import { dateInputMaskOptions } from '@/forms/lib/inputFormats/date/dateInputMask';
 
 describe('date IMask contract', () => {
   it('replays a partial unmasked month without consuming the first year digit', () => {

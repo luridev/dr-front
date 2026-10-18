@@ -30,4 +30,3 @@ export type { DrInputDateStatus } from '@/forms/components/DrInputDate/types';
 export type { DrInputTimeSmallestUnit, DrInputTimeStatus } from '@/forms/components/DrInputTime/types';
 export type { DrTextareaProps, DrTextareaEmits, DrTextareaExposed } from '@/forms/components/DrTextarea/types';
 export type { ControlStateDescriptor } from '@/forms/composables/useControlsState/types';
-export type { DrIntegerInputFormat } from '@/forms/lib/inputFormats/types';

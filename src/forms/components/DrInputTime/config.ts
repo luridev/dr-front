@@ -1,5 +1,5 @@
 import { createTimeInputMaskOptions } from '@/forms/lib/inputFormats/time/timeInputMask';
-import type { DrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/types';
+import type { DrInputMaskSettings } from '@/forms/components/DrInput/composables/useDrInputMask/types';
 import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
 
 export const timeDrInputFormatSettingsBySmallestUnit = {
@@ -23,4 +23,4 @@ export const timeDrInputFormatSettingsBySmallestUnit = {
     maskOptions: createTimeInputMaskOptions('nanosecond'),
     inputMode: 'numeric',
   },
-} satisfies Record<TimeInputSmallestUnit, DrInputInternalFormat>;
+} satisfies Record<TimeInputSmallestUnit, DrInputMaskSettings>;

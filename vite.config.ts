@@ -37,6 +37,13 @@ export default defineConfig({
       fileName: (_format, entryName) => `${entryName}.js`,
       cssFileName: 'styles',
     },
-    rolldownOptions: { external: ['vue', /^imask(?:\/|$)/] },
+    rolldownOptions: {
+      external: ['vue', /^imask(?:\/|$)/],
+      output: {
+        preserveModules: true,
+        preserveModulesRoot: fileURLToPath(new URL('.', import.meta.url)),
+        entryFileNames: (chunk) => `${chunk.name.replace(/[^a-zA-Z0-9_./-]/g, '_')}.js`,
+      },
+    },
   },
 });

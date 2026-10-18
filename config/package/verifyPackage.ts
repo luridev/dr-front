@@ -76,6 +76,7 @@ try {
 
   for (const file of files) {
     assert.match(file.path, publishedFilePattern, `Unexpected published file: ${file.path}`);
+    assert.doesNotMatch(file.path, /[<>:"\\|?*]/, `Published paths must be compatible: ${file.path}`);
   }
 
   cpSync(join(root, 'tests/fixtures/package-consumer'), consumer, { recursive: true });
@@ -88,6 +89,7 @@ try {
       typecheck: 'vue-tsc --noEmit',
       runtime: 'node runtime.mjs',
       build: 'vite build',
+      isolation: 'node isolation.mjs',
     },
     dependencies: { [manifest.name]: `file:./${filename}`, vue: manifest.devDependencies.vue },
     allowScripts: { 'core-js-pure': false },
@@ -133,6 +135,7 @@ try {
   runNpm(['run', 'typecheck'], { cwd: consumer });
   runNpm(['run', 'runtime'], { cwd: consumer });
   runNpm(['run', 'build'], { cwd: consumer });
+  runNpm(['run', 'isolation'], { cwd: consumer });
 
   const css = globSync('dist/**/*.css', { cwd: consumer }).map((file) => readFileSync(join(consumer, file), 'utf8')).join('\n');
 

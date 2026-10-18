@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
-import { provideDrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/useDrInputInternalFormat';
+import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import { useDrInputNumberAria } from '@/forms/components/DrInputNumber/composables/useDrInputNumberAria/useDrInputNumberAria';
 import { useDrInputNumberControls } from '@/forms/components/DrInputNumber/composables/useDrInputNumberControls/useDrInputNumberControls';
@@ -69,7 +69,7 @@ const aria = computed<DrInputAria>(() => ({
   clearButtonAriaLabel: props.aria?.clearButtonAriaLabel,
 }));
 
-provideDrInputInternalFormat(numberDrInputFormatSettings);
+provideDrInputMask(numberDrInputFormatSettings);
 
 const isSignToggleDisabled = computed(() =>
   props.disabled || props.readonly || !isBoundsValid.value || !canToggleSign.value,

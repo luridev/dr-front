@@ -2,8 +2,7 @@
 import { computed, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
-import { useDrInputFormat } from '@/forms/components/DrInput/composables/useDrInputFormat/useDrInputFormat';
-import { useDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
+import { useDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
 import { resolveClearButtonAriaLabel } from '@/forms/lib/resolveClearButtonAriaLabel/resolveClearButtonAriaLabel';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
 import type { DrInputEmits, DrInputProps } from '@/forms/components/DrInput/types';
@@ -25,10 +24,6 @@ const model = defineModel<string>({ required: true });
 
 const inputElement = useTemplateRef<HTMLInputElement>('inputElement');
 
-const { settings, inputMode } = useDrInputFormat({
-  inputFormat: () => props.inputFormat,
-});
-
 const isClearButtonVisible = computed(() =>
   props.clearable && model.value !== '' && !props.disabled && !props.readonly,
 );
@@ -37,10 +32,9 @@ const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(props.label, props.aria?.clearButtonAriaLabel),
 );
 
-const { handleInput } = useDrInputMask({
+const { handleInput, inputMode } = useDrInputEditor({
   input: inputElement,
   model,
-  settings,
   readonly: () => props.readonly || props.disabled,
 });
 

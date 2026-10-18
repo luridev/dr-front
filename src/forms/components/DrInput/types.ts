@@ -1,5 +1,4 @@
 import type { DrControlFieldProps } from '@/forms/components/DrControl/types';
-import type { DrInputFormat } from '@/forms/lib/inputFormats/types';
 
 export type DrInputAria = {
   role?: string;
@@ -12,7 +11,6 @@ export type DrInputAria = {
 
 export type DrInputProps = DrControlFieldProps & {
   type?: string;
-  inputFormat?: DrInputFormat;
   clearable?: boolean;
   readonly?: boolean;
   placeholder?: string;

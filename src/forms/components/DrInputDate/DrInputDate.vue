@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideDrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/useDrInputInternalFormat';
+import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import { useDrTypedInputModel } from '@/forms/components/DrInput/composables/useDrTypedInputModel/useDrTypedInputModel';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import { dateDrInputFormatSettings } from '@/forms/components/DrInputDate/config';
@@ -35,7 +35,7 @@ const model = defineModel<Temporal.PlainDate | null>({
 
 defineSlots<DrInputDateSlots>();
 
-provideDrInputInternalFormat(dateDrInputFormatSettings);
+provideDrInputMask(dateDrInputFormatSettings);
 
 const { inputValue, updateInputValue } = useDrTypedInputModel<
   Temporal.PlainDate,

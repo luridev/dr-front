@@ -3,8 +3,8 @@ import { ref, shallowRef, watch } from 'vue';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import {
   maskingStoryInitialTime,
-  maskingStoryIntegerFormat,
 } from '@/forms/components/DrInput/DrInputMasking/config.support';
+import { IntegerInput } from '@/forms/components/DrInput/DrInputMasking/integerInput.support';
 import DrInputDate from '@/forms/components/DrInputDate/DrInputDate.vue';
 import DrInputNumber from '@/forms/components/DrInputNumber/DrInputNumber.vue';
 import DrInputTime from '@/forms/components/DrInputTime/DrInputTime.vue';
@@ -80,11 +80,10 @@ watch(() => props.externalInteger, (value) => {
             label="Plain date slot"
           />
 
-          <DrInput
+          <IntegerInput
             v-model="integerSlot"
             class="DrInputMasking__integerSlot"
             label="Integer date slot"
-            :input-format="maskingStoryIntegerFormat"
             :readonly="props.readonly"
             :disabled="props.disabled"
           />

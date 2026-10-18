@@ -1,9 +1,15 @@
-import type { ModelRef, Ref } from 'vue';
-import type { DrInputInternalFormat } from '@/forms/components/DrInput/composables/useDrInputInternalFormat/types';
+import type { FactoryOpts } from 'imask/masked/factory';
+import type { ComputedRef, HTMLAttributes, Ref } from 'vue';
+import type { DrInputEditorParams } from '@/forms/components/DrInput/composables/useDrInputEditor/types';
 
-export type UseDrInputMaskParams = {
-  input: Readonly<Ref<HTMLInputElement | null>>;
-  model: ModelRef<string>;
-  settings: Readonly<Ref<DrInputInternalFormat>>;
-  readonly: () => boolean;
+export type DrInputMaskSettings = Readonly<{
+  maskOptions: FactoryOpts | null;
+  format?: (value: string) => string;
+  inputMode: HTMLAttributes['inputmode'];
+}>;
+
+export type DrInputMaskSource = DrInputMaskSettings | ComputedRef<DrInputMaskSettings>;
+
+export type UseDrInputMaskParams = DrInputEditorParams & {
+  settings: Readonly<Ref<DrInputMaskSettings>>;
 };

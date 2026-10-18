@@ -8,7 +8,7 @@ export type DrInputTimeStatus = TimeInputStatus;
 
 export type DrInputTimeAria = Pick<DrInputAria, 'clearButtonAriaLabel'>;
 
-export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'inputFormat' | 'type'> & {
+export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'type'> & {
   smallestUnit?: DrInputTimeSmallestUnit;
   aria?: DrInputTimeAria;
 };

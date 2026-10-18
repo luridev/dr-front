@@ -9,7 +9,7 @@ export const publicRuntimeExports = [
 export const publicTypeExports = [
   'DrButtonVariant', 'DrButtonAria', 'DrAlertData', 'DrErrorAlertData', 'DrInputDateStatus',
   'DrInputTimeSmallestUnit', 'DrInputTimeStatus', 'DrTextareaProps', 'DrTextareaEmits', 'DrTextareaExposed',
-  'ControlStateDescriptor', 'DrIntegerInputFormat',
+  'ControlStateDescriptor',
 ];
 
 export const publicIconExports = [

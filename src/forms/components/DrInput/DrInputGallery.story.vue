@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { DrInput } from '@/index';
+import { computed, ref, useTemplateRef } from 'vue';
+import { DrButton, DrInput } from '@/index';
+import type { DrInputExposed } from '@/forms/components/DrInput/types';
 
 defineOptions({ inheritAttrs: false });
 
@@ -8,19 +9,44 @@ const name = ref('Anna');
 const email = ref('');
 const address = ref('gallery');
 const disabled = ref('Disabled value');
+const nameInput = useTemplateRef<DrInputExposed>('nameInput');
+const nameUpdates = ref(0);
+const lastEvent = ref('');
 const emailState = computed(() => (email.value.includes('@') ? 'normal' : 'error'));
 const emailMessage = computed(() => (emailState.value === 'error' ? 'Include an @ sign.' : 'Valid email'));
+
+function handleNameUpdate() {
+  nameUpdates.value += 1;
+}
+
+function handleEvent(event: FocusEvent | KeyboardEvent | WheelEvent) {
+  lastEvent.value = event.type;
+}
+
+function focusName() {
+  nameInput.value?.focus({ preventScroll: true });
+  nameInput.value?.setCaretToEnd();
+}
+
+function replaceName() {
+  name.value = 'Updated by parent';
+}
 </script>
 
 <template>
   <div class="GalleryExample">
     <div class="GalleryExample__grid">
       <DrInput
+        ref="nameInput"
         v-model="name"
         label="Name"
         placeholder="Your name"
         message="Clearable"
         :aria="{ clearButtonAriaLabel: 'Clear name' }"
+        @update:model-value="handleNameUpdate"
+        @blur="handleEvent"
+        @keydown="handleEvent"
+        @wheel="handleEvent"
       />
 
       <DrInput
@@ -59,6 +85,14 @@ const emailMessage = computed(() => (emailState.value === 'error' ? 'Include an 
     </div>
 
     <p class="GalleryExample__output">Name: {{ name || 'empty' }} · Address: /{{ address }}.html</p>
+
+    <DrButton @click="focusName">Focus name at end</DrButton>
+
+    <DrButton @click="replaceName">Replace name</DrButton>
+
+    <p data-testid="name-updates">{{ nameUpdates }}</p>
+
+    <p data-testid="last-event">{{ lastEvent }}</p>
   </div>
 </template>
 
