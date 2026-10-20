@@ -1,56 +1,82 @@
 import { readonly, shallowRef } from 'vue';
-import type { DrToastItem } from '@/feedback/toasts/types';
+import { maxToastDuration } from '@/feedback/toasts/config';
+import { isSafeIntegerInRange } from '@/numbers/lib/isSafeIntegerInRange/isSafeIntegerInRange';
+import { normalizeToString } from '@/strings/lib/normalizeToString/normalizeToString';
+import type { DrToastItem, DrToastOptions, DrToastService } from '@/feedback/toasts/types';
 
-const activeToastState = shallowRef<DrToastItem>();
-const queuedToasts: Array<DrToastItem> = [];
+export function createToastState() {
+  const activeToast = shallowRef<DrToastItem>();
+  const queuedToasts: Array<DrToastItem> = [];
+  let uid = 0;
+  let disposed = false;
 
-export const activeToast = readonly(activeToastState);
+  function show(options: DrToastOptions): number {
+    if (disposed) {
+      return 0;
+    }
 
-export function enqueueToast(toastItem: DrToastItem): number {
-  const currentToast = activeToastState.value;
+    const variant = options.variant ?? 'info';
+    const normalizedTitle = normalizeToString(options.title);
+    const title = normalizedTitle === '' ? undefined : normalizedTitle;
+    const message = options.message.trim();
+    const duration = isSafeIntegerInRange(options.duration, 1, maxToastDuration) ? options.duration : undefined;
+    uid += 1;
 
-  if (currentToast?.key === toastItem.key) {
-    activeToastState.value = {
-      ...toastItem,
-      uid: currentToast.uid,
+    const toastItem: DrToastItem = {
+      uid,
+      key: JSON.stringify([variant, title, message]),
+      variant,
+      title,
+      message,
+      duration,
     };
 
-    return currentToast.uid;
+    const currentToast = activeToast.value;
+
+    if (currentToast?.key === toastItem.key) {
+      activeToast.value = { ...toastItem, uid: currentToast.uid };
+
+      return currentToast.uid;
+    }
+
+    const queuedToastIndex = queuedToasts.findIndex((queuedToast) => queuedToast.key === toastItem.key);
+
+    if (queuedToastIndex !== -1) {
+      const queuedToast = queuedToasts[queuedToastIndex];
+
+      queuedToasts[queuedToastIndex] = { ...toastItem, uid: queuedToast.uid };
+
+      return queuedToast.uid;
+    }
+
+    if (currentToast == null) {
+      activeToast.value = toastItem;
+    } else {
+      queuedToasts.push(toastItem);
+    }
+
+    return toastItem.uid;
   }
 
-  const queuedToastIndex = queuedToasts.findIndex((queuedToast) => queuedToast.key === toastItem.key);
+  const service: DrToastService = {
+    show,
+    info: (options) => show({ ...options, variant: 'info' }),
+    success: (options) => show({ ...options, variant: 'success' }),
+    warning: (options) => show({ ...options, variant: 'warning' }),
+    error: (options) => show({ ...options, variant: 'error' }),
+  };
 
-  if (queuedToastIndex !== -1) {
-    const queuedToast = queuedToasts[queuedToastIndex];
-
-    queuedToasts[queuedToastIndex] = {
-      ...toastItem,
-      uid: queuedToast.uid,
-    };
-
-    return queuedToast.uid;
+  function dismissToast(currentUid: number) {
+    if (activeToast.value?.uid === currentUid) {
+      activeToast.value = queuedToasts.shift();
+    }
   }
 
-  if (currentToast == null) {
-    activeToastState.value = toastItem;
-  } else {
-    queuedToasts.push(toastItem);
+  function dispose() {
+    disposed = true;
+    queuedToasts.length = 0;
+    activeToast.value = undefined;
   }
 
-  return toastItem.uid;
-}
-
-export function dismissToast(currentUid: number) {
-  const currentToast = activeToastState.value;
-
-  if (currentToast?.uid !== currentUid) {
-    return;
-  }
-
-  activeToastState.value = queuedToasts.shift();
-}
-
-export function clearToasts() {
-  queuedToasts.length = 0;
-  activeToastState.value = undefined;
+  return { service, activeToast: readonly(activeToast), dismissToast, dispose };
 }

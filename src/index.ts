@@ -4,7 +4,7 @@ export { default as DrIconButton } from '@/actions/components/DrIconButton/DrIco
 export { default as DrOutput } from '@/data-display/components/DrOutput/DrOutput.vue';
 export { default as DrAlert } from '@/feedback/components/DrAlert/DrAlert.vue';
 export { default as DrToastHost } from '@/feedback/toasts/components/DrToastHost/DrToastHost.vue';
-export { toast } from '@/feedback/toasts/lib/toast/toast';
+export { useDrToast } from '@/feedback/toasts/composables/useDrToast/useDrToast';
 export { default as DrCheckbox } from '@/forms/components/DrCheckbox/DrCheckbox.vue';
 export { default as DrControl } from '@/forms/components/DrControl/DrControl.vue';
 export { default as DrControlGroup } from '@/forms/components/DrControlGroup/DrControlGroup.vue';
@@ -27,6 +27,7 @@ export { default as DrTabSwitcher } from '@/navigation/tabs/components/DrTabSwit
 export { default as DrModalHost } from '@/overlays/components/DrModalHost/DrModalHost.vue';
 export type { DrButtonVariant, DrButtonAria } from '@/actions/components/DrButton/types';
 export type { DrAlertData, DrErrorAlertData } from '@/feedback/types';
+export type { DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@/feedback/toasts/types';
 export type { DrInputDateStatus } from '@/forms/components/DrInputDate/types';
 export type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 export type { DrInputTimeSmallestUnit, DrInputTimeStatus } from '@/forms/components/DrInputTime/types';

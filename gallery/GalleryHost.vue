@@ -62,10 +62,6 @@ function handleCatalogClick(event: MouseEvent) {
 </script>
 
 <template>
-  <DrModalHost :background-root="props.backgroundRoot" />
-
-  <DrToastHost />
-
   <header
     v-if="props.state.view === 'gallery'"
     class="GalleryHost__header"
@@ -148,11 +144,17 @@ function handleCatalogClick(event: MouseEvent) {
         role="alert"
       >{{ props.state.error }}</p>
 
-      <component
-        :is="props.state.component"
+      <DrToastHost
         v-if="props.state.component"
-        v-bind="props.state.props"
-      />
+        :key="props.state.storyId ?? undefined"
+      >
+        <DrModalHost :background-root="props.backgroundRoot">
+          <component
+            :is="props.state.component"
+            v-bind="props.state.props"
+          />
+        </DrModalHost>
+      </DrToastHost>
     </div>
   </main>
 </template>

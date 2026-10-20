@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { DrButton, DrInputDate, DrMaskedInput, toast, useControlsState } from '@protoapps/dr-front';
+import { DrButton, DrInputDate, DrMaskedInput, useDrToast, useControlsState } from '@protoapps/dr-front';
 import type { DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 import { ref } from 'vue';
 
+const toast = useDrToast();
 const date = ref<Temporal.PlainDate | null>(null);
 const code = ref('001234');
 const integer = ref('-1234');

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-/* eslint-disable vue/no-root-v-if -- Teleport hosts intentionally render nothing before client mount. */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import DrOverlayLayer from '@/overlays/components/DrOverlayLayer/DrOverlayLayer.vue';
-import { overlayLayers } from '@/overlays/lib/overlayState/overlayState';
+import { drOverlayKey } from '@/overlays/keys';
+import { createOverlayContext } from '@/overlays/lib/overlayContext/overlayContext';
 import type { RenderedOverlayLayer, DrModalHostProps } from '@/overlays/components/DrModalHost/types';
 
 defineOptions({
@@ -11,68 +11,22 @@ defineOptions({
 
 const props = defineProps<DrModalHostProps>();
 const isMounted = ref(false);
+const context = createOverlayContext();
+
+provide(drOverlayKey, context);
 
 const renderedLayers = computed<ReadonlyArray<RenderedOverlayLayer>>(() =>
-  overlayLayers.value.map((layer, index, layers) => ({
+  context.layers.value.map((layer) => ({
     layer,
-    isTopLayer: index === layers.length - 1,
+    isTopLayer: context.isTop(layer.token),
+    order: context.order(layer.token),
   })),
 );
 
-const hasLayers = computed(() => renderedLayers.value.length > 0);
-
-let previousBodyOverflow: string | undefined;
-let previousDocumentOverflow: string | undefined;
-let lockedBackgroundRoot: HTMLElement | undefined;
-let wasBackgroundRootInert = false;
-
-function lockDocument(backgroundRoot: HTMLElement) {
-  if (typeof document === 'undefined' || previousBodyOverflow != null) {
-    return;
-  }
-
-  previousBodyOverflow = document.body.style.overflow;
-  previousDocumentOverflow = document.documentElement.style.overflow;
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
-
-  lockedBackgroundRoot = backgroundRoot;
-  wasBackgroundRootInert = backgroundRoot.hasAttribute('inert');
-  backgroundRoot.setAttribute('inert', '');
-}
-
-function unlockDocument() {
-  if (previousBodyOverflow == null) {
-    return;
-  }
-
-  document.body.style.overflow = previousBodyOverflow;
-  document.documentElement.style.overflow = previousDocumentOverflow ?? '';
-
-  if (lockedBackgroundRoot != null && !wasBackgroundRootInert) {
-    lockedBackgroundRoot.removeAttribute('inert');
-  }
-
-  previousBodyOverflow = undefined;
-  previousDocumentOverflow = undefined;
-  lockedBackgroundRoot = undefined;
-  wasBackgroundRootInert = false;
-}
-
 watch(
-  [hasLayers, () => (isMounted.value ? props.backgroundRoot : null)],
-  ([hasOpenLayers, backgroundRoot]) => {
-    if (!hasOpenLayers || lockedBackgroundRoot !== backgroundRoot) {
-      unlockDocument();
-    }
-
-    if (hasOpenLayers && backgroundRoot != null) {
-      lockDocument(backgroundRoot);
-    }
-  },
-  {
-    immediate: true,
-  },
+  () => (isMounted.value ? props.backgroundRoot : null),
+  (root) => { context.setBackgroundRoot(root); },
+  { flush: 'sync' },
 );
 
 onMounted(() => {
@@ -80,14 +34,16 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  unlockDocument();
+  context.dispose();
 });
 </script>
 
 <template>
+  <slot></slot>
+
   <Teleport
     v-if="isMounted && props.backgroundRoot"
-    to="body"
+    :to="props.backgroundRoot.ownerDocument.body"
   >
     <div class="DrModalHost">
       <DrOverlayLayer
@@ -95,6 +51,7 @@ onBeforeUnmount(() => {
         :key="renderedLayer.layer.uid"
         :layer="renderedLayer.layer"
         :is-top-layer="renderedLayer.isTopLayer"
+        :order="renderedLayer.order"
       />
     </div>
   </Teleport>
@@ -102,9 +59,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
   .DrModalHost {
-    position: fixed;
-    z-index: var(--dr-layer-overlay);
-    inset: 0;
-    pointer-events: none;
+    display: contents;
   }
 </style>

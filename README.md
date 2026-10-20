@@ -16,7 +16,7 @@ npm install @protoapps/dr-front
 import {
   DrButton,
   DrInputDate,
-  toast,
+  useDrToast,
   useControlsState,
 } from '@protoapps/dr-front';
 

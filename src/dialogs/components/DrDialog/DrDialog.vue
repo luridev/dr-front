@@ -42,6 +42,10 @@ function handlePanelKeydown(event: KeyboardEvent) {
 onMounted(async () => {
   await nextTick();
 
+  if (panel.value?.closest('[inert]') != null) {
+    return;
+  }
+
   const initialFocusElement = panel.value?.querySelector<HTMLElement>('[data-dr-dialog-initial-focus], [autofocus]');
 
   (initialFocusElement ?? panel.value)?.focus();

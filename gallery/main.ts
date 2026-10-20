@@ -2,7 +2,6 @@ import 'temporal-polyfill/global';
 import { createApp, nextTick, shallowReactive } from 'vue';
 import '@/styles/index.css';
 import '~/gallery/styles.css';
-import { clearToasts } from '@/feedback/toasts/lib/toastState/toastState';
 import GalleryHost from '~/gallery/GalleryHost.vue';
 import type { GalleryState, GalleryTheme, HostWindow, MountParams, StoryModule, StoryProps } from '~/gallery/types';
 
@@ -32,8 +31,6 @@ async function clearStory(): Promise<void> {
   state.props = {};
   state.storyId = null;
   state.error = null;
-  await nextTick();
-  clearToasts();
   await nextTick();
 }
 

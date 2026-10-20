@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { DrButton, DrInput, DrSection, toast } from '@/index';
+import { DrButton, DrInput, DrSection, useDrToast } from '@/index';
 
 defineOptions({ inheritAttrs: false });
 
@@ -27,6 +27,8 @@ function handleQueue() {
   toast.success({ title: 'Success', message: 'Second notification: changes saved.', duration: 2500 });
   toast.warning({ title: 'Warning', message: 'Third notification: review the result.', duration: 2500 });
 }
+
+const toast = useDrToast();
 </script>
 
 <template>

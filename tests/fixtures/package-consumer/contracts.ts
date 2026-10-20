@@ -1,5 +1,5 @@
-import { DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, toast, useControlsState } from '@protoapps/dr-front';
-import type { DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
+import { DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
+import type { DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 
@@ -57,10 +57,15 @@ textarea.focus({ preventScroll: true });
 // @ts-expect-error Exposed focus must retain its typed options.
 textarea.focus('invalid');
 
+const useToast: () => DrToastService = useDrToast;
+declare const toast: DrToastService;
+const variant: DrToastVariant = 'error';
+const toastOptions: DrToastOptions = { variant, message: 'Typed toast' };
+const variantOptions: DrToastVariantOptions = { title: 'Title', message: 'Typed variant', duration: 1000 };
 const toastId: number = toast.info({ message: 'Typed consumer' });
 const controls = useControlsState({ controls: { date: {} }, isValid: () => true });
 const disabled: boolean = controls.controls.date.disabled;
 const iconProps: InstanceType<typeof DrCloseIcon>['$props'] = { size: 16 };
 const formatted: string = formatNumber(1234);
 
-void [buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
+void [useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];

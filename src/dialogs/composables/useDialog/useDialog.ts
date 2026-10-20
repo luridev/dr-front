@@ -31,7 +31,7 @@ export function useDialog<TProps extends object = object, TEvents extends object
     let isCompleting = false;
 
     function closeOpenedDialog() {
-      openedOverlayHandle.close();
+      openedOverlayHandle?.close();
     }
 
     const completionEvents: Record<string, DrComponentEventHandler> = {};
@@ -75,7 +75,7 @@ export function useDialog<TProps extends object = object, TEvents extends object
       },
     });
 
-    const openedOverlayHandle: OverlayHandle = overlay.open({
+    const openedOverlayHandle = overlay.open({
       content: dialogContent,
       closeOnBackdrop: options.closeOnBackdrop,
       onClose: () => {
@@ -88,12 +88,17 @@ export function useDialog<TProps extends object = object, TEvents extends object
       },
     });
 
+    if (openedOverlayHandle == null) {
+      return;
+    }
+
     currentOverlayHandle = openedOverlayHandle;
     isOpen.value = true;
   }
 
   return {
     id,
+    canOpenModal: overlay.canOpenModal,
     isOpen: readonly(isOpen),
     open,
     close,

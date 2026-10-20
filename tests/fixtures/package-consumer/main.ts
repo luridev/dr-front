@@ -1,5 +1,6 @@
-import { createApp } from 'vue';
+import { DrToastHost } from '@protoapps/dr-front';
+import { createApp, h } from 'vue';
 import '@protoapps/dr-front/styles.css';
 import App from './App.vue';
 
-createApp(App).mount('#app');
+createApp({ render: () => h(DrToastHost, null, { default: () => h(App) }) }).mount('#app');

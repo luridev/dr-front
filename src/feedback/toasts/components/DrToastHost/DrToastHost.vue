@@ -1,15 +1,22 @@
 <script setup lang="ts">
-/* eslint-disable vue/no-root-v-if -- Teleport hosts intentionally render nothing before client mount. */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
 import DrToast from '@/feedback/toasts/components/DrToast/DrToast.vue';
-import { activeToast, clearToasts, dismissToast } from '@/feedback/toasts/lib/toastState/toastState';
-import { overlayLayers } from '@/overlays/lib/overlayState/overlayState';
+import { drToastKey } from '@/feedback/toasts/keys';
+import { getToastDuration, getToastTitle } from '@/feedback/toasts/lib/toastPresentation/toastPresentation';
+import { createToastState } from '@/feedback/toasts/lib/toastState/toastState';
+import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';
 
 defineOptions({
   inheritAttrs: false,
 });
 
+const { service, activeToast, dismissToast, dispose } = createToastState();
+
+provide(drToastKey, service);
+
 const announcement = ref('');
+const modality = shallowRef<ReturnType<typeof getDocumentModality>>();
+const title = computed(() => activeToast.value == null ? '' : getToastTitle(activeToast.value));
 
 const isHovered = ref(false);
 const isFocusWithin = ref(false);
@@ -17,7 +24,7 @@ const isDocumentHidden = ref(false);
 const isMounted = ref(false);
 
 const isPaused = computed(() => isHovered.value || isFocusWithin.value || isDocumentHidden.value);
-const closeButtonTabindex = computed(() => (overlayLayers.value.length > 0 ? -1 : undefined));
+const closeButtonTabindex = computed(() => (modality.value?.hasModal.value === true ? -1 : undefined));
 
 let timeoutId: number | undefined;
 let remainingDuration = 0;
@@ -98,7 +105,7 @@ watch(
       announcement.value = '';
     }
 
-    remainingDuration = currentToast?.duration ?? 0;
+    remainingDuration = currentToast == null ? 0 : getToastDuration(currentToast);
 
     if (currentToast == null) {
       return;
@@ -111,13 +118,14 @@ watch(
         return;
       }
 
-      announcement.value = `${currentToast.title}: ${currentToast.message}`;
+      announcement.value = `${getToastTitle(currentToast)}: ${currentToast.message}`;
     }
 
     resumeTimer();
   },
   {
     immediate: true,
+    flush: 'sync',
   },
 );
 
@@ -132,6 +140,7 @@ watch(isPaused, (paused) => {
 onMounted(() => {
   isMounted.value = true;
 
+  modality.value = getDocumentModality(document);
   updateDocumentVisibility();
   document.addEventListener('visibilitychange', updateDocumentVisibility);
 
@@ -142,12 +151,14 @@ onBeforeUnmount(() => {
   isMounted.value = false;
 
   clearTimer();
-  clearToasts();
+  dispose();
   document.removeEventListener('visibilitychange', updateDocumentVisibility);
 });
 </script>
 
 <template>
+  <slot></slot>
+
   <Teleport
     v-if="isMounted"
     to="body"
@@ -171,7 +182,7 @@ onBeforeUnmount(() => {
           :key="activeToast.uid"
           :uid="activeToast.uid"
           :variant="activeToast.variant"
-          :title="activeToast.title"
+          :title="title"
           :message="activeToast.message"
           :close-button-tabindex="closeButtonTabindex"
           @close="dismissToast"

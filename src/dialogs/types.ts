@@ -1,4 +1,4 @@
-import type { Component, MaybeRef, Ref } from 'vue';
+import type { Component, ComputedRef, MaybeRef, Ref } from 'vue';
 import type {
   DrComponentDefinition,
   DrComponentProperties,
@@ -24,6 +24,7 @@ export type UseDialogOptions<TProps extends object> = {
 
 export type UseDialog<TEvents extends object> = {
   id: string;
+  canOpenModal: ComputedRef<boolean>;
   isOpen: Readonly<Ref<boolean>>;
   open: (handlers?: DialogEventHandlers<TEvents>) => void;
   close: () => void;

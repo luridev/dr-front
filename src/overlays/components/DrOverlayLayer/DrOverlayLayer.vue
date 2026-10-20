@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue';
+import { computed, provide } from 'vue';
 import DrComponent from '@/dynamic-components/components/DrComponent/DrComponent.vue';
+import { drToastKey } from '@/feedback/toasts/keys';
 import type { DrOverlayLayerProps } from '@/overlays/components/DrOverlayLayer/types';
 
 defineOptions({
@@ -15,29 +16,17 @@ function handleBackdropPointerdown() {
   }
 }
 
-function handleDocumentKeydown(event: KeyboardEvent) {
-  if (event.key !== 'Escape' || !props.isTopLayer || event.defaultPrevented) {
-    return;
-  }
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- The keyed layer snapshot is immutable.
+provide(drToastKey, props.layer.context.toast);
 
-  event.preventDefault();
-  event.stopPropagation();
-  props.layer.close();
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleDocumentKeydown);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('keydown', handleDocumentKeydown);
-});
+const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }));
 </script>
 
 <template>
   <div
     class="DrOverlayLayer"
     :class="[{ DrOverlayLayer_top: props.isTopLayer }, $attrs.class]"
+    :style="layerStyle"
     :inert="props.isTopLayer ? undefined : true"
     :aria-hidden="props.isTopLayer ? undefined : true"
     @pointerdown.self="handleBackdropPointerdown"
@@ -52,7 +41,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
   .DrOverlayLayer {
-    position: absolute;
+    position: fixed;
+    z-index: calc(var(--dr-layer-overlay) + var(--dr-overlay-layer-order));
     inset: 0;
     isolation: isolate;
     display: grid;

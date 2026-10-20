@@ -102,6 +102,7 @@ const selectedItemSlotProps = computed<DrSelectItemSlotProps<T> | undefined>(() 
 
 const {
   id: itemsDialogId,
+  canOpenModal,
   isOpen: isItemsDialogOpen,
   open: openItemsDialog,
   close: closeItemsDialog,
@@ -131,11 +132,11 @@ const { triggerAria } = useDrSelectAria({
 });
 
 function updatePresentation() {
-  presentation.value = window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
+  presentation.value = canOpenModal.value && window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
 }
 
 function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') {
-  if (effectiveDisabled.value) {
+  if (effectiveDisabled.value || desktopPopup.isOpen.value || isItemsDialogOpen.value) {
     return;
   }
 

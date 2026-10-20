@@ -7,4 +7,5 @@ export type DrModalHostProps = {
 export type RenderedOverlayLayer = {
   layer: DrOverlayLayer;
   isTopLayer: boolean;
+  order: number;
 };
