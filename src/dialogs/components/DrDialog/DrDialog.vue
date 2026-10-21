@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, useId, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
 import type { DrDialogProps, DrDialogSlots } from '@/dialogs/components/DrDialog/types';
 
@@ -9,7 +10,10 @@ defineOptions({
 });
 
 const props = defineProps<DrDialogProps>();
+
 const slots = defineSlots<DrDialogSlots>();
+
+const t = useDrTranslation();
 
 const titleId = useId();
 const panel = useTemplateRef<HTMLElement>('panel');
@@ -75,7 +79,7 @@ onMounted(async () => {
 
       <DrIconButton
         class="DrDialog__close"
-        :aria="{ ariaLabel: 'Закрыть' }"
+        :aria="{ ariaLabel: t('dialog.close') }"
         @click="props.close"
       >
         <DrCloseIcon :size="20" />

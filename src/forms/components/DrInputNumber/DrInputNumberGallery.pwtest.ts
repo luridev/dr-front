@@ -23,8 +23,8 @@ test('readonly number blocks user changes and wheel cancellation while accepting
   await page.keyboard.press('ArrowDown');
   await expect(input).toHaveValue('-5');
 
-  for (const name of ['Увеличить значение', 'Уменьшить значение', 'Изменить знак']) {
-    await expect(component.getByRole('button', { name: `${name} поля «Read-only temperature»` })).toBeDisabled();
+  for (const name of ['Increase Read-only temperature', 'Decrease Read-only temperature', 'Change sign of Read-only temperature']) {
+    await expect(component.getByRole('button', { name, exact: true })).toBeDisabled();
   }
 
   await expect(component.getByRole('button', { name: 'Clear read-only temperature', exact: true })).toHaveCount(0);

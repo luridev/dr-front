@@ -48,12 +48,19 @@ function getMaskModules(chunks) {
     .map(([id]) => id)));
 }
 
+function getServiceModules(chunks) {
+  return chunks.flatMap((chunk) => Object.entries(chunk.modules)
+    .filter(([id, module]) => /[/\\](?:overlays|feedback[/\\]toasts)[/\\]/.test(id) && module.renderedLength !== 0)
+    .map(([id]) => id));
+}
+
 for (const [scenario, components] of Object.entries(scenarios)) {
   const chunks = await buildConsumer({ [scenario]: components });
   const maskModules = getMaskModules(chunks);
 
   if (scenario === 'plain') {
     assert.equal(maskModules.size, 0, 'A consumer importing only DrInput must not bundle IMask.');
+    assert.deepEqual(getServiceModules(chunks), [], 'DrInput configuration must not bring toast or overlay infrastructure.');
   } else {
     assert.ok(maskModules.size > 0, `${scenario} must retain the mask engine.`);
   }
@@ -84,4 +91,5 @@ function visit(chunk) {
 
 visit(plain);
 assert.equal(getMaskModules([...reachable]).size, 0, 'The plain page must not statically load IMask from shared chunks.');
+assert.deepEqual(getServiceModules([...reachable]), [], 'The plain page must not load service infrastructure through configuration.');
 process.stdout.write('[isolation] multi-page plain dependency graph: IMask modules 0\n');

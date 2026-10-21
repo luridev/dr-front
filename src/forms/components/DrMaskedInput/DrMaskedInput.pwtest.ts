@@ -130,13 +130,13 @@ test('clear resets even an empty canonical model with a minus draft and preserve
   const root = await mount(storyId, { mask: integerMask });
   const input = root.getByRole('textbox', { name: 'Code', exact: true });
   await input.fill('-');
-  await root.getByRole('button', { name: 'Очистить поле «Code»', exact: true }).click();
+  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
   await expect(input).toHaveValue('');
   await expect(input).toBeFocused();
   await expect(root.getByTestId('status')).toHaveText('empty');
   await expect(root.getByTestId('updates')).toHaveText('[]');
   await input.fill('123');
-  await root.getByRole('button', { name: 'Очистить поле «Code»', exact: true }).click();
+  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
   await expect(root.getByTestId('updates')).toHaveText('["123",""]');
   await expect(root.getByTestId('model')).toHaveText('');
 });

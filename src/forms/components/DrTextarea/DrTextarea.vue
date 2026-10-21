@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef } from 'vue';
 import DrButton from '@/actions/components/DrButton/DrButton.vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import DrTextareaBase from '@/forms/components/DrTextareaBase/DrTextareaBase.vue';
 import DrTextareaPanel from '@/forms/components/DrTextareaPanel/DrTextareaPanel.vue';
@@ -33,6 +34,8 @@ const emit = defineEmits<DrTextareaEmits & DrTextareaModelEmits>();
 
 defineSlots<DrTextareaSlots>();
 
+const t = useDrTranslation();
+
 const model = computed({
   get: () => props.modelValue,
   set: (value: string) => { emit('update:modelValue', value); },
@@ -41,7 +44,7 @@ const model = computed({
 const textarea = useTemplateRef<DrTextareaBaseExposed>('textarea');
 
 const clearButtonAriaLabel = computed(() =>
-  resolveClearButtonAriaLabel(props.label, props.aria?.clearButtonAriaLabel),
+  resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
 );
 
 const isClearButtonVisible = computed(
@@ -155,7 +158,7 @@ defineExpose({
             @pointerdown.prevent
             @click="handleClear"
           >
-            Очистить
+            {{ t('textarea.clear') }}
           </DrButton>
         </template>
       </DrTextareaPanel>

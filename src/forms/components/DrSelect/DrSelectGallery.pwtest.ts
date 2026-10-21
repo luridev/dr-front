@@ -13,7 +13,7 @@ for (const { width, selectionKey } of [
     const trigger = component.getByRole('combobox', { name: 'City', exact: true });
     const dialog = page.getByRole('dialog', { name: 'City', exact: true });
     const listbox = dialog.getByRole('listbox', { name: 'City', exact: true });
-    const close = dialog.getByRole('button', { name: 'Закрыть', exact: true });
+    const close = dialog.getByRole('button', { name: 'Close', exact: true });
 
     await trigger.focus();
     await page.keyboard.press('Enter');

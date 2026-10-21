@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrToast from '@/feedback/toasts/components/DrToast/DrToast.vue';
 import { drToastKey } from '@/feedback/toasts/keys';
 import { getToastDuration, getToastTitle } from '@/feedback/toasts/lib/toastPresentation/toastPresentation';
@@ -10,13 +11,15 @@ defineOptions({
   inheritAttrs: false,
 });
 
+const t = useDrTranslation();
+
 const { service, activeToast, dismissToast, dispose } = createToastState();
 
 provide(drToastKey, service);
 
 const announcement = ref('');
 const modality = shallowRef<ReturnType<typeof getDocumentModality>>();
-const title = computed(() => activeToast.value == null ? '' : getToastTitle(activeToast.value));
+const title = computed(() => activeToast.value == null ? '' : getToastTitle(activeToast.value, t));
 
 const isHovered = ref(false);
 const isFocusWithin = ref(false);
@@ -105,7 +108,7 @@ watch(
       announcement.value = '';
     }
 
-    remainingDuration = currentToast == null ? 0 : getToastDuration(currentToast);
+    remainingDuration = currentToast == null ? 0 : getToastDuration(currentToast, t);
 
     if (currentToast == null) {
       return;
@@ -118,7 +121,7 @@ watch(
         return;
       }
 
-      announcement.value = `${getToastTitle(currentToast)}: ${currentToast.message}`;
+      announcement.value = `${getToastTitle(currentToast, t)}: ${currentToast.message}`;
     }
 
     resumeTimer();

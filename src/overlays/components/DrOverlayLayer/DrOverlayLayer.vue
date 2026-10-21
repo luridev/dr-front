@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue';
+import { drConfigKey } from '@/configuration/keys';
 import DrComponent from '@/dynamic-components/components/DrComponent/DrComponent.vue';
 import { drToastKey } from '@/feedback/toasts/keys';
 import type { DrOverlayLayerProps } from '@/overlays/components/DrOverlayLayer/types';
@@ -18,6 +19,8 @@ function handleBackdropPointerdown() {
 
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss -- The keyed layer snapshot is immutable.
 provide(drToastKey, props.layer.context.toast);
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- Retain the caller's reactive configuration context.
+provide(drConfigKey, props.layer.context.config);
 
 const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }));
 </script>

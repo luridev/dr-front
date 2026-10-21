@@ -1,5 +1,5 @@
-import { DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
-import type { DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
+import { DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
+import type { DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 
@@ -68,4 +68,50 @@ const disabled: boolean = controls.controls.date.disabled;
 const iconProps: InstanceType<typeof DrCloseIcon>['$props'] = { size: 16 };
 const formatted: string = formatNumber(1234);
 
-void [useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
+const language: DrLanguage = 'ru';
+const locale: DrLocale = 'en-GB';
+const key: DrMessageKey = 'input.clearNamed';
+const request: DrTranslationRequest = { language, key, params: { label: 'Email' } };
+const translate: DrTranslateOverride = (request) => {
+  if (request.key === 'input.clearNamed') {
+    const label: string = request.params.label;
+    // @ts-expect-error The narrowed parameters expose only the known names.
+    request.params.name;
+    return `Reset ${label}`;
+  }
+  if (request.key === 'dialog.close') {
+    const absent: undefined = request.params;
+    // @ts-expect-error Parameterless messages cannot supply a label.
+    const unexpected: { label: string } = request.params;
+    void [absent, unexpected];
+    return request.language === 'en' ? 'Dismiss' : undefined;
+  }
+  return undefined;
+};
+const destructured: DrTranslateOverride = ({ key, params }) => key === 'input.clearNamed' ? params.label : undefined;
+const config: DrConfigProviderProps = { language, locale, translate };
+const providerProps: InstanceType<typeof DrConfigProvider>['$props'] = config;
+translate(request);
+translate({ language: 'en', key: 'dialog.close' });
+// @ts-expect-error Unsupported languages are not public extensions.
+const badLanguage: DrLanguage = 'de';
+// @ts-expect-error Locale support is explicit, not every Intl locale.
+const badLocale: DrLocale = 'en-AU';
+// @ts-expect-error Provider component declarations retain the language union.
+const badProvider: InstanceType<typeof DrConfigProvider>['$props'] = { language: 'de' };
+// @ts-expect-error Unknown request keys are rejected.
+translate({ language: 'en', key: 'unknown.key' });
+// @ts-expect-error Unknown request languages are rejected.
+translate({ language: 'de', key: 'dialog.close' });
+// @ts-expect-error Parameterized messages require params.
+translate({ language: 'en', key: 'input.clearNamed' });
+// @ts-expect-error Parameter types follow the English function signature.
+translate({ language: 'en', key: 'input.clearNamed', params: { label: 42 } });
+// @ts-expect-error Parameterless messages must not have an artificial params object.
+translate({ language: 'en', key: 'dialog.close', params: {} });
+// @ts-expect-error Additional parameter names are rejected.
+translate({ language: 'en', key: 'input.clearNamed', params: { label: 'Email', extra: 'value' } });
+// @ts-expect-error Only a string or undefined may be returned.
+const badTranslate: DrTranslateOverride = () => null;
+
+void [destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];

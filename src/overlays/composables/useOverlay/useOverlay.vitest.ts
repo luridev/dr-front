@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createSSRApp, defineComponent, effectScope, h, inject, provide } from 'vue';
 import { renderToString } from 'vue/server-renderer';
+import { defaultConfig } from '@/configuration/config';
 import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
 import { drToastKey } from '@/feedback/toasts/keys';
 import { createToastState } from '@/feedback/toasts/lib/toastState/toastState';
@@ -80,7 +81,7 @@ describe('overlay ownership', () => {
     const a = createOverlayContext();
     const b = createOverlayContext();
     const closed: Array<number> = [];
-    const snapshot = { toast: undefined };
+    const snapshot = { toast: undefined, config: defaultConfig };
     const fixture = createDocumentFixture();
 
     a.setBackgroundRoot(fixture.background());

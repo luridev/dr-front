@@ -2,6 +2,14 @@ import type { GalleryGroup } from '~/gallery/types';
 
 export const galleryGroups: Array<GalleryGroup> = [
   {
+    title: 'Configuration',
+    stories: [{
+      id: 'configuration/components/DrConfigProvider/DrConfigProviderGallery',
+      title: 'DrConfigProvider',
+      description: 'Reactive language, locale, message overrides, and nested providers.',
+    }],
+  },
+  {
     title: 'Actions',
     stories: [
       {

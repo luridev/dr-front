@@ -1,4 +1,5 @@
 import { computed, getCurrentInstance, inject, onScopeDispose, ref } from 'vue';
+import { useDrConfig } from '@/configuration/composables/useDrConfig/useDrConfig';
 import { drToastKey } from '@/feedback/toasts/keys';
 import { drOverlayKey } from '@/overlays/keys';
 import type { UseOverlay } from '@/overlays/composables/useOverlay/types';
@@ -7,6 +8,7 @@ import type { OverlayHandle, OverlayOptions } from '@/overlays/types';
 export function useOverlay(): UseOverlay {
   const context = getCurrentInstance() == null ? undefined : inject(drOverlayKey, undefined);
   const toast = getCurrentInstance() == null ? undefined : inject(drToastKey, undefined);
+  const config = useDrConfig();
   const ownedHandles = new Set<OverlayHandle>();
   const disposed = ref(false);
   const canOpenModal = computed(() => !disposed.value && context?.canOpenModal.value === true);
@@ -29,7 +31,7 @@ export function useOverlay(): UseOverlay {
 
         options.onClose?.();
       },
-    }, { toast });
+    }, { toast, config });
 
     if (handle != null) {
       ownedHandles.add(handle);

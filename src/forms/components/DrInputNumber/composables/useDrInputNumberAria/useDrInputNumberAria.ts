@@ -1,4 +1,5 @@
 import { computed, toValue } from 'vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import { integerInputMinusSign } from '@/forms/lib/inputFormats/integer/config';
 import { isFiniteNumber } from '@/numbers/lib/isFiniteNumber/isFiniteNumber';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
@@ -13,14 +14,16 @@ export function useDrInputNumberAria({
   isBoundsValid,
   label,
 }: UseDrInputNumberAriaParams) {
-  const fieldNameSuffix = computed(() => {
+  const t = useDrTranslation();
+
+  const fieldName = computed(() => {
     const value = toValue(label);
 
-    return isNonBlankString(value) ? ` поля «${value.trim()}»` : '';
+    return isNonBlankString(value) ? value.trim() : undefined;
   });
 
   function getIncompleteValueText(value: string) {
-    return value === integerInputMinusSign ? 'Ввод отрицательного числа не завершён' : 'Значение не задано';
+    return value === integerInputMinusSign ? t('inputNumber.incompleteNegative') : t('inputNumber.empty');
   }
 
   const inputAria = computed<DrInputAria>(() => {
@@ -36,9 +39,17 @@ export function useDrInputNumberAria({
     };
   });
 
-  const incrementAriaLabel = computed(() => `Увеличить значение${fieldNameSuffix.value}`);
-  const decrementAriaLabel = computed(() => `Уменьшить значение${fieldNameSuffix.value}`);
-  const signAriaLabel = computed(() => `Изменить знак${fieldNameSuffix.value}`);
+  const incrementAriaLabel = computed(() => fieldName.value == null
+    ? t('inputNumber.increment')
+    : t('inputNumber.incrementNamed', { label: fieldName.value }));
+
+  const decrementAriaLabel = computed(() => fieldName.value == null
+    ? t('inputNumber.decrement')
+    : t('inputNumber.decrementNamed', { label: fieldName.value }));
+
+  const signAriaLabel = computed(() => fieldName.value == null
+    ? t('inputNumber.sign')
+    : t('inputNumber.signNamed', { label: fieldName.value }));
 
   return {
     inputAria,

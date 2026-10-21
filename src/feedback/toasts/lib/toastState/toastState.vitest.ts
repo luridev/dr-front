@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { defaultConfig } from '@/configuration/config';
+import { createTranslator } from '@/configuration/lib/createTranslator/createTranslator';
 import { getToastDuration, getToastTitle } from '@/feedback/toasts/lib/toastPresentation/toastPresentation';
 import { createToastState } from '@/feedback/toasts/lib/toastState/toastState';
 import { requireValue } from '~/tests/vitest/setup.support';
+
+const t = createTranslator(defaultConfig);
 
 describe('Host-owned toast queue', () => {
   it('keeps FIFO order, replaces queued duplicates in place and ignores stale dismissals', () => {
@@ -38,14 +42,14 @@ describe('Host-owned toast queue', () => {
     expect(state.activeToast.value?.uid).toBe(next);
   });
 
-  it('keeps automatic titles distinct from explicit text, resolving Russian fallback at presentation', () => {
+  it('keeps automatic titles distinct from explicit text, resolving the configured title at presentation', () => {
     const state = createToastState();
     const auto = state.service.error({ message: 'Failed' });
     const automatic = requireValue(state.activeToast.value);
     const explicit = state.service.error({ title: 'Ошибка', message: 'Failed' });
 
     expect(automatic.title).toBeUndefined();
-    expect(getToastTitle(automatic)).toBe('Ошибка');
+    expect(getToastTitle(automatic, t)).toBe('Error');
     expect(explicit).not.toBe(auto);
     expect(state.service.error({ title: '   ', message: 'Failed' })).toBe(auto);
     state.dismissToast(auto);
@@ -58,7 +62,7 @@ describe('Host-owned toast queue', () => {
 
     state.service.show({ message: 'message', duration });
     expect(state.activeToast.value?.variant).toBe('info');
-    expect(getToastDuration(requireValue(state.activeToast.value))).toBe(duration);
+    expect(getToastDuration(requireValue(state.activeToast.value), t)).toBe(duration);
   });
 
   it.each([undefined, 0, -1, 1.5, 30_001, Number.NaN, Infinity])('falls back from invalid duration %s', (duration) => {
@@ -66,17 +70,17 @@ describe('Host-owned toast queue', () => {
 
     state.service.show({ message: 'message', duration });
     expect(state.activeToast.value?.duration).toBeUndefined();
-    expect(getToastDuration(requireValue(state.activeToast.value))).toBe(6000);
+    expect(getToastDuration(requireValue(state.activeToast.value), t)).toBe(6000);
   });
 
   it('bounds automatic duration and counts normalized Unicode code points', () => {
     const state = createToastState();
 
     state.service.info({ title: 'A', message: `${'😀'.repeat(100)}\n  B` });
-    expect(getToastDuration(requireValue(state.activeToast.value))).toBe(9200);
+    expect(getToastDuration(requireValue(state.activeToast.value), t)).toBe(9200);
     state.dismissToast(requireValue(state.activeToast.value).uid);
     state.service.info({ message: 'x'.repeat(1000) });
-    expect(getToastDuration(requireValue(state.activeToast.value))).toBe(30_000);
+    expect(getToastDuration(requireValue(state.activeToast.value), t)).toBe(30_000);
   });
 
   it('isolates state and local IDs, disposes only its own queue and rejects late async calls', async () => {

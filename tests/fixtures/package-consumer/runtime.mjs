@@ -25,6 +25,17 @@ const html = await renderToString(createSSRApp(() => h(root.DrButton, null, () =
 assert.match(html, /<button/);
 assert.equal('Temporal' in globalThis, false, 'Root import/render must not install a polyfill.');
 
+const localized = await renderToString(createSSRApp(() => h(root.DrConfigProvider, {
+  language: 'ru',
+  translate: ({ language, key, params }) => language === 'ru' && key === 'input.clearNamed' ? `Стереть ${params.label}` : undefined,
+}, {
+  default: () => h(root.DrInput, { modelValue: 'text', label: 'Email' }),
+})));
+const providerless = await renderToString(createSSRApp(() => h(root.DrInput, { modelValue: 'text', label: 'Email' })));
+
+assert.match(localized, /Стереть Email/);
+assert.match(providerless, /Clear Email/);
+
 const installedPackage = realpathSync(new URL(`./node_modules/${packageName}`, import.meta.url));
 const entryFile = fileURLToPath(import.meta.resolve(packageName));
 const privatePath = relative(installedPackage, entryFile).replaceAll('\\', '/');

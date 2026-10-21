@@ -14,6 +14,7 @@ npm install @protoapps/dr-front
 
 ```ts
 import {
+  DrConfigProvider,
   DrButton,
   DrInputDate,
   useDrToast,
@@ -33,6 +34,25 @@ Run locally:
 ```sh
 npm run dev
 ```
+
+## Localization
+
+`DrConfigProvider` optionally configures the UI language and locale. Defaults are `en` and `en-US`.
+
+```vue
+<DrConfigProvider language="ru" :translate="translate">
+  <ApplicationContent />
+</DrConfigProvider>
+```
+
+Built-in messages can be overridden with a typed callback:
+
+```ts
+const translate: DrTranslateOverride = ({ language, key }) =>
+  language === 'en' && key === 'dialog.close' ? 'Dismiss' : undefined;
+```
+
+Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. Missing settings are inferred automatically. Locale-based input formatting is not yet implemented.
 
 ## Browser requirements
 

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
+import { defaultConfig } from '@/configuration/config';
 import { createDocumentFixture, FocusTarget } from '@/overlays/lib/documentModality/document.support';
 import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';
 import { createOverlayContext } from '@/overlays/lib/overlayContext/overlayContext';
@@ -122,12 +123,12 @@ describe('document resource ownership', () => {
 
     expect(modality.hasModal.value).toBe(false);
     context.setBackgroundRoot(root);
-    context.open({ content, onClose: close }, { toast: undefined });
+    context.open({ content, onClose: close }, { toast: undefined, config: defaultConfig });
     const token = context.layers.value[0].token;
 
     expect(context.isTop(token)).toBe(true);
     expect(context.order(token)).toBe(0);
-    const second = context.open({ content }, { toast: undefined });
+    const second = context.open({ content }, { toast: undefined, config: defaultConfig });
     const secondToken = context.layers.value[1].token;
 
     expect(context.isTop(token)).toBe(false);

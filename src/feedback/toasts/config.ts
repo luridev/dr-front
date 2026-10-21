@@ -1,3 +1,4 @@
+import type { DrMessageKey } from '@/configuration/types';
 import type { DrToastVariant } from '@/feedback/toasts/types';
 
 export const minToastDuration = 6_000;
@@ -5,9 +6,9 @@ export const maxToastDuration = 30_000;
 export const baseToastDuration = 4_000;
 export const toastDurationPerCharacter = 50;
 
-export const defaultToastTitles = {
-  info: 'Информация',
-  success: 'Успешно',
-  warning: 'Предупреждение',
-  error: 'Ошибка',
-} as const satisfies Record<DrToastVariant, string>;
+export const toastTitleKeys = {
+  info: 'toast.info',
+  success: 'toast.success',
+  warning: 'toast.warning',
+  error: 'toast.error',
+} as const satisfies Record<DrToastVariant, DrMessageKey>;

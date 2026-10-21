@@ -9,7 +9,7 @@ test('generic textarea rejects oversized paste and emits limitExceeded', async (
   const props: DrTextareaPlaygroundProps = { maxLength };
   const component = await mount(compositionStoryId, props);
 
-  await component.getByRole('button', { name: 'Очистить поле «Source»' }).click();
+  await component.getByRole('button', { name: 'Clear Source' }).click();
 
   const textarea = component.getByRole('textbox', { name: 'Source' });
   const text = 'ab😀cd';
@@ -55,7 +55,7 @@ test('generic textarea exposes slot contexts and regains focus after clearing em
   const component = await mount(compositionStoryId, props);
   const content = component.getByRole('group', { name: 'Source' });
   const extraAction = component.getByTestId('extra-action');
-  const clear = component.getByRole('button', { name: 'Очистить поле «Source»' });
+  const clear = component.getByRole('button', { name: 'Clear Source' });
 
   await expect(content).toHaveAccessibleDescription(feedback);
   await expect(content).toHaveAttribute('aria-invalid', 'true');
@@ -94,7 +94,7 @@ test('read-only textarea preserves focus, parent updates and reading actions', a
   await expect(textarea).not.toBeEditable();
   await expect(component.getByRole('textbox', { name: 'Note', exact: true })).toBeEditable();
   await expect(component.getByRole('textbox', { name: 'Disabled', exact: true })).toBeDisabled();
-  await expect(component.getByRole('button', { name: 'Очистить поле «Read-only»' })).toHaveCount(0);
+  await expect(component.getByRole('button', { name: 'Clear Read-only' })).toHaveCount(0);
   await expect(component.getByRole('button', { name: 'Replace value' })).toBeDisabled();
 
   await page.keyboard.press('End');

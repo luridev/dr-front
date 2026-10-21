@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T">
 import { computed, nextTick, onMounted, ref, toRef, useId, useTemplateRef, watch } from 'vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import DrSelectList from '@/forms/components/DrSelect/components/DrSelectList/DrSelectList.vue';
@@ -8,7 +9,6 @@ import { useDrSelectAria } from '@/forms/components/DrSelect/composables/useDrSe
 import { useDrSelectDesktopPopup } from '@/forms/components/DrSelect/composables/useDrSelectDesktopPopup/useDrSelectDesktopPopup';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
 import { useDrSelectTriggerKeyboard } from '@/forms/components/DrSelect/composables/useDrSelectTriggerKeyboard/useDrSelectTriggerKeyboard';
-import { defaultDrSelectDialogTitle, defaultDrSelectEmptyText } from '@/forms/components/DrSelect/config';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
 import type {
   DrSelectListEmits,
@@ -31,11 +31,13 @@ defineOptions({
 const props = withDefaults(defineProps<DrSelectProps<T>>(), {
   disabled: false,
   state: 'normal',
-  emptyText: defaultDrSelectEmptyText,
 });
 
 const model = defineModel<T>({ required: true });
+
 const slots = defineSlots<DrSelectSlots<T>>();
+
+const t = useDrTranslation();
 
 const mobileMediaQuery = '(width <= 560px)';
 
@@ -70,7 +72,7 @@ const selectedIndex = computed(() => {
 });
 
 const effectiveDisabled = computed(() => props.disabled || props.items.length === 0);
-const placeholderText = computed(() => (props.items.length === 0 ? props.emptyText : props.placeholder));
+const placeholderText = computed(() => (props.items.length === 0 ? props.emptyText ?? t('select.empty') : props.placeholder));
 const isPlaceholderVisible = computed(() => !hasSelection.value);
 
 const accessibleLabel = computed(() => {
@@ -82,7 +84,7 @@ const accessibleLabel = computed(() => {
     return props.placeholder;
   }
 
-  return defaultDrSelectDialogTitle;
+  return t('select.choose');
 });
 
 const selectedItemSlotProps = computed<DrSelectItemSlotProps<T> | undefined>(() => {

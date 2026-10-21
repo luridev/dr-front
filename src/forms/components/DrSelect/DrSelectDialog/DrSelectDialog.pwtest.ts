@@ -41,7 +41,7 @@ test('nested mobile Select keeps Tab navigation within the topmost dialog', asyn
   const trigger = outerDialog.getByRole('combobox', { name: 'Dialog select', exact: true });
   const innerDialog = page.getByRole('dialog', { name: 'Dialog select', exact: true });
   const listbox = innerDialog.getByRole('listbox');
-  const innerClose = innerDialog.getByRole('button', { name: 'Закрыть', exact: true });
+  const innerClose = innerDialog.getByRole('button', { name: 'Close', exact: true });
 
   await component.getByRole('button', { name: 'Open dialog', exact: true }).click();
   await trigger.focus();

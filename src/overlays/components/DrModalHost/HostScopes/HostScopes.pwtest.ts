@@ -43,7 +43,7 @@ test('toast repeat restarts duration and hover, focus and document visibility pa
   const time = new Date('2026-01-01T00:00:00Z');
 
   await page.clock.install({ time });
-  await page.clock.pauseAt(time);
+  await page.clock.pauseAt(new Date(time.getTime() + 60_000));
   await show.click();
   await page.clock.runFor(600);
   await show.click();
@@ -111,7 +111,7 @@ test('document coordination preserves overflow, global stacking, focus and Escap
   await expect(component.getByTestId('root-a')).not.toHaveAttribute('inert');
 
   await command(component, 'Open a');
-  await a.getByRole('button', { name: 'Закрыть', exact: true }).click();
+  await a.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(b).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('[role="dialog"]')).toHaveCount(0);

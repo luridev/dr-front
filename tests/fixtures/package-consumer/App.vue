@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { DrButton, DrInputDate, DrMaskedInput, useDrToast, useControlsState } from '@protoapps/dr-front';
-import type { DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
+import { DrConfigProvider, DrButton, DrInputDate, DrMaskedInput, useDrToast, useControlsState } from '@protoapps/dr-front';
+import type { DrTranslateOverride, DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 import { ref } from 'vue';
@@ -13,6 +13,9 @@ const status = ref<DrMaskedInputStatus>('empty');
 const serialMask = { pattern: 'HH-0000', definitions: { H: /[A-F0-9]/ } } as const satisfies DrMask;
 const serial = ref('AB1234');
 const controlsState = useControlsState({ controls: { date: {} }, isValid: () => date.value != null });
+const translate: DrTranslateOverride = ({ language, key, params }) => language === 'ru' && key === 'input.clearNamed'
+  ? `Стереть ${params.label}`
+  : undefined;
 
 function showFeedback() {
   toast.info({ message: formatNumber(1234) });
@@ -20,10 +23,12 @@ function showFeedback() {
 </script>
 
 <template>
-  <DrButton @click="showFeedback"><DrCloseIcon /> Feedback</DrButton>
-  <DrInputDate v-model="date" label="Date" :disabled="controlsState.controls.date.disabled" />
-  <DrMaskedInput v-model="code" mask="000-000" label="Code" @update:status="status = $event" />
-  <DrMaskedInput v-model="integer" :mask="{ type: 'integer' }" label="Integer" />
-  <DrMaskedInput v-model="serial" :mask="serialMask" label="Serial" />
-  <span>{{ status }}</span>
+  <DrConfigProvider :translate="translate">
+    <DrButton @click="showFeedback"><DrCloseIcon /> Feedback</DrButton>
+    <DrInputDate v-model="date" label="Date" :disabled="controlsState.controls.date.disabled" />
+    <DrMaskedInput v-model="code" mask="000-000" label="Code" @update:status="status = $event" />
+    <DrMaskedInput v-model="integer" :mask="{ type: 'integer' }" label="Integer" />
+    <DrMaskedInput v-model="serial" :mask="serialMask" label="Serial" />
+    <span>{{ status }}</span>
+  </DrConfigProvider>
 </template>

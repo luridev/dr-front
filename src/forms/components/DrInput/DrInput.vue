@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import { useDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
 import { resolveClearButtonAriaLabel } from '@/forms/lib/resolveClearButtonAriaLabel/resolveClearButtonAriaLabel';
@@ -20,7 +21,10 @@ const props = withDefaults(defineProps<DrInputProps>(), {
 });
 
 const emit = defineEmits<DrInputEmits>();
+
 const model = defineModel<string>({ required: true });
+
+const t = useDrTranslation();
 
 const inputElement = useTemplateRef<HTMLInputElement>('inputElement');
 
@@ -29,7 +33,7 @@ const isClearButtonVisible = computed(() =>
 );
 
 const clearButtonAriaLabel = computed(() =>
-  resolveClearButtonAriaLabel(props.label, props.aria?.clearButtonAriaLabel),
+  resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
 );
 
 const { handleInput, inputMode } = useDrInputEditor({

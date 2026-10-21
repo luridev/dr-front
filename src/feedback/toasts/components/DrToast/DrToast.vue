@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
 import type { DrToastEmits, DrToastProps } from '@/feedback/toasts/components/DrToast/types';
 import type { DrToastVariant } from '@/feedback/toasts/types';
@@ -12,6 +13,8 @@ defineOptions({
 const props = defineProps<DrToastProps>();
 
 const emit = defineEmits<DrToastEmits>();
+
+const t = useDrTranslation();
 
 const rootElement = useTemplateRef<HTMLElement>('rootElement');
 
@@ -68,7 +71,7 @@ function handleFocusOut(event: FocusEvent) {
     <DrIconButton
       class="DrToast__close"
       :tabindex="props.closeButtonTabindex"
-      :aria="{ ariaLabel: 'Закрыть уведомление' }"
+      :aria="{ ariaLabel: t('toast.close') }"
       @click="handleClose"
     >
       <DrCloseIcon :size="16" />

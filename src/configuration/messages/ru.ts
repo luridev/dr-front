@@ -1,0 +1,25 @@
+import type { DrMessages } from '@/configuration/types';
+
+export const ru = Object.freeze({
+  'alert.error': () => 'Что-то пошло не так',
+  'dialog.close': () => 'Закрыть',
+  'filePicker.choose': () => 'Выбрать файл',
+  'input.clear': () => 'Очистить поле',
+  'input.clearNamed': ({ label }) => `Очистить поле «${label}»`,
+  'inputNumber.increment': () => 'Увеличить значение',
+  'inputNumber.incrementNamed': ({ label }) => `Увеличить значение поля «${label}»`,
+  'inputNumber.decrement': () => 'Уменьшить значение',
+  'inputNumber.decrementNamed': ({ label }) => `Уменьшить значение поля «${label}»`,
+  'inputNumber.sign': () => 'Изменить знак',
+  'inputNumber.signNamed': ({ label }) => `Изменить знак поля «${label}»`,
+  'inputNumber.incompleteNegative': () => 'Ввод отрицательного числа не завершён',
+  'inputNumber.empty': () => 'Значение не задано',
+  'select.choose': () => 'Выберите вариант',
+  'select.empty': () => 'Нет вариантов для выбора',
+  'textarea.clear': () => 'Очистить',
+  'toast.info': () => 'Информация',
+  'toast.success': () => 'Успешно',
+  'toast.warning': () => 'Предупреждение',
+  'toast.error': () => 'Ошибка',
+  'toast.close': () => 'Закрыть уведомление',
+} satisfies DrMessages);

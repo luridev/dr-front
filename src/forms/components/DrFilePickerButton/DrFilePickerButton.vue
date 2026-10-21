@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import DrButton from '@/actions/components/DrButton/DrButton.vue';
+import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import type {
   DrFilePickerButtonEmits,
   DrFilePickerButtonProps,
@@ -12,11 +13,14 @@ defineOptions({
 
 const props = withDefaults(defineProps<DrFilePickerButtonProps>(), {
   disabled: false,
-  label: 'Выбрать файл',
   loading: false,
 });
 
 const emit = defineEmits<DrFilePickerButtonEmits>();
+
+const t = useDrTranslation();
+
+const label = computed(() => props.label ?? t('filePicker.choose'));
 
 const fileInputElement = useTemplateRef<HTMLInputElement>('fileInputElement');
 
@@ -58,7 +62,7 @@ function handleFileChange(event: Event): void {
       hidden
       :accept="props.accept"
       :disabled="props.disabled || props.loading"
-      :aria-label="props.label"
+      :aria-label="label"
       @change="handleFileChange"
     />
 
@@ -69,7 +73,7 @@ function handleFileChange(event: Event): void {
       :loading="props.loading"
       @click="handleButtonClick"
     >
-      {{ props.label }}
+      {{ label }}
     </DrButton>
   </span>
 </template>
