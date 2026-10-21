@@ -25,7 +25,8 @@ const html = await renderToString(createSSRApp(() => h(root.DrButton, null, () =
 assert.match(html, /<button/);
 assert.equal('Temporal' in globalThis, false, 'Root import/render must not install a polyfill.');
 
-const localized = await renderToString(createSSRApp(() => h(root.DrConfigProvider, {
+const localized = await renderToString(createSSRApp(() => h(root.DrFrontProvider, {
+  backgroundRoot: null,
   language: 'ru',
   translate: ({ language, key, params }) => language === 'ru' && key === 'input.clearNamed' ? `Стереть ${params.label}` : undefined,
 }, {

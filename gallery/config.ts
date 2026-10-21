@@ -4,6 +4,10 @@ export const galleryGroups: Array<GalleryGroup> = [
   {
     title: 'Configuration',
     stories: [{
+      id: 'configuration/components/DrFrontProvider/DrFrontProviderGallery',
+      title: 'DrFrontProvider',
+      description: 'Configuration, notifications and modal Select in one provider.',
+    }, {
       id: 'configuration/components/DrConfigProvider/DrConfigProviderGallery',
       title: 'DrConfigProvider',
       description: 'Reactive language, locale, message overrides, and nested providers.',

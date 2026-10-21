@@ -35,6 +35,20 @@ Run locally:
 npm run dev
 ```
 
+## Providers
+
+`DrFrontProvider` combines configuration, notifications and modal dialogs in one renderless component:
+
+```vue
+<DrFrontProvider>
+  <ApplicationContent />
+</DrFrontProvider>
+```
+
+Provide `background-root` when modal dialogs are needed.
+
+`DrConfigProvider`, `DrToastHost` and `DrModalHost` can also be used independently. Ordinary UI components do not require a provider.
+
 ## Localization
 
 `DrConfigProvider` optionally configures the UI language and locale. Defaults are `en` and `en-US`.

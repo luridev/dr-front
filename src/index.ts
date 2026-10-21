@@ -1,4 +1,6 @@
 /// <reference lib="esnext.temporal" preserve="true" />
+export { default as DrFrontProvider } from '@/configuration/components/DrFrontProvider/DrFrontProvider.vue';
+export type { DrFrontProviderProps } from '@/configuration/components/DrFrontProvider/types';
 export { default as DrConfigProvider } from '@/configuration/components/DrConfigProvider/DrConfigProvider.vue';
 export type { DrLanguage, DrLocale, DrConfigProviderProps, DrMessageKey, DrTranslationRequest, DrTranslateOverride } from '@/configuration/types';
 export { default as DrButton } from '@/actions/components/DrButton/DrButton.vue';

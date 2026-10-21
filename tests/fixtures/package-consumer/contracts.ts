@@ -1,5 +1,5 @@
-import { DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
-import type { DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
+import { DrFrontProvider, DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
+import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 import { formatNumber } from '@protoapps/dr-front/lib';
 
@@ -91,6 +91,14 @@ const translate: DrTranslateOverride = (request) => {
 const destructured: DrTranslateOverride = ({ key, params }) => key === 'input.clearNamed' ? params.label : undefined;
 const config: DrConfigProviderProps = { language, locale, translate };
 const providerProps: InstanceType<typeof DrConfigProvider>['$props'] = config;
+const frontProps: DrFrontProviderProps = { ...config, backgroundRoot: null };
+const frontComponentProps: InstanceType<typeof DrFrontProvider>['$props'] = frontProps;
+const emptyFrontProps: DrFrontProviderProps = {};
+const emptyFrontComponentProps: InstanceType<typeof DrFrontProvider>['$props'] = {};
+const undefinedRoot: DrFrontProviderProps = { backgroundRoot: undefined };
+const undefinedComponentRoot: InstanceType<typeof DrFrontProvider>['$props'] = undefinedRoot;
+// @ts-expect-error The SFC declarations retain the inherited DOM element type.
+const invalidRoot: InstanceType<typeof DrFrontProvider>['$props'] = { backgroundRoot: 'body' };
 translate(request);
 translate({ language: 'en', key: 'dialog.close' });
 // @ts-expect-error Unsupported languages are not public extensions.
@@ -114,4 +122,4 @@ translate({ language: 'en', key: 'input.clearNamed', params: { label: 'Email', e
 // @ts-expect-error Only a string or undefined may be returned.
 const badTranslate: DrTranslateOverride = () => null;
 
-void [destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
+void [frontComponentProps, emptyFrontProps, emptyFrontComponentProps, undefinedComponentRoot, invalidRoot, destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
