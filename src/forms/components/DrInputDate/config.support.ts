@@ -1,4 +1,11 @@
+import type { InputLocaleDatePart } from '@/forms/lib/getInputLocaleProfile/types';
 import type { DrInputDateStatus } from '@/index';
+
+export const dateGalleryPartLabels = {
+  day: 'DD',
+  month: 'MM',
+  year: 'YYYY',
+} as const satisfies Record<InputLocaleDatePart, string>;
 
 export const dateGalleryStatusLabels = {
   empty: 'Empty',

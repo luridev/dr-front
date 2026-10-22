@@ -35,7 +35,7 @@ const nestedTranslate: DrTranslateOverride = ({ key }) => key === 'dialog.close'
 </script>
 
 <template>
-  <p>Language controls built-in text. Locale controls integer grouping in DrInputNumber.</p>
+  <p>Language controls built-in text. Locale controls number grouping and date formats.</p>
 
   <label>
     Language

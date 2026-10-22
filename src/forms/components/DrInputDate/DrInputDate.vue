@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useDrConfig } from '@/configuration/composables/useDrConfig/useDrConfig';
 import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import { useDrTypedInputModel } from '@/forms/components/DrInput/composables/useDrTypedInputModel/useDrTypedInputModel';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
-import { dateDrInputFormatSettings } from '@/forms/components/DrInputDate/config';
+import { getDateDrInputFormatSettings } from '@/forms/components/DrInputDate/config';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import {
   parseDateInputValue,
   stringifyDateInputValue,
@@ -35,15 +38,19 @@ const model = defineModel<Temporal.PlainDate | null>({
 
 defineSlots<DrInputDateSlots>();
 
-provideDrInputMask(dateDrInputFormatSettings);
+const config = useDrConfig();
+const dateProfile = computed(() => getInputLocaleProfile(config.value.locale).date);
+
+provideDrInputMask(computed(() => getDateDrInputFormatSettings(dateProfile.value)));
 
 const { inputValue, updateInputValue } = useDrTypedInputModel<
   Temporal.PlainDate,
   Exclude<DrInputDateStatus, DrTypedInputStatus>
 >({
   model,
-  parse: parseDateInputValue,
-  stringify: stringifyDateInputValue,
+  formatSource: dateProfile,
+  parse: (value) => parseDateInputValue(value, dateProfile.value),
+  stringify: (value) => stringifyDateInputValue(value, dateProfile.value),
   equals: (first, second) => first.equals(second),
   onStatusUpdate: (status) => {
     emit('update:status', status);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import ConfigDialogContent from '@/configuration/components/DrConfigProvider/ConfigDialogContent.story.vue';
 import { useDrConfig } from '@/configuration/composables/useDrConfig/useDrConfig';
 import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
@@ -7,6 +7,7 @@ import DrAlert from '@/feedback/components/DrAlert/DrAlert.vue';
 import { useDrToast } from '@/feedback/toasts/composables/useDrToast/useDrToast';
 import DrFilePickerButton from '@/forms/components/DrFilePickerButton/DrFilePickerButton.vue';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
+import DrInputDate from '@/forms/components/DrInputDate/DrInputDate.vue';
 import DrInputNumber from '@/forms/components/DrInputNumber/DrInputNumber.vue';
 import DrSelect from '@/forms/components/DrSelect/DrSelect.vue';
 import DrTextarea from '@/forms/components/DrTextarea/DrTextarea.vue';
@@ -19,6 +20,7 @@ const dialog = useDialog({ title: 'Configured dialog', component: ConfigDialogCo
 const text = ref('Application text');
 const notes = ref('Application notes');
 const number = ref<number | null>(null);
+const date = shallowRef<Temporal.PlainDate | null>(Temporal.PlainDate.from('2026-02-01'));
 const selection = ref('Alpha');
 const emptySelection = ref<string>();
 
@@ -56,6 +58,11 @@ function showExplicitToast() {
   <DrInputNumber
     v-model="number"
     label="Count"
+  />
+
+  <DrInputDate
+    v-model="date"
+    label="Date"
   />
 
   <DrTextarea

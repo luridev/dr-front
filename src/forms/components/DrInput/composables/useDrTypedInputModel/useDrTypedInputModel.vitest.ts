@@ -1,14 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { customRef, nextTick, ref } from 'vue';
+import { computed, customRef, nextTick, ref } from 'vue';
 import { useDrTypedInputModel } from '@/forms/components/DrInput/composables/useDrTypedInputModel/useDrTypedInputModel';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
+import { parseDateInputValue, stringifyDateInputValue } from '@/forms/lib/inputFormats/date/dateInputFormat';
 import { parseTimeInputValue, retainTimeInputPrecision, stringifyTimeInputValue } from '@/forms/lib/inputFormats/time/timeInputFormat';
 import { createTestEffectScopeCollector } from '~/tests/vitest/lib/createTestEffectScopeCollector/createTestEffectScopeCollector';
 import type * as Vue from 'vue';
 import type { ModelRef } from 'vue';
+import type { DrLocale } from '@/configuration/types';
 import type {
   DrTypedInputParseResult,
   DrTypedInputStatus,
 } from '@/forms/components/DrInput/composables/useDrTypedInputModel/types';
+import type { DateInputStatus } from '@/forms/lib/inputFormats/date/types';
 
 const { mountedCallbacks } = vi.hoisted(() => ({
   mountedCallbacks: new Array<() => void>(),
@@ -45,12 +49,12 @@ function createModel<TValue>(value: TValue | null): ModelRef<TValue | null> {
   return ref(value) as ModelRef<TValue | null>;
 }
 
-function createControlledModel(value: number | null, acceptWrites: boolean) {
+function createControlledModel<TValue>(value: TValue | null, acceptWrites: boolean) {
   let currentValue = value;
   let notify: () => void = () => undefined;
-  const requestedValues: Array<number | null> = [];
+  const requestedValues: Array<TValue | null> = [];
 
-  const model = customRef<number | null>((track, trigger) => {
+  const model = customRef<TValue | null>((track, trigger) => {
     notify = trigger;
 
     return {
@@ -68,9 +72,9 @@ function createControlledModel(value: number | null, acceptWrites: boolean) {
         }
       },
     };
-  }) as ModelRef<number | null>;
+  }) as ModelRef<TValue | null>;
 
-  function updateExternal(nextValue: number | null): void {
+  function updateExternal(nextValue: TValue | null): void {
     currentValue = nextValue;
     notify();
   }
@@ -146,6 +150,26 @@ function setupWithModel(model: ModelRef<number | null>, initialFormat = 'A', mou
 
 function setupModel(value: number | null, initialFormat = 'A', mount = true) {
   return setupWithModel(createModel(value), initialFormat, mount);
+}
+
+function setupDateModel(value: Temporal.PlainDate) {
+  const controlled = createControlledModel(value, true);
+  const locale = ref<DrLocale>('ru-RU');
+  const profile = computed(() => getInputLocaleProfile(locale.value).date);
+  const statuses: Array<DateInputStatus> = [];
+
+  const result = scopes.run(() => useDrTypedInputModel<Temporal.PlainDate, 'out-of-range'>({
+    model: controlled.model,
+    formatSource: profile,
+    parse: (text) => parseDateInputValue(text, profile.value),
+    stringify: (date) => stringifyDateInputValue(date, profile.value),
+    equals: (first, second) => first.equals(second),
+    onStatusUpdate: (status) => { statuses.push(status); },
+  }));
+
+  mountComposable();
+
+  return { ...controlled, ...result, locale, statuses };
 }
 
 describe('useDrTypedInputModel', () => {
@@ -451,4 +475,53 @@ describe('useDrTypedInputModel', () => {
     expect(result.inputValue.value).toBe('23:59');
     expect(statuses).toEqual(['valid']);
   });
+
+  it('reformats a date from its unchanged model without interpreting the old day/month order', async () => {
+    const initialValue = Temporal.PlainDate.from('2026-02-01');
+    const result = setupDateModel(initialValue);
+
+    expect(result.inputValue.value).toBe('01.02.2026');
+
+    for (const [locale, expected] of [
+      ['en-US', '02/01/2026'], ['en-GB', '01/02/2026'], ['ru-RU', '01.02.2026'],
+    ] as const) {
+      result.locale.value = locale;
+      await nextTick();
+
+      expect(result.inputValue.value).toBe(expected);
+      expect(result.model.value).toBe(initialValue);
+      expect(result.requestedValues).toEqual([]);
+    }
+
+    result.locale.value = 'en-US';
+    await nextTick();
+    result.updateInputValue('01/02/2026');
+    await nextTick();
+
+    expect(result.model.value?.toString()).toBe('2026-01-02');
+    expect(result.requestedValues).toHaveLength(1);
+    expect(result.statuses).toEqual(['valid']);
+  });
+
+  it.each(['01.02.', '31.02.2026', '14.09.275760'])(
+    'clears the unparseable date draft %s on format change without a new model write',
+    async (draft) => {
+      const result = setupDateModel(Temporal.PlainDate.from('2026-02-01'));
+
+      result.updateInputValue(draft);
+      await nextTick();
+
+      expect(result.inputValue.value).toBe(draft);
+      expect(result.model.value).toBeNull();
+      expect(result.requestedValues).toEqual([null]);
+
+      result.locale.value = 'en-US';
+      await nextTick();
+
+      expect(result.inputValue.value).toBe('');
+      expect(result.model.value).toBeNull();
+      expect(result.requestedValues).toEqual([null]);
+      expect(result.statuses.at(-1)).toBe('empty');
+    },
+  );
 });

@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import { getTemporalPlainDateMax, getTemporalPlainDateMin } from '@/forms/lib/inputFormats/date/config';
 import {
   parseDateInputValue,
   stringifyDateInputValue,
 } from '@/forms/lib/inputFormats/date/dateInputFormat';
+import type { InputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/types';
+
+const dateProfile = getInputLocaleProfile('ru-RU').date;
 
 it('loads the date input format without a global Temporal', async () => {
   vi.resetModules();
@@ -16,8 +20,10 @@ it('loads the date input format without a global Temporal', async () => {
   }
 });
 
-function expectValidDate(source: string, expected: string): Temporal.PlainDate {
-  const result = parseDateInputValue(source);
+function expectValidDate(
+  source: string, expected: string, profile: InputLocaleProfile['date'] = dateProfile,
+): Temporal.PlainDate {
+  const result = parseDateInputValue(source, profile);
 
   expect(result.status).toBe('valid');
 
@@ -51,7 +57,7 @@ describe('parseDateInputValue', () => {
   });
 
   it.each(['29.02.2023', '29.02.1900'])('rejects February 29 in a non-leap year: %s', (source) => {
-    expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
+    expect(parseDateInputValue(source, dateProfile)).toEqual({ status: 'invalid' });
   });
 
   it.each([
@@ -64,13 +70,13 @@ describe('parseDateInputValue', () => {
     '30.02.2026',
     '31.02.999999',
   ])('rejects nonexistent calendar dates: %s', (source) => {
-    expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
+    expect(parseDateInputValue(source, dateProfile)).toEqual({ status: 'invalid' });
   });
 
   it.each(['', '1', '01', '01.', '01.0', '01.01', '01.01.', '01.01.-'])(
     'distinguishes empty and incomplete input %j',
     (source) => {
-      expect(parseDateInputValue(source)).toEqual({
+      expect(parseDateInputValue(source, dateProfile)).toEqual({
         status: source === '' ? 'empty' : 'incomplete',
       });
     },
@@ -91,7 +97,7 @@ describe('parseDateInputValue', () => {
     '01.01.1234567',
     '01.01.2026.1',
   ])('rejects invalid syntax %j', (source) => {
-    expect(parseDateInputValue(source)).toEqual({ status: 'invalid' });
+    expect(parseDateInputValue(source, dateProfile)).toEqual({ status: 'invalid' });
   });
 
   it.each([
@@ -121,7 +127,7 @@ describe('parseDateInputValue', () => {
     '01.01.-999999',
     '01.01.999999',
   ])('returns out-of-range beyond Temporal boundaries: %s', (source) => {
-    expect(parseDateInputValue(source)).toEqual({ status: 'out-of-range' });
+    expect(parseDateInputValue(source, dateProfile)).toEqual({ status: 'out-of-range' });
   });
 });
 
@@ -136,7 +142,7 @@ describe('stringifyDateInputValue', () => {
     { value: getTemporalPlainDateMin(), expected: '19.04.-271821' },
     { value: getTemporalPlainDateMax(), expected: '13.09.275760' },
   ])('formats the model date as $expected', ({ value, expected }) => {
-    expect(stringifyDateInputValue(value)).toBe(expected);
+    expect(stringifyDateInputValue(value, dateProfile)).toBe(expected);
   });
 
   it.each([
@@ -148,12 +154,66 @@ describe('stringifyDateInputValue', () => {
     getTemporalPlainDateMin(),
     getTemporalPlainDateMax(),
   ])('supports round trips for $value', (value) => {
-    const result = parseDateInputValue(stringifyDateInputValue(value));
+    const result = parseDateInputValue(stringifyDateInputValue(value, dateProfile), dateProfile);
 
     expect(result.status).toBe('valid');
 
     if (result.status === 'valid') {
       expect(result.value.equals(value)).toBe(true);
     }
+  });
+});
+
+describe('regional date profiles', () => {
+  it.each([
+    { locale: 'ru-RU', display: '01.02.2026', incomplete: '01.02.-', invalid: '31.02.2026' },
+    { locale: 'en-US', display: '02/01/2026', incomplete: '02/01/-', invalid: '02/31/2026' },
+    { locale: 'en-GB', display: '01/02/2026', incomplete: '01/02/-', invalid: '31/02/2026' },
+  ] as const)('maps the same calendar date and validation through $locale', ({ locale, display, incomplete, invalid }) => {
+    const profile = getInputLocaleProfile(locale).date;
+    const model = Temporal.PlainDate.from('2026-02-01');
+
+    expect(stringifyDateInputValue(model, profile)).toBe(display);
+    expectValidDate(display, model.toString(), profile);
+    expect(parseDateInputValue(incomplete, profile)).toEqual({ status: 'incomplete' });
+    expect(parseDateInputValue(invalid, profile)).toEqual({ status: 'invalid' });
+  });
+
+  it.each(['ru-RU', 'en-US', 'en-GB'] as const)('preserves extended years and range validation in %s', (locale) => {
+    const profile = getInputLocaleProfile(locale).date;
+
+    for (const year of [0, -1, 10000, -100000]) {
+      const model = Temporal.PlainDate.from({ year, month: 2, day: 1 });
+      const display = stringifyDateInputValue(model, profile);
+
+      expect(display).toMatch(new RegExp(`${year < 0 ? '-' : ''}${String(Math.abs(year)).padStart(4, '0')}$`));
+      expectValidDate(display, model.toString(), profile);
+    }
+
+    const outOfRange = stringifyDateInputValue(getTemporalPlainDateMax(), profile).replace('275760', '275761');
+
+    expect(parseDateInputValue(outOfRange, profile)).toEqual({ status: 'out-of-range' });
+  });
+
+  it('uses different multi-character literals without interpreting regular-expression syntax', () => {
+    const profile: InputLocaleProfile['date'] = { order: ['month', 'day', 'year'], separators: ['[.] ', ' ($)\\'] };
+    const model = Temporal.PlainDate.from('-010000-02-01');
+    const display = '02[.] 01 ($)\\-10000';
+
+    expect(stringifyDateInputValue(model, profile)).toBe(display);
+    expectValidDate(display, model.toString(), profile);
+    expect(parseDateInputValue('02[.] 01 ($)\\-', profile)).toEqual({ status: 'incomplete' });
+    expect(parseDateInputValue('02.01-10000', profile)).toEqual({ status: 'invalid' });
+    expect(parseDateInputValue('2[.] 1 ($)\\2026', profile)).toEqual({ status: 'invalid' });
+  });
+
+  it('reads order from the profile and serializes other calendars through ISO', () => {
+    const profile: InputLocaleProfile['date'] = { order: ['year', 'month', 'day'], separators: [' / ', ' - '] };
+    const model = Temporal.PlainDate.from('2026-02-01').withCalendar('gregory');
+    const display = '2026 / 02 - 01';
+
+    expect(stringifyDateInputValue(model, profile)).toBe(display);
+    expect(expectValidDate(display, '2026-02-01', profile).calendarId).toBe('iso8601');
+    expect(model.calendarId).toBe('gregory');
   });
 });

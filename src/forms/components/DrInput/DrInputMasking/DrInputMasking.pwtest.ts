@@ -11,8 +11,8 @@ test('typed wrappers isolate slot inputs and use the nearest provider', async ({
   const date = getInput(component, 'date');
   const plain = getInput(component, 'dateSlot');
 
-  await date.fill('05092026');
-  await expect(date).toHaveValue('05.09.2026');
+  await date.fill('09052026');
+  await expect(date).toHaveValue('09/05/2026');
   await expect(component.getByTestId('date-model')).toHaveText('2026-09-05');
   await expect(date).toHaveAttribute('inputmode', 'text');
 
@@ -61,7 +61,7 @@ test('read-only typed inputs block editing and mask history until made writable 
   const component = await mount(storyId);
 
   const fields = [
-    { name: 'date', text: '05092026', value: '05.09.2026', model: '2026-09-05' },
+    { name: 'date', text: '09052026', value: '09/05/2026', model: '2026-09-05' },
     { name: 'number', text: '42', value: '42', model: '42' },
     { name: 'time', text: '2359', value: '23:59', model: '23:59:56.123456789' },
   ];
@@ -90,7 +90,7 @@ test('read-only typed inputs block editing and mask history until made writable 
   }
 
   await component.update({ readonly: false });
-  await getInput(component, 'date').fill('01022027');
+  await getInput(component, 'date').fill('02012027');
   await expect(component.getByTestId('date-model')).toHaveText('2027-02-01');
   await getInput(component, 'time').fill('0930');
   await expect(component.getByTestId('time-model')).toHaveText('09:30:56.123456789');
@@ -108,7 +108,7 @@ test('disabled typed inputs follow external models and keep full time precision'
   const root = await mount(storyId);
   await root.update({ disabled: true, externalDate: '0010-02-01', externalNumber: 12345, externalTime: '01:02:03.004005006' });
 
-  for (const [name, text] of [['date', '01.02.0010'], ['number', `12${numberGroup}345`], ['time', '01:02']]) {
+  for (const [name, text] of [['date', '02/01/0010'], ['number', `12${numberGroup}345`], ['time', '01:02']]) {
     await expect(getInput(root, name)).toBeDisabled();
     await expect(getInput(root, name)).toHaveValue(text);
   }

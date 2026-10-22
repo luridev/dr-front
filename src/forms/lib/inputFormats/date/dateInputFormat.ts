@@ -1,10 +1,25 @@
 import {
-  dateInputIncompletePattern,
-  dateInputPattern,
   getTemporalPlainDateMax,
   getTemporalPlainDateMin,
 } from '@/forms/lib/inputFormats/date/config';
+import type { InputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/types';
 import type { DateInputParseResult } from '@/forms/lib/inputFormats/date/types';
+
+function getDateInputPatterns(profile: InputLocaleProfile['date']) {
+  const separators = profile.separators.map((separator) => separator.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const segments = profile.order.map((part) => part === 'year' ? '(-?\\d{1,6})' : '(\\d{2})');
+
+  const incompleteSegments = profile.order.map((part, index) => part === 'year'
+    ? index === 2 ? '-?' : '-?\\d{0,6}'
+    : index === 2 ? '\\d{0,1}' : '\\d{0,2}');
+
+  return {
+    complete: new RegExp(`^${segments[0]}${separators[0]}${segments[1]}${separators[1]}${segments[2]}$`),
+    incomplete: new RegExp(
+      `^${incompleteSegments[0]}(?:${separators[0]}${incompleteSegments[1]}(?:${separators[1]}${incompleteSegments[2]})?)?$`,
+    ),
+  };
+}
 
 function stringifyDateInputSegment(value: number, length: number) {
   return String(value).padStart(length, '0');
@@ -62,22 +77,27 @@ function isDateInputValueOutOfRange(year: number, month: number, day: number) {
   );
 }
 
-export function parseDateInputValue(value: string): DateInputParseResult {
+export function parseDateInputValue(value: string, profile: InputLocaleProfile['date']): DateInputParseResult {
   if (value === '') {
     return { status: 'empty' };
   }
 
-  const match = dateInputPattern.exec(value);
+  const patterns = getDateInputPatterns(profile);
+  const match = patterns.complete.exec(value);
 
   if (match == null) {
     return {
-      status: dateInputIncompletePattern.test(value) ? 'incomplete' : 'invalid',
+      status: patterns.incomplete.test(value) ? 'incomplete' : 'invalid',
     };
   }
 
-  const day = Number(match[1]);
-  const month = Number(match[2]);
-  const year = Number(match[3]);
+  const parts = { year: 0, month: 0, day: 0 };
+
+  profile.order.forEach((part, index) => {
+    parts[part] = Number(match[index + 1]);
+  });
+
+  const { year, month, day } = parts;
 
   if (!isDateInputCalendarDateValid(year, month, day)) {
     return { status: 'invalid' };
@@ -110,16 +130,18 @@ export function parseDateInputValue(value: string): DateInputParseResult {
   }
 }
 
-export function stringifyDateInputValue(value: Temporal.PlainDate | null): string {
+export function stringifyDateInputValue(value: Temporal.PlainDate | null, profile: InputLocaleProfile['date']): string {
   if (value == null) {
     return '';
   }
 
   const isoDate = value.withCalendar('iso8601');
 
-  return [
-    stringifyDateInputSegment(isoDate.day, 2),
-    stringifyDateInputSegment(isoDate.month, 2),
-    stringifyDateInputYear(isoDate.year),
-  ].join('.');
+  return profile.order.map((part, index) => {
+    const segment = part === 'year'
+      ? stringifyDateInputYear(isoDate.year)
+      : stringifyDateInputSegment(isoDate[part], 2);
+
+    return `${segment}${profile.separators[index] ?? ''}`;
+  }).join('');
 }
