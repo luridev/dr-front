@@ -68,6 +68,9 @@
     "imask": "^7.6.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@commitlint/types": "^21.2.3",
     "@playwright/test": "^1.62.1",
     "@protoapps/browser-targets": "^0.1.0",
     "@protoapps/eslint-config-vue": "^0.1.1",
