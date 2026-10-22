@@ -3,7 +3,9 @@ import { timeInputConfigBySmallestUnit } from '@/forms/lib/inputFormats/time/con
 import type { MaskedPatternOptions } from 'imask/masked/pattern';
 import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
 
-export function createTimeInputMaskOptions(smallestUnit: TimeInputSmallestUnit): MaskedPatternOptions {
+export function createTimeInputMaskOptions(
+  smallestUnit: TimeInputSmallestUnit, hourCycle: 12 | 24 = 24,
+): MaskedPatternOptions {
   const fractionDigits = timeInputConfigBySmallestUnit[smallestUnit].maximumFractionDigitLength;
 
   return {
@@ -17,7 +19,7 @@ export function createTimeInputMaskOptions(smallestUnit: TimeInputSmallestUnit):
           /(^|:)(\d)(?=[:.]|$)/g, (_match, boundary: string, digit: string) => `${boundary}0${digit}`,
         ),
     blocks: {
-      H: { mask: MaskedRange, from: 0, to: 23, maxLength: 2 },
+      H: { mask: MaskedRange, from: hourCycle === 12 ? 1 : 0, to: hourCycle === 12 ? 12 : 23, maxLength: 2 },
       M: { mask: MaskedRange, from: 0, to: 59, maxLength: 2 },
       S: { mask: MaskedRange, from: 0, to: 59, maxLength: 2 },
       F: { mask: new RegExp(`^\\d{0,${fractionDigits}}$`) },

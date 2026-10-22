@@ -9,6 +9,7 @@ import DrFilePickerButton from '@/forms/components/DrFilePickerButton/DrFilePick
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import DrInputDate from '@/forms/components/DrInputDate/DrInputDate.vue';
 import DrInputNumber from '@/forms/components/DrInputNumber/DrInputNumber.vue';
+import DrInputTime from '@/forms/components/DrInputTime/DrInputTime.vue';
 import DrSelect from '@/forms/components/DrSelect/DrSelect.vue';
 import DrTextarea from '@/forms/components/DrTextarea/DrTextarea.vue';
 
@@ -21,6 +22,7 @@ const text = ref('Application text');
 const notes = ref('Application notes');
 const number = ref<number | null>(null);
 const date = shallowRef<Temporal.PlainDate | null>(Temporal.PlainDate.from('2026-02-01'));
+const time = shallowRef<Temporal.PlainTime | null>(Temporal.PlainTime.from('23:15:42.123456789'));
 const selection = ref('Alpha');
 const emptySelection = ref<string>();
 
@@ -63,6 +65,11 @@ function showExplicitToast() {
   <DrInputDate
     v-model="date"
     label="Date"
+  />
+
+  <DrInputTime
+    v-model="time"
+    label="Time"
   />
 
   <DrTextarea

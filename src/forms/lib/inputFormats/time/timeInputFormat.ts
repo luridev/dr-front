@@ -1,5 +1,5 @@
 import { timeInputConfigBySmallestUnit } from '@/forms/lib/inputFormats/time/config';
-import type { TimeInputParseResult, TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
+import type { TimeInputDayPeriod, TimeInputParseResult, TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
 
 function stringifyTimeInputSegment(value: number, length: number) {
   return String(value).padStart(length, '0');
@@ -11,7 +11,12 @@ function parseTimeInputFractionSegment(fraction: string, start: number) {
   return segment === '' ? 0 : Number(segment);
 }
 
-export function parseTimeInputValue(value: string, smallestUnit: TimeInputSmallestUnit): TimeInputParseResult {
+export function parseTimeInputValue(
+  value: string,
+  smallestUnit: TimeInputSmallestUnit,
+  hourCycle: 12 | 24 = 24,
+  dayPeriod: TimeInputDayPeriod = 'am',
+): TimeInputParseResult {
   if (value === '') {
     return { status: 'empty' };
   }
@@ -25,7 +30,16 @@ export function parseTimeInputValue(value: string, smallestUnit: TimeInputSmalle
     };
   }
 
-  const hour = Number(match[1]);
+  let hour = Number(match[1]);
+
+  if (hourCycle === 12) {
+    if (hour < 1 || hour > 12) {
+      return { status: 'invalid' };
+    }
+
+    hour = hour % 12 + (dayPeriod === 'pm' ? 12 : 0);
+  }
+
   const minute = Number(match[2]);
   const second = Number(match.at(3) ?? 0);
   const fraction = (match.at(4) ?? '').padEnd(config.maximumFractionDigitLength, '0');
@@ -59,12 +73,20 @@ export function parseTimeInputValue(value: string, smallestUnit: TimeInputSmalle
   }
 }
 
-export function stringifyTimeInputValue(value: Temporal.PlainTime | null, smallestUnit: TimeInputSmallestUnit): string {
+export function stringifyTimeInputValue(
+  value: Temporal.PlainTime | null,
+  smallestUnit: TimeInputSmallestUnit,
+  hourCycle: 12 | 24 = 24,
+): string {
   if (value == null) {
     return '';
   }
 
-  let result = `${stringifyTimeInputSegment(value.hour, 2)}:${stringifyTimeInputSegment(value.minute, 2)}`;
+  const hour = hourCycle === 12
+    ? value.hour % 12 === 0 ? 12 : value.hour % 12
+    : value.hour;
+
+  let result = `${stringifyTimeInputSegment(hour, 2)}:${stringifyTimeInputSegment(value.minute, 2)}`;
 
   if (smallestUnit !== 'minute') {
     result += `:${stringifyTimeInputSegment(value.second, 2)}`;
@@ -86,6 +108,10 @@ export function stringifyTimeInputValue(value: Temporal.PlainTime | null, smalle
   }
 
   return result;
+}
+
+export function getTimeInputDayPeriod(value: Temporal.PlainTime): TimeInputDayPeriod {
+  return value.hour < 12 ? 'am' : 'pm';
 }
 
 export function retainTimeInputPrecision(

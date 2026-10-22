@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  getTimeInputDayPeriod,
   parseTimeInputValue,
+  retainTimeInputPrecision,
   stringifyTimeInputValue,
 } from '@/forms/lib/inputFormats/time/timeInputFormat';
 import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
@@ -117,6 +119,75 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.123:4', smallestUnit: 'nanosecond' as const },
   ])('rejects invalid syntax $source for $smallestUnit', ({ source, smallestUnit }) => {
     expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
+  });
+});
+
+describe('12-hour time input', () => {
+  it.each([
+    { source: '12:00', period: 'am', expected: '00:00:00' },
+    { source: '01:30', period: 'am', expected: '01:30:00' },
+    { source: '11:59', period: 'am', expected: '11:59:00' },
+    { source: '12:00', period: 'pm', expected: '12:00:00' },
+    { source: '01:30', period: 'pm', expected: '13:30:00' },
+    { source: '11:59', period: 'pm', expected: '23:59:00' },
+  ] as const)('maps $source $period to model $expected and back', ({ source, period, expected }) => {
+    const result = parseTimeInputValue(source, 'minute', 12, period);
+
+    expect(result.status).toBe('valid');
+
+    if (result.status === 'valid') {
+      expect(result.value.toString()).toBe(expected);
+      expect(getTimeInputDayPeriod(result.value)).toBe(period);
+      expect(stringifyTimeInputValue(result.value, 'minute', 12)).toBe(source);
+    }
+  });
+
+  it.each([
+    { unit: 'minute', source: '11:45', expected: '23:45:00' },
+    { unit: 'second', source: '11:45:56', expected: '23:45:56' },
+    { unit: 'millisecond', source: '11:45:56.123', expected: '23:45:56.123' },
+    { unit: 'microsecond', source: '11:45:56.123456', expected: '23:45:56.123456' },
+    { unit: 'nanosecond', source: '11:45:56.123456789', expected: '23:45:56.123456789' },
+  ] as const)('formats and parses $unit precision without adding a period suffix', ({ unit, source, expected }) => {
+    const model = Temporal.PlainTime.from('23:45:56.123456789');
+    const result = parseTimeInputValue(source, unit, 12, 'pm');
+
+    expect(stringifyTimeInputValue(model, unit, 12)).toBe(source);
+    expect(result.status).toBe('valid');
+
+    if (result.status === 'valid') {
+      expect(result.value.toString()).toBe(expected);
+      expect(retainTimeInputPrecision(result.value, model, unit).equals(model)).toBe(true);
+    }
+  });
+
+  it.each(['00:00', '13:00', '23:59'])('rejects a 24-hour-only value %s in both periods', (source) => {
+    expect(parseTimeInputValue(source, 'minute', 12, 'am')).toEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, 'minute', 12, 'pm')).toEqual({ status: 'invalid' });
+  });
+
+  it.each([
+    { source: '', unit: 'minute', status: 'empty' },
+    { source: '11:1', unit: 'minute', status: 'incomplete' },
+    { source: '11:11:5', unit: 'second', status: 'incomplete' },
+    { source: '11:11:56.', unit: 'nanosecond', status: 'incomplete' },
+    { source: '11:60', unit: 'minute', status: 'invalid' },
+    { source: '11:11 PM', unit: 'minute', status: 'invalid' },
+  ] as const)('preserves $status status for $source regardless of the period', ({ source, unit, status }) => {
+    expect(parseTimeInputValue(source, unit, 12, 'am')).toEqual({ status });
+    expect(parseTimeInputValue(source, unit, 12, 'pm')).toEqual({ status });
+  });
+
+  it('ignores the selected period in the 24-hour format and keeps empty models empty', () => {
+    const result = parseTimeInputValue('23:45', 'minute', 24, 'am');
+
+    expect(result.status).toBe('valid');
+
+    if (result.status === 'valid') {
+      expect(stringifyTimeInputValue(result.value, 'minute', 24)).toBe('23:45');
+    }
+
+    expect(stringifyTimeInputValue(null, 'minute', 12)).toBe('');
   });
 });
 

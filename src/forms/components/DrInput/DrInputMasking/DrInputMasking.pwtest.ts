@@ -63,7 +63,7 @@ test('read-only typed inputs block editing and mask history until made writable 
   const fields = [
     { name: 'date', text: '09052026', value: '09/05/2026', model: '2026-09-05' },
     { name: 'number', text: '42', value: '42', model: '42' },
-    { name: 'time', text: '2359', value: '23:59', model: '23:59:56.123456789' },
+    { name: 'time', text: '1159', value: '11:59', model: '23:59:56.123456789' },
   ];
 
   for (const field of fields) {
@@ -93,7 +93,7 @@ test('read-only typed inputs block editing and mask history until made writable 
   await getInput(component, 'date').fill('02012027');
   await expect(component.getByTestId('date-model')).toHaveText('2027-02-01');
   await getInput(component, 'time').fill('0930');
-  await expect(component.getByTestId('time-model')).toHaveText('09:30:56.123456789');
+  await expect(component.getByTestId('time-model')).toHaveText('21:30:56.123456789');
   await getInput(component, 'number').fill('1234');
   await expect(getInput(component, 'number')).toHaveValue(`1${numberGroup}234`);
 

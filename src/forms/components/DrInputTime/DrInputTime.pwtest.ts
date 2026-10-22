@@ -2,12 +2,16 @@ import { maskingStoryId as storyId, maskingStoryInitialTime } from '@/forms/comp
 import { getInput, pasteInput, readSelection, replaceInput, selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { expect, test } from '~/tests/playwright/fixtures';
 
+const timeStoryId = 'forms/components/DrInputTime/DrInputTimeGallery';
+
 test('time preserves its full model and focus through precision changes, edits and external updates', async ({ mount }) => {
   const component = await mount(storyId);
   const time = getInput(component, 'time');
   const nativeInput = await time.elementHandle();
+  const periodButton = component.locator('.DrInputMasking__time .DrInputTime__periodButton');
 
   expect(nativeInput).not.toBeNull();
+  await expect(periodButton).toHaveText('PM');
   await time.focus();
   await expect(time).toHaveValue('12:34');
 
@@ -45,6 +49,7 @@ test('time preserves its full model and focus through precision changes, edits a
   await expect(component.getByTestId('time-model')).toHaveText('12:45:56.123456789');
   await component.update({ externalTime: '01:02:03.004005006' });
   await expect(time).toHaveValue('01:02');
+  await expect(periodButton).toHaveText('AM');
   await component.update({ smallestUnit: 'nanosecond' });
   await expect(time).toHaveValue('01:02:03.004005006');
   await component.update({ externalTime: null });
@@ -79,9 +84,9 @@ test('time preserves mid-value editing, selection, Delete/Backspace and the past
 
   await selectInputRange(time, 0, 8);
 
-  await pasteInput(time, '235958');
+  await pasteInput(time, '115958');
 
-  await expect(time).toHaveValue('23:59:58');
+  await expect(time).toHaveValue('11:59:58');
   await expect.poll(() => readSelection(time)).toEqual([8, 8]);
   await expect(component.getByTestId('time-model')).toHaveText('23:59:58.123456789');
   await expect(time).toBeFocused();
@@ -99,21 +104,29 @@ test('conditional remount uses the current precision instead of the stale mask',
 
   await component.update({ showTime: true, smallestUnit: 'nanosecond' });
   await expect(time).toHaveValue(maskingStoryInitialTime);
-  await time.fill('235958123456789');
-  await expect(time).toHaveValue('23:59:58.123456789');
+  await time.fill('115958123456789');
+  await expect(time).toHaveValue('11:59:58.123456789');
+  await expect(component.getByTestId('time-model')).toHaveText('23:59:58.123456789');
 });
 
 test('time accepts all supported precisions and preserves adjacent fields through undo and redo', async ({ mount }) => {
   const root = await mount(storyId);
   const input = getInput(root, 'time');
+  const periodButton = root.locator('.DrInputMasking__time .DrInputTime__periodButton');
 
   for (const [smallestUnit, text, model] of [
-    ['minute', '2359', '23:59:00'], ['second', '235958', '23:59:58'],
-    ['millisecond', '235958001', '23:59:58.001'], ['microsecond', '235958000001', '23:59:58.000001'],
-    ['nanosecond', '235958123456789', '23:59:58.123456789'],
+    ['minute', '1159', '23:59:00'], ['second', '115958', '23:59:58'],
+    ['millisecond', '115958001', '23:59:58.001'], ['microsecond', '115958000001', '23:59:58.000001'],
+    ['nanosecond', '115958123456789', '23:59:58.123456789'],
   ]) {
     await root.update({ smallestUnit });
-    await replaceInput(input, text);
+    await input.fill('');
+
+    if (await periodButton.innerText() === 'AM') {
+      await periodButton.click();
+    }
+
+    await input.pressSequentially(text);
     await expect(root.getByTestId('time-model')).toHaveText(model);
   }
 
@@ -121,11 +134,16 @@ test('time accepts all supported precisions and preserves adjacent fields throug
   await input.pressSequentially('45');
   await expect(root.getByTestId('time-model')).toHaveText('23:45:58.123456789');
   await input.press('ControlOrMeta+Z');
-  await expect(input).toHaveValue(/^23:.*:58\.123456789$/);
+  await expect(input).toHaveValue(/^11:.*:58\.123456789$/);
   await input.press('ControlOrMeta+Shift+Z');
   await expect(root.getByTestId('time-model')).toHaveText('23:45:58.123456789');
 
   await replaceInput(input, '11:11:5');
+
+  if (await periodButton.innerText() === 'PM') {
+    await periodButton.click();
+  }
+
   await expect(root.getByTestId('time-status')).toHaveText('incomplete');
   await expect(root.getByTestId('time-model')).toHaveText('null');
   await input.press('6');
@@ -134,4 +152,182 @@ test('time accepts all supported precisions and preserves adjacent fields throug
   await expect(input).toBeFocused();
   await expect(input).toHaveValue('');
   await expect(root.getByTestId('time-status')).toHaveText('empty');
+});
+
+test('period control preserves hidden precision, keyboard focus and form safety', async ({ mount, page }, testInfo) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  const root = await mount(timeStoryId);
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+  const periodButton = root.locator('.DrInputTime__periodButton').first();
+
+  await expect(input).toHaveValue('11:45');
+  await expect(periodButton).toHaveText('PM');
+  await expect(periodButton).toHaveAttribute('type', 'button');
+  await expect(periodButton).toHaveAccessibleName('Switch Minutes to AM');
+  const inputBounds = await input.boundingBox();
+  const buttonBounds = await periodButton.boundingBox();
+
+  expect(inputBounds).not.toBeNull();
+  expect(buttonBounds).not.toBeNull();
+
+  if (inputBounds !== null && buttonBounds !== null) {
+    expect(inputBounds.x + inputBounds.width).toBeLessThanOrEqual(buttonBounds.x);
+    expect(buttonBounds.x + buttonBounds.width).toBeLessThanOrEqual(360);
+  }
+
+  const screenshotPath = testInfo.outputPath('time-360.png');
+
+  await page.screenshot({ path: screenshotPath, fullPage: true });
+  await testInfo.attach('Time controls at 360px', { path: screenshotPath, contentType: 'image/png' });
+  await selectInputRange(input, 3, 5);
+  await periodButton.click();
+  await expect(input).toBeFocused();
+  expect(await readSelection(input)).toEqual([3, 5]);
+  await expect(periodButton).toHaveText('AM');
+  await expect(model).toHaveText('11:45:56.123456789');
+  await periodButton.click();
+  await expect(model).toHaveText('23:45:56.123456789');
+  await input.press('Tab');
+  await expect(root.getByRole('button', { name: 'Clear time', exact: true })).toBeFocused();
+  await input.page().keyboard.press('Tab');
+  await expect(periodButton).toBeFocused();
+  await periodButton.press('Enter');
+  await expect(periodButton).toBeFocused();
+  await expect(model).toHaveText('11:45:56.123456789');
+  await periodButton.press('Space');
+  await expect(periodButton).toBeFocused();
+  await expect(model).toHaveText('23:45:56.123456789');
+  await expect(root.getByRole('button', { name: 'Switch Read-only time to AM', exact: true })).toBeDisabled();
+  await expect(root.getByRole('button', { name: 'Switch Disabled to AM', exact: true })).toBeDisabled();
+
+  for (const [text, am, pm] of [
+    ['1200', '00:00:56.123456789', '12:00:56.123456789'],
+    ['1159', '11:59:56.123456789', '23:59:56.123456789'],
+  ]) {
+    await input.fill(text);
+    await expect(model).toHaveText(pm);
+    await periodButton.click();
+    await expect(model).toHaveText(am);
+    await periodButton.click();
+    await expect(model).toHaveText(pm);
+  }
+
+  await expect(root.getByTestId('time-gallery-form')).toHaveAttribute('data-submissions', '0');
+});
+
+test('period changes leave drafts incomplete and editing, paste and history remain usable', async ({ mount }) => {
+  const root = await mount(timeStoryId);
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+  const periodButton = root.locator('.DrInputTime__periodButton').first();
+
+  await input.fill('11:1');
+  await expect(model).toHaveText('null');
+  await expect(model).toHaveAttribute('data-status', 'incomplete');
+  await periodButton.click();
+  await expect(input).toHaveValue('11:1');
+  await expect(model).toHaveText('null');
+  await input.press('1');
+  await expect(model).toHaveText('11:11:56.123456789');
+  await selectInputRange(input, 3, 5);
+  await pasteInput(input, '45');
+  await expect(model).toHaveText('11:45:56.123456789');
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('11:11');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(model).toHaveText('11:45:56.123456789');
+  await root.getByRole('button', { name: 'Clear time', exact: true }).click();
+  await expect(input).toBeFocused();
+  await expect(input).toHaveValue('');
+  await periodButton.click();
+  await expect(input).toHaveValue('');
+  await expect(model).toHaveText('null');
+  await input.pressSequentially('0111');
+  await expect(model).toHaveText('13:11:00');
+
+  const seconds = root.getByRole('textbox', { name: 'Seconds', exact: true });
+  const secondsModel = root.getByTestId('time-gallery-seconds-model');
+
+  await seconds.fill('11:11:5');
+  await root.getByRole('button', { name: 'Switch Seconds to AM', exact: true }).click();
+  await expect(seconds).toHaveValue('11:11:5');
+  await expect(secondsModel).toHaveText('null');
+  await seconds.press('6');
+  await expect(secondsModel).toHaveText('11:11:56');
+});
+
+test('time switches locales without model updates and retains history for equivalent hour cycles', async ({ mount }) => {
+  const root = await mount(timeStoryId);
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+  const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+
+  await input.evaluate((element) => {
+    element.setAttribute('data-retained', 'yes');
+  });
+
+  for (const [locale, text] of [['ru-RU', '23:45'], ['en-US', '11:45'], ['en-GB', '23:45'], ['en-US', '11:45']]) {
+    await localeSelect.selectOption(locale);
+    await expect(input).toHaveValue(text);
+    await expect(input).toHaveAttribute('data-retained', 'yes');
+    await expect(model).toHaveText('23:45:56.123456789');
+    await expect(model).toHaveAttribute('data-initial-identity', 'true');
+    await expect(model).toHaveAttribute('data-updates', '0');
+    await expect(root.locator('.DrInputTime__periodButton')).toHaveCount(locale === 'en-US' ? 4 : 0);
+  }
+
+  await localeSelect.selectOption('ru-RU');
+  await input.fill('23:14');
+  await selectInputRange(input, 4, 5);
+  await input.press('5');
+  await expect(model).toHaveText('23:15:56.123456789');
+  await localeSelect.selectOption('en-GB');
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('23:14');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(model).toHaveText('23:15:56.123456789');
+  await input.fill('23:1');
+  await expect(model).toHaveText('null');
+  const draftUpdates = await model.getAttribute('data-updates');
+
+  await localeSelect.selectOption('en-US');
+  await expect(input).toHaveValue('');
+  await expect(model).toHaveText('null');
+  await expect(model).toHaveAttribute('data-updates', draftUpdates ?? '');
+});
+
+test('time inherits nested locale while language changes only translate the period action', async ({ mount }) => {
+  const root = await mount('configuration/components/DrConfigProvider/DrConfigProviderGallery');
+  const configured = root.getByTestId('configured');
+  const nested = root.getByTestId('nested');
+  const input = configured.getByRole('textbox', { name: 'Time', exact: true });
+  const nestedInput = nested.getByRole('textbox', { name: 'Time', exact: true });
+  const languageSelect = root.getByRole('combobox', { name: 'Language', exact: true });
+  const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+
+  await expect(input).toHaveValue('11:15');
+  await expect(configured.getByRole('button', { name: 'Switch Time to AM', exact: true })).toHaveText('PM');
+  await expect(nestedInput).toHaveValue('23:15');
+  await expect(nested.locator('.DrInputTime__periodButton')).toHaveCount(0);
+  await languageSelect.selectOption('ru');
+  await expect(input).toHaveValue('23:15');
+  await languageSelect.selectOption('en');
+  await expect(input).toHaveValue('11:15');
+  await localeSelect.selectOption('en-US');
+  await expect(nestedInput).toHaveValue('11:15');
+  await input.fill('11:14');
+  await selectInputRange(input, 4, 5);
+  await input.press('5');
+  await languageSelect.selectOption('ru');
+  await expect(input).toHaveValue('11:15');
+  await expect(configured.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true })).toHaveText('PM');
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('11:14');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(input).toHaveValue('11:15');
+  await localeSelect.selectOption('en-GB');
+  await expect(input).toHaveValue('23:15');
+  await expect(nestedInput).toHaveValue('23:15');
+  await expect(root.locator('.DrInputTime__periodButton')).toHaveCount(0);
 });

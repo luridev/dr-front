@@ -35,7 +35,7 @@ const nestedTranslate: DrTranslateOverride = ({ key }) => key === 'dialog.close'
 </script>
 
 <template>
-  <p>Language controls built-in text. Locale controls number grouping and date formats.</p>
+  <p>Language controls built-in text. Locale controls number grouping, date formats and the 12/24-hour clock.</p>
 
   <label>
     Language
