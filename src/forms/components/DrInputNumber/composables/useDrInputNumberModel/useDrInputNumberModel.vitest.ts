@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { nextTick, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useDrInputNumberModel } from '@/forms/components/DrInputNumber/composables/useDrInputNumberModel/useDrInputNumberModel';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import { createTestEffectScopeCollector } from '~/tests/vitest/lib/createTestEffectScopeCollector/createTestEffectScopeCollector';
 import type { ModelRef } from 'vue';
+import type { DrLocale } from '@/configuration/types';
 
 const scopes = createTestEffectScopeCollector();
 
@@ -10,11 +12,13 @@ function createModel(value: number | null): ModelRef<number | null> {
   return ref(value) as ModelRef<number | null>;
 }
 
-function setupModel(value: number | null) {
+function setupModel(value: number | null, initialLocale: DrLocale = 'en-US') {
   const model = createModel(value);
-  const result = scopes.run(() => useDrInputNumberModel({ model }));
+  const locale = ref(initialLocale);
+  const thousandSeparator = computed(() => getInputLocaleProfile(locale.value).number.group);
+  const result = scopes.run(() => useDrInputNumberModel({ model, thousandSeparator }));
 
-  return { model, ...result };
+  return { model, locale, ...result };
 }
 
 describe('useDrInputNumberModel', () => {
@@ -154,5 +158,57 @@ describe('useDrInputNumberModel', () => {
     result.model.value = null;
     await nextTick();
     expect(result.inputValue.value).toBe('');
+  });
+
+  it.each(['ru-RU', 'en-US', 'en-GB'] as const)('formats and parses using the %s separator', async (locale) => {
+    const { group } = getInputLocaleProfile(locale).number;
+    const result = setupModel(1234567, locale);
+
+    expect(result.inputValue.value).toBe(['1', '234', '567'].join(group));
+
+    result.updateInputValue(['-7', '654', '321'].join(group));
+    await nextTick();
+    expect(result.model.value).toBe(-7654321);
+    expect(result.inputValue.value).toBe(['-7', '654', '321'].join(group));
+
+    result.model.value = 9999;
+    await nextTick();
+    expect(result.inputValue.value).toBe(['9', '999'].join(group));
+  });
+
+  it.each([
+    { chunks: ['1', '234', '567'], value: 1234567 },
+    { chunks: ['-001', '234'], value: -1234 },
+    { chunks: ['-0'], value: 0 },
+    { chunks: ['-'], value: null },
+    { chunks: ['9', '007', '199', '254', '740', '993'], value: null },
+    { chunks: ['1.5'], value: null },
+  ])('preserves the draft and model across locale changes: $chunks', async ({ chunks, value }) => {
+    const result = setupModel(null, 'ru-RU');
+    result.updateInputValue(chunks.join(getInputLocaleProfile('ru-RU').number.group));
+    await nextTick();
+
+    for (const locale of ['en-US', 'en-GB', 'ru-RU'] as const) {
+      result.locale.value = locale;
+      await nextTick();
+
+      expect(result.inputValue.value).toBe(chunks.join(getInputLocaleProfile(locale).number.group));
+      expect(result.model.value).toBe(value);
+    }
+
+    result.updateInputValue(['2', '345'].join(getInputLocaleProfile('ru-RU').number.group));
+    await nextTick();
+    expect(result.model.value).toBe(2345);
+  });
+
+  it('applies a simultaneous external model and locale update', async () => {
+    const result = setupModel(1234, 'ru-RU');
+
+    result.locale.value = 'en-US';
+    result.model.value = -7654321;
+    await nextTick();
+
+    expect(result.inputValue.value).toBe(['-7', '654', '321'].join(getInputLocaleProfile('en-US').number.group));
+    expect(result.model.value).toBe(-7654321);
   });
 });

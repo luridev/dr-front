@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
+import { useDrConfig } from '@/configuration/composables/useDrConfig/useDrConfig';
 import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
 import { useDrInputNumberAria } from '@/forms/components/DrInputNumber/composables/useDrInputNumberAria/useDrInputNumberAria';
 import { useDrInputNumberControls } from '@/forms/components/DrInputNumber/composables/useDrInputNumberControls/useDrInputNumberControls';
 import { useDrInputNumberModel } from '@/forms/components/DrInputNumber/composables/useDrInputNumberModel/useDrInputNumberModel';
 import { numberDrInputFormatSettings } from '@/forms/components/DrInputNumber/config';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import DrChevronDownIcon from '@/icons/components/DrChevronDownIcon/DrChevronDownIcon.generated.vue';
 import DrChevronUpIcon from '@/icons/components/DrChevronUpIcon/DrChevronUpIcon.generated.vue';
 import DrPlusMinusIcon from '@/icons/components/DrPlusMinusIcon/DrPlusMinusIcon.generated.vue';
@@ -32,9 +34,12 @@ const model = defineModel<number | null>({
 });
 
 const drInput = useTemplateRef<DrInputExposed>('drInput');
+const config = useDrConfig();
+const thousandSeparator = computed(() => getInputLocaleProfile(config.value.locale).number.group);
 
 const { inputValue, canToggleSign, updateInputValue, toggleSign, canonicalizeInputValue } = useDrInputNumberModel({
   model,
+  thousandSeparator,
 });
 
 const {
@@ -69,7 +74,13 @@ const aria = computed<DrInputAria>(() => ({
   clearButtonAriaLabel: props.aria?.clearButtonAriaLabel,
 }));
 
-provideDrInputMask(numberDrInputFormatSettings);
+provideDrInputMask(computed(() => ({
+  ...numberDrInputFormatSettings,
+  maskOptions: {
+    ...numberDrInputFormatSettings.maskOptions,
+    thousandsSeparator: thousandSeparator.value,
+  },
+})));
 
 const isSignToggleDisabled = computed(() =>
   props.disabled || props.readonly || !isBoundsValid.value || !canToggleSign.value,

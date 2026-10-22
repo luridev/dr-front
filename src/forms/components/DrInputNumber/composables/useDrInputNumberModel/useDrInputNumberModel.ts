@@ -1,4 +1,4 @@
-import { computed, readonly, ref, watch } from 'vue';
+import { computed, readonly, ref, toValue, watch } from 'vue';
 import { integerInputMinusSign } from '@/forms/lib/inputFormats/integer/config';
 import {
   parseIntegerInputValue,
@@ -11,8 +11,9 @@ function isPendingNegativeInput(value: string) {
   return value === integerInputMinusSign;
 }
 
-export function useDrInputNumberModel({ model }: UseDrInputNumberModelParams) {
-  const inputValue = ref(stringifyIntegerInputValue(model.value));
+export function useDrInputNumberModel({ model, thousandSeparator }: UseDrInputNumberModelParams) {
+  const separator = computed(() => toValue(thousandSeparator));
+  const inputValue = ref(stringifyIntegerInputValue(model.value, separator.value));
 
   const canToggleSign = computed(() => {
     const value = model.value;
@@ -24,20 +25,22 @@ export function useDrInputNumberModel({ model }: UseDrInputNumberModelParams) {
     return isFiniteNumber(value) && value !== 0;
   });
 
-  watch(model, (value) => {
-    const currentInputModelValue = parseIntegerInputValue(inputValue.value);
+  watch([model, separator], ([value, group], [, previousGroup]) => {
+    const currentInputModelValue = parseIntegerInputValue(inputValue.value, previousGroup);
 
     if (Object.is(currentInputModelValue, value)) {
+      inputValue.value = inputValue.value.replaceAll(previousGroup, group);
+
       return;
     }
 
-    inputValue.value = stringifyIntegerInputValue(value);
+    inputValue.value = stringifyIntegerInputValue(value, group);
   });
 
   function updateInputValue(value: string) {
     inputValue.value = value;
 
-    const nextModelValue = parseIntegerInputValue(value);
+    const nextModelValue = parseIntegerInputValue(value, separator.value);
 
     if (Object.is(model.value, nextModelValue)) {
       return;

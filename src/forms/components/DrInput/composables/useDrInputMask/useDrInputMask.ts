@@ -15,6 +15,7 @@ export function provideDrInputMask(source: DrInputMaskSource) {
 export function useDrInputMask({ input, model, settings, readonly }: UseDrInputMaskParams) {
   let mask: InputMask<FactoryOpts> | undefined;
   let synchronizing = false;
+  let selectionBeforeUpdate: Pick<HTMLInputElement, 'selectionStart' | 'selectionEnd' | 'selectionDirection'> | undefined;
 
   function accept() {
     if (!synchronizing && !readonly() && input.value !== null) {
@@ -40,9 +41,22 @@ export function useDrInputMask({ input, model, settings, readonly }: UseDrInputM
     synchronizing = false;
   }
 
+  watch([settings, readonly], () => {
+    const element = input.value;
+
+    selectionBeforeUpdate = element === null
+      ? undefined
+      : {
+          selectionStart: element.selectionStart,
+          selectionEnd: element.selectionEnd,
+          selectionDirection: element.selectionDirection,
+        };
+  });
+
   watch([input, settings, readonly], () => {
     const element = input.value;
-    const selection = element?.selectionStart;
+    const { selectionStart, selectionEnd, selectionDirection } = selectionBeforeUpdate ?? element ?? {};
+    selectionBeforeUpdate = undefined;
     mask?.destroy();
     mask = undefined;
 
@@ -56,8 +70,12 @@ export function useDrInputMask({ input, model, settings, readonly }: UseDrInputM
 
       write();
 
-      if (selection != null) {
-        element.setSelectionRange(Math.min(selection, element.value.length), Math.min(selection, element.value.length));
+      if (selectionStart != null) {
+        element.setSelectionRange(
+          Math.min(selectionStart, element.value.length),
+          Math.min(selectionEnd ?? selectionStart, element.value.length),
+          selectionDirection ?? undefined,
+        );
       }
     }
   }, { flush: 'post' });

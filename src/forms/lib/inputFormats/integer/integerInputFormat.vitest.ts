@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import {
   formatIntegerInputString,
   parseIntegerInputValue,
@@ -89,5 +90,22 @@ describe('stringifyIntegerInputValue', () => {
 
   it.each([0, 1, -1, 42, -42, 1234, -1234])('supports round trips for %s', (value) => {
     expect(parseIntegerInputValue(stringifyIntegerInputValue(value))).toBe(value);
+  });
+});
+
+describe('regional integer separators', () => {
+  it.each(['ru-RU', 'en-US', 'en-GB'] as const)('uses the supplied %s group throughout a round trip', (locale) => {
+    const { group } = getInputLocaleProfile(locale).number;
+    const formatted = ['-1', '234', '567'].join(group);
+
+    expect(formatIntegerInputString('-1234567', group)).toBe(formatted);
+    expect(stringifyIntegerInputValue(-1234567, group)).toBe(formatted);
+    expect(parseIntegerInputValue(formatted, group)).toBe(-1234567);
+
+    expect(parseIntegerInputValue(['9', '007', '199', '254', '740', '991'].join(group), group))
+      .toBe(Number.MAX_SAFE_INTEGER);
+
+    expect(parseIntegerInputValue(['9', '007', '199', '254', '740', '993'].join(group), group)).toBeNull();
+    expect(parseIntegerInputValue('1.5', group)).toBeNull();
   });
 });

@@ -1,7 +1,10 @@
 import { maskingStoryId as storyId } from '@/forms/components/DrInput/DrInputMasking/config.support';
 import { getInput } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import { integerInputParams } from '@/forms/lib/inputFormats/integer/config';
 import { expect, test } from '~/tests/playwright/fixtures';
+
+const numberGroup = getInputLocaleProfile('en-US').number.group;
 
 test('typed wrappers isolate slot inputs and use the nearest provider', async ({ mount }) => {
   const component = await mount(storyId);
@@ -40,7 +43,7 @@ test('number label slot is isolated while the integer model and controls keep wo
   const plain = getInput(component, 'numberSlot');
   const wrapper = component.locator('.DrInputMasking__number');
 
-  await expect(number).toHaveValue(`1${integerInputParams.thousandSeparator}234`);
+  await expect(number).toHaveValue(`1${numberGroup}234`);
   await expect(number).toHaveAttribute('role', 'spinbutton');
   await plain.fill('number slot / text');
   await expect(plain).toHaveValue('number slot / text');
@@ -92,7 +95,7 @@ test('read-only typed inputs block editing and mask history until made writable 
   await getInput(component, 'time').fill('0930');
   await expect(component.getByTestId('time-model')).toHaveText('09:30:56.123456789');
   await getInput(component, 'number').fill('1234');
-  await expect(getInput(component, 'number')).toHaveValue(`1${integerInputParams.thousandSeparator}234`);
+  await expect(getInput(component, 'number')).toHaveValue(`1${numberGroup}234`);
 
   await getInput(component, 'number').fill('-');
   await component.update({ readonly: true });
@@ -105,7 +108,7 @@ test('disabled typed inputs follow external models and keep full time precision'
   const root = await mount(storyId);
   await root.update({ disabled: true, externalDate: '0010-02-01', externalNumber: 12345, externalTime: '01:02:03.004005006' });
 
-  for (const [name, text] of [['date', '01.02.0010'], ['number', `12${integerInputParams.thousandSeparator}345`], ['time', '01:02']]) {
+  for (const [name, text] of [['date', '01.02.0010'], ['number', `12${numberGroup}345`], ['time', '01:02']]) {
     await expect(getInput(root, name)).toBeDisabled();
     await expect(getInput(root, name)).toHaveValue(text);
   }
