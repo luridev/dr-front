@@ -94,10 +94,6 @@ function handleBlur(event: FocusEvent) {
   emit('blur', event);
 }
 
-function focusInput() {
-  drInput.value?.focus();
-}
-
 function setCaretToEndAfterRender() {
   void nextTick(() => {
     drInput.value?.setCaretToEnd();
@@ -119,17 +115,14 @@ function runControlAction(action: () => boolean) {
 }
 
 function handleSignToggle() {
-  focusInput();
   runControlAction(toggleSign);
 }
 
 function handleIncrement() {
-  focusInput();
   runControlAction(increment);
 }
 
 function handleDecrement() {
-  focusInput();
   runControlAction(decrement);
 }
 

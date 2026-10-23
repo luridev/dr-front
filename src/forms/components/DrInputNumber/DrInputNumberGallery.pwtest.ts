@@ -12,6 +12,115 @@ import { expect, test } from '~/tests/playwright/fixtures';
 const group = getInputLocaleProfile('en-US').number.group;
 const numberStoryId = 'forms/components/DrInputNumber/DrInputNumberGallery';
 
+for (const interaction of ['mouse', 'touch'] as const) {
+  test.describe(`number controls with ${interaction}`, () => {
+    test.use(interaction === 'touch'
+      ? { hasTouch: true, isMobile: true, viewport: { width: 360, height: 740 } }
+      : { hasTouch: false, isMobile: false, viewport: { width: 1280, height: 720 } });
+
+    test('change an unfocused input without focus events or scrolling', async ({ mount, page }) => {
+      const root = await mount(numberStoryId);
+      const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+      const model = root.getByTestId('number-gallery-model');
+      const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+
+      const focusEvents = await input.evaluateHandle((element) => {
+        const events: Array<string> = [];
+
+        for (const type of ['focus', 'blur']) {
+          element.addEventListener(type, () => events.push(type));
+        }
+
+        return events;
+      });
+
+      await localeSelect.focus();
+      await input.scrollIntoViewIfNeeded();
+      const scroll = await page.evaluate(() => [window.scrollX, window.scrollY]);
+
+      for (const [name, value] of [
+        ['Increase Optional', '1234568'],
+        ['Decrease Optional', '1234567'],
+        ['Change sign of Optional', '-1234567'],
+      ]) {
+        const button = root.getByRole('button', { name, exact: true });
+
+        await expect(button).toHaveAttribute('tabindex', '-1');
+        await expect(button).toHaveAttribute('aria-controls', await input.getAttribute('id') ?? '');
+        await button[interaction === 'touch' ? 'tap' : 'click']();
+        await expect(model).toHaveText(value);
+        await expect(input).toHaveAttribute('aria-valuenow', value);
+        expect(await input.evaluate((element) => document.activeElement === element)).toBe(false);
+        await expect(localeSelect).toBeFocused();
+        expect(await focusEvents.jsonValue()).toEqual([]);
+        expect(await page.evaluate(() => [window.scrollX, window.scrollY])).toEqual(scroll);
+      }
+
+      await input.fill('');
+      await localeSelect.focus();
+      const signButton = root.getByRole('button', { name: 'Change sign of Optional', exact: true });
+
+      for (const draft of ['-', '']) {
+        await signButton[interaction === 'touch' ? 'tap' : 'click']();
+        await expect(input).toHaveValue(draft);
+        await expect(model).toHaveText('null');
+        await expect(localeSelect).toBeFocused();
+        expect(await focusEvents.jsonValue()).toEqual(['focus', 'blur']);
+      }
+    });
+
+    test('retain focus and caret behavior for buttons, arrows and subsequent editing', async ({ mount, page }) => {
+      const root = await mount(numberStoryId);
+      const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+      const model = root.getByTestId('number-gallery-model');
+
+      const focusEvents = await input.evaluateHandle((element) => {
+        const events: Array<string> = [];
+
+        for (const type of ['focus', 'blur']) {
+          element.addEventListener(type, () => events.push(type));
+        }
+
+        return events;
+      });
+
+      await input[interaction === 'touch' ? 'tap' : 'click']();
+      await expect(input).toBeFocused();
+
+      for (const [name, value] of [
+        ['Increase Optional', '1234568'],
+        ['Decrease Optional', '1234567'],
+        ['Change sign of Optional', '-1234567'],
+      ]) {
+        await selectInputRange(input, 2, 5);
+        await root.getByRole('button', { name, exact: true })[interaction === 'touch' ? 'tap' : 'click']();
+        await expect(model).toHaveText(value);
+        expect(await input.evaluate((element) => document.activeElement === element)).toBe(true);
+        const end = (await input.inputValue()).length;
+
+        expect(await readSelection(input)).toEqual([end, end]);
+        expect(await focusEvents.jsonValue()).toEqual(['focus']);
+      }
+
+      await page.keyboard.press('ArrowUp');
+      await expect(model).toHaveText('-1234566');
+      await page.keyboard.press('ArrowDown');
+      await expect(model).toHaveText('-1234567');
+      await expect(input).toBeFocused();
+      await page.keyboard.type('8');
+      await expect(input).toHaveValue(`-12${group}345${group}678`);
+      await expect(model).toHaveText('-12345678');
+      await selectInputRange(input, 1, 3);
+      await page.keyboard.type('9');
+      await expect(input).toHaveValue(`-9${group}345${group}678`);
+      await expect(model).toHaveText('-9345678');
+      expect(await focusEvents.jsonValue()).toEqual(['focus']);
+      await root.getByRole('combobox', { name: 'Locale', exact: true }).focus();
+      expect(await focusEvents.jsonValue()).toEqual(['focus', 'blur']);
+    });
+  });
+}
+
 test('regional zero drafts keep their text on blur while exposing canonical integer models', async ({ mount }) => {
   const root = await mount(numberStoryId);
   const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
@@ -52,8 +161,10 @@ test('readonly number blocks user changes and wheel cancellation while accepting
   await page.keyboard.press('ArrowDown');
   await expect(input).toHaveValue('-5');
 
-  for (const name of ['Increase Read-only temperature', 'Decrease Read-only temperature', 'Change sign of Read-only temperature']) {
-    await expect(component.getByRole('button', { name, exact: true })).toBeDisabled();
+  for (const label of ['Read-only temperature', 'Disabled']) {
+    for (const action of ['Increase', 'Decrease', 'Change sign of']) {
+      await expect(component.getByRole('button', { name: `${action} ${label}`, exact: true })).toBeDisabled();
+    }
   }
 
   await expect(component.getByRole('button', { name: 'Clear read-only temperature', exact: true })).toHaveCount(0);
@@ -128,6 +239,10 @@ test('number preserves unsafe drafts and supports grouping, history and step bou
   await expect(wrapper.locator('.DrInputNumber__stepperButton').first()).toBeDisabled();
   await wrapper.locator('.DrInputNumber__stepperButton').last().click();
   await expect(root.getByTestId('number-model')).toHaveText('5');
+  await root.update({ externalNumber: -4, min: -5, max: 7, step: 2 });
+  await wrapper.locator('.DrInputNumber__stepperButton').last().click();
+  await expect(root.getByTestId('number-model')).toHaveText('-5');
+  await expect(wrapper.locator('.DrInputNumber__stepperButton').last()).toBeDisabled();
   await wrapper.locator('.DrInput__clearButton').click();
   await expect(input).toHaveValue('');
   await expect(input).toBeFocused();
