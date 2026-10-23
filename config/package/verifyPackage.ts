@@ -90,6 +90,7 @@ try {
       runtime: 'node runtime.mjs',
       build: 'vite build',
       isolation: 'node isolation.mjs',
+      browser: 'node browser.mjs',
     },
     dependencies: { [manifest.name]: `file:./${filename}`, vue: manifest.devDependencies.vue },
     allowScripts: { 'core-js-pure': false },
@@ -133,14 +134,16 @@ try {
   );
 
   runNpm(['run', 'typecheck'], { cwd: consumer });
-  runNpm(['run', 'runtime'], { cwd: consumer });
+  runNpm(['run', 'runtime', '--', import.meta.resolve('temporal-polyfill')], { cwd: consumer });
   runNpm(['run', 'build'], { cwd: consumer });
   runNpm(['run', 'isolation'], { cwd: consumer });
+  runNpm(['run', 'browser', '--', import.meta.resolve('@playwright/test')], { cwd: consumer });
 
   const css = globSync('dist/**/*.css', { cwd: consumer }).map((file) => readFileSync(join(consumer, file), 'utf8')).join('\n');
 
   assert.match(css, /--dr-/);
   assert.match(css, /\.DrButton/);
+  assert.match(css, /\.DrInputTime__periodButton/);
   process.stdout.write('Package verified successfully.\n');
 } finally {
   rmSync(consumer, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });

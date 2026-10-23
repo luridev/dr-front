@@ -12,6 +12,27 @@ import { expect, test } from '~/tests/playwright/fixtures';
 const group = getInputLocaleProfile('en-US').number.group;
 const numberStoryId = 'forms/components/DrInputNumber/DrInputNumberGallery';
 
+test('regional zero drafts keep their text on blur while exposing canonical integer models', async ({ mount }) => {
+  const root = await mount(numberStoryId);
+  const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+  const model = root.getByTestId('number-gallery-model');
+
+  for (const locale of ['ru-RU', 'en-US', 'en-GB'] as const) {
+    await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption(locale);
+    const separator = getInputLocaleProfile(locale).number.group;
+
+    for (const [source, display, value] of [['-0', '-0', '0'], ['-00123', `-00${separator}123`, '-123']]) {
+      await replaceInput(input, source);
+      await expect(input).toHaveValue(display);
+      await expect(model).toHaveText(value);
+      await expect(input).toHaveAttribute('aria-valuenow', value);
+      await input.press('Tab');
+      await expect(input).toHaveValue(display);
+      await expect(model).toHaveText(value);
+    }
+  }
+});
+
 test('readonly number blocks user changes and wheel cancellation while accepting parent updates', async ({
   mount,
   page,

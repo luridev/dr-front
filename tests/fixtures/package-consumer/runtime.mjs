@@ -37,6 +37,29 @@ const providerless = await renderToString(createSSRApp(() => h(root.DrInput, { m
 assert.match(localized, /Стереть Email/);
 assert.match(providerless, /Clear Email/);
 
+assert.throws(() => import.meta.resolve('temporal-polyfill'), { code: 'ERR_MODULE_NOT_FOUND' });
+const { Temporal: hostTemporal } = await import(process.argv[2]);
+globalThis.Temporal = hostTemporal;
+
+for (const [locale, dateText, timeText] of [
+  ['ru-RU', '31.12.2026', '23:45'],
+  ['en-US', '12/31/2026', '11:45'],
+  ['en-GB', '31/12/2026', '23:45'],
+]) {
+  const updates = [];
+  const localizedFields = await renderToString(createSSRApp(() => h(root.DrFrontProvider, { locale }, {
+    default: () => [
+      h(root.DrInputDate, { label: 'Date', modelValue: Temporal.PlainDate.from('2026-12-31'), 'onUpdate:modelValue': value => updates.push(value) }),
+      h(root.DrInputTime, { label: 'Time', modelValue: Temporal.PlainTime.from('23:45:56.123456789'), 'onUpdate:modelValue': value => updates.push(value) }),
+    ],
+  })));
+  assert.ok(localizedFields.includes(`value="${dateText}"`));
+  assert.ok(localizedFields.includes(`value="${timeText}"`));
+  assert.equal(localizedFields.includes('DrInputTime__periodButton'), locale === 'en-US');
+  assert.deepEqual(updates, []);
+}
+process.stdout.write('[runtime] installed Date/Time SSR: 3 locales, no model writes\n');
+
 const installedPackage = realpathSync(new URL(`./node_modules/${packageName}`, import.meta.url));
 const entryFile = fileURLToPath(import.meta.resolve(packageName));
 const privatePath = relative(installedPackage, entryFile).replaceAll('\\', '/');

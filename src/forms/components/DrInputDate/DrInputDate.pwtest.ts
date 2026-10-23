@@ -4,6 +4,32 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const dateStoryId = 'forms/components/DrInputDate/DrInputDateGallery';
 
+test('regional leap-day validation exposes errors and recovers its accessible description', async ({ mount }) => {
+  const root = await mount(dateStoryId);
+  const input = root.getByRole('textbox', { name: 'Date', exact: true });
+  const model = root.getByTestId('date-gallery-model');
+
+  for (const locale of ['ru-RU', 'en-US', 'en-GB']) {
+    await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption(locale);
+    const prefix = locale === 'en-US' ? '0229' : '2902';
+
+    await replaceInput(input, `${prefix}1900`);
+    await expect(model).toHaveText('null');
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    await expect(input).toHaveAccessibleDescription('Invalid date');
+    await replaceInput(input, `${prefix}2000`);
+    await expect(model).toHaveText('2000-02-29');
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await expect(input).toHaveAccessibleDescription('Valid date');
+    await input.fill(prefix);
+    await expect(model).toHaveText('null');
+    await expect(input).toHaveAccessibleDescription('Incomplete date');
+    await root.getByRole('button', { name: 'Clear date', exact: true }).click();
+    await expect(input).toBeFocused();
+    await expect(input).toHaveAccessibleDescription('Empty');
+  }
+});
+
 test('date supports signed extended years, Temporal boundaries and external year padding', async ({ mount }) => {
   const root = await mount(storyId);
   const input = getInput(root, 'date');

@@ -4,6 +4,32 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const timeStoryId = 'forms/components/DrInputTime/DrInputTimeGallery';
 
+test('native clipboard paste integrates Date and Time masks with history and hidden precision', async ({ mount, page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const root = await mount(storyId);
+  const date = getInput(root, 'date');
+  const time = getInput(root, 'time');
+
+  await date.fill('');
+  await page.evaluate(() => navigator.clipboard.writeText('12/31/2026'));
+  await date.press('ControlOrMeta+V');
+  await expect(date).toHaveValue('12/31/2026');
+  await expect(root.getByTestId('date-model')).toHaveText('2026-12-31');
+  await date.press('ControlOrMeta+Z');
+  await expect(root.getByTestId('date-model')).toHaveText('null');
+  await date.press('ControlOrMeta+Shift+Z');
+  await expect(root.getByTestId('date-model')).toHaveText('2026-12-31');
+  await selectInputRange(time, 0, 5);
+  await page.evaluate(() => navigator.clipboard.writeText('11:59'));
+  await time.press('ControlOrMeta+V');
+  await expect(time).toHaveValue('11:59');
+  await expect(root.getByTestId('time-model')).toHaveText('23:59:56.123456789');
+  await time.press('ControlOrMeta+Z');
+  await expect(root.getByTestId('time-model')).toHaveText(maskingStoryInitialTime);
+  await time.press('ControlOrMeta+Shift+Z');
+  await expect(root.getByTestId('time-model')).toHaveText('23:59:56.123456789');
+});
+
 test('time preserves its full model and focus through precision changes, edits and external updates', async ({ mount }) => {
   const component = await mount(storyId);
   const time = getInput(component, 'time');

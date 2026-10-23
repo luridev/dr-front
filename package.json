@@ -95,11 +95,11 @@
     "unplugin-dts": "^1.1.0",
     "vite": "^8.1.3",
     "vitest": "^4.1.10",
-    "vue": "^3.5.39",
+    "vue": "^3.5.40",
     "vue-tsc": "^3.3.6"
   },
   "peerDependencies": {
-    "vue": "^3.5.39"
+    "vue": "^3.5.40"
   },
   "allowScripts": {
     "core-js-pure": false,
