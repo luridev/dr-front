@@ -1,5 +1,6 @@
 import { integerInputParams } from '@/forms/lib/inputFormats/integer/config';
 import { normalizeNegativeZero } from '@/numbers/lib/normalizeNegativeZero/normalizeNegativeZero';
+import type { IntegerInputParseResult } from '@/forms/lib/inputFormats/integer/types';
 
 export function formatIntegerInputString(
   value: string,
@@ -14,16 +15,26 @@ export function formatIntegerInputString(
 export function parseIntegerInputValue(
   value: string,
   thousandSeparator = integerInputParams.thousandSeparator,
-): number | null {
+): IntegerInputParseResult {
+  if (value === '') {
+    return { status: 'empty' };
+  }
+
+  if (value === integerInputParams.minusSign) {
+    return { status: 'incomplete' };
+  }
+
   const normalizedValue = value.replaceAll(thousandSeparator, '');
 
   if (!/^-?\d+$/.test(normalizedValue)) {
-    return null;
+    return { status: 'invalid' };
   }
 
   const numberValue = Number(normalizedValue);
 
-  return Number.isSafeInteger(numberValue) ? normalizeNegativeZero(numberValue) : null;
+  return Number.isSafeInteger(numberValue)
+    ? { status: 'valid', value: normalizeNegativeZero(numberValue) }
+    : { status: 'out-of-range' };
 }
 
 export function stringifyIntegerInputValue(

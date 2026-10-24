@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useDrInputNumberControls } from '@/forms/components/DrInputNumber/composables/useDrInputNumberControls/useDrInputNumberControls';
 import { createTestEffectScopeCollector } from '~/tests/vitest/lib/createTestEffectScopeCollector/createTestEffectScopeCollector';
 import type { ModelRef } from 'vue';
+import type { DrInputNumberStatus } from '@/forms/components/DrInputNumber/types';
 
 const scopes = createTestEffectScopeCollector();
 
@@ -18,6 +19,7 @@ function setupControls(
   disabledValue = false,
 ) {
   const model = createModel(modelValue);
+  const status = ref<DrInputNumberStatus>(modelValue === null ? 'empty' : 'valid');
   const min = ref(minValue);
   const max = ref(maxValue);
   const step = ref(stepValue);
@@ -26,6 +28,7 @@ function setupControls(
   const controls = scopes.run(() =>
     useDrInputNumberControls({
       model,
+      status,
       min,
       max,
       step,
@@ -33,10 +36,35 @@ function setupControls(
     }),
   );
 
-  return { model, minSource: min, maxSource: max, step, disabled, ...controls };
+  return { model, status, minSource: min, maxSource: max, step, disabled, ...controls };
 }
 
 describe('useDrInputNumberControls', () => {
+  it.each(['incomplete', 'invalid', 'out-of-range'] as const)(
+    'blocks both directions for %s drafts without changing sign availability', (status) => {
+      const result = setupControls(null, -10, 10, 3);
+      result.status.value = status;
+
+      expect(result.canIncrement.value).toBe(false);
+      expect(result.canDecrement.value).toBe(false);
+      expect(result.increment()).toBe(false);
+      expect(result.decrement()).toBe(false);
+      expect(result.model.value).toBeNull();
+      expect(result.allowsNegative.value).toBe(true);
+      expect(result.isBoundsValid.value).toBe(true);
+
+      result.status.value = 'empty';
+      expect(result.canIncrement.value).toBe(true);
+      expect(result.canDecrement.value).toBe(true);
+      expect(result.increment()).toBe(true);
+      expect(result.model.value).toBe(3);
+
+      result.status.value = 'valid';
+      expect(result.decrement()).toBe(true);
+      expect(result.model.value).toBe(0);
+    },
+  );
+
   it('increments and decrements a regular value with the default step', () => {
     const result = setupControls(10);
 

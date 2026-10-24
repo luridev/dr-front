@@ -12,6 +12,296 @@ import { expect, test } from '~/tests/playwright/fixtures';
 const group = getInputLocaleProfile('en-US').number.group;
 const numberStoryId = 'forms/components/DrInputNumber/DrInputNumberGallery';
 
+test('number range errors and explicit ARIA overrides preserve the model, status and visual state', async ({ mount }) => {
+  const bounds = { min: 1, max: 10 };
+  const root = await mount(numberStoryId, { ...bounds, externalAmount: 5 });
+  const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+  const model = root.getByTestId('number-gallery-model');
+  const status = root.getByTestId('number-gallery-status');
+  const override = root.getByRole('combobox', { name: 'Optional ARIA invalid', exact: true });
+  const increase = root.getByRole('button', { name: 'Increase Optional', exact: true });
+  const decrease = root.getByRole('button', { name: 'Decrease Optional', exact: true });
+
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await input.fill('100');
+  await expect(input).toHaveValue('100');
+  await expect(model).toHaveText('100');
+  await expect(status).toHaveText('valid');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(input).toHaveAttribute('aria-valuenow', '100');
+  await expect(input).toHaveAttribute('aria-valuemin', '1');
+  await expect(input).toHaveAttribute('aria-valuemax', '10');
+  await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+  await expect(increase).toBeDisabled();
+  await expect(decrease).toBeEnabled();
+
+  await override.selectOption({ label: 'false' });
+  await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+  await root.update({ ...bounds, state: 'error' });
+  await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(input.locator('..')).toHaveClass(/DrControl__control_error/);
+  await expect(input).toHaveAttribute('aria-valuenow', '100');
+  await expect(increase).toBeDisabled();
+  await expect(decrease).toBeEnabled();
+  await expect(model).toHaveAttribute('data-updates', '1');
+
+  await override.selectOption({ label: 'Automatic' });
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await input.fill('5');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await root.update(bounds);
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await override.selectOption({ label: 'true' });
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+  await override.selectOption({ label: 'Automatic' });
+  await expect(input).not.toHaveAttribute('aria-invalid');
+
+  await root.update({ min: 6, max: 10 });
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(input).toHaveAttribute('aria-valuemin', '6');
+  await root.update({ min: 1, max: 4 });
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(input).toHaveAttribute('aria-valuemax', '4');
+  await root.update({ min: 5, max: 5 });
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await expect(increase).toBeDisabled();
+  await expect(decrease).toBeDisabled();
+  await expect(model).toHaveText('5');
+  await expect(model).toHaveAttribute('data-updates', '2');
+  await expect(status).toHaveText('valid');
+  await expect(status).toHaveAttribute('data-updates', '1');
+
+  await root.update(bounds);
+  await input.fill('0');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await input.fill('1');
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await input.fill('100');
+  await decrease.click();
+  await expect(input).toHaveValue('10');
+  await expect(input).not.toHaveAttribute('aria-invalid');
+
+  for (const [draft, expectedStatus] of [['-', 'incomplete'], ['+1', 'invalid'], ['9'.repeat(400), 'out-of-range']]) {
+    await input.fill(draft);
+    await expect(status).toHaveText(expectedStatus);
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await expect(increase).toBeDisabled();
+    await expect(decrease).toBeDisabled();
+  }
+});
+
+test('number ARIA uses existing optional and invalid bounds semantics', async ({ mount }) => {
+  const root = await mount(numberStoryId, { externalAmount: 5 });
+  const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+
+  for (const { bounds, invalid } of [
+    { bounds: {}, invalid: false },
+    { bounds: { min: null, max: null }, invalid: false },
+    { bounds: { min: 6 }, invalid: true },
+    { bounds: { max: 4 }, invalid: true },
+    { bounds: { min: 10, max: 1 }, invalid: false },
+    { bounds: { min: Number.NaN }, invalid: false },
+    { bounds: { max: Number.POSITIVE_INFINITY }, invalid: false },
+    { bounds: { min: 1.5 }, invalid: false },
+    { bounds: { max: Number.MAX_SAFE_INTEGER + 1 }, invalid: false },
+  ]) {
+    await root.update(bounds);
+
+    if (invalid) {
+      await expect(input).toHaveAttribute('aria-invalid', 'true');
+    } else {
+      await expect(input).not.toHaveAttribute('aria-invalid');
+    }
+
+    await expect(input).toHaveAttribute('aria-valuenow', '5');
+    await expect(root.getByTestId('number-gallery-model')).toHaveAttribute('data-updates', '0');
+    await expect(root.getByTestId('number-gallery-status')).toHaveAttribute('data-updates', '1');
+  }
+});
+
+test('number publishes draft statuses through blur, clear, external updates and locale changes', async ({ mount }) => {
+  const root = await mount(numberStoryId, { externalAmount: null });
+  const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+  const model = root.getByTestId('number-gallery-model');
+  const status = root.getByTestId('number-gallery-status');
+  const sign = root.getByRole('button', { name: 'Change sign of Optional', exact: true });
+
+  await expect(status).toHaveText('empty');
+  await expect(status).toHaveAttribute('data-updates', '1');
+  await expect(model).toHaveAttribute('data-updates', '0');
+  await expect(input).toHaveAttribute('aria-valuetext', 'No value specified');
+  await sign.click();
+  await expect(input).toHaveValue('-');
+  await expect(status).toHaveText('incomplete');
+  await expect(model).toHaveText('null');
+  await expect(sign).toBeEnabled();
+  await sign.click();
+  await expect(status).toHaveText('empty');
+
+  await input.fill('-');
+  await expect(status).toHaveText('incomplete');
+  await input.press('Tab');
+  await expect(input).toHaveValue('');
+  await expect(status).toHaveText('empty');
+
+  await input.fill('123');
+  await expect(status).toHaveText('valid');
+  const validUpdates = await status.getAttribute('data-updates');
+
+  for (const [draft, value] of [['-001', '-1'], ['-0', '0'], ['3000000000', '3000000000']]) {
+    await input.fill(draft);
+    await expect(model).toHaveText(value);
+    await expect(input).toHaveAttribute('aria-valuenow', value);
+    await expect(status).toHaveText('valid');
+    await expect(status).toHaveAttribute('data-updates', validUpdates ?? '');
+  }
+
+  await input.fill('9007199254740992');
+  await expect(status).toHaveText('out-of-range');
+  const rangeUpdates = await status.getAttribute('data-updates');
+  await input.fill('9'.repeat(400));
+  await expect(status).toHaveAttribute('data-updates', rangeUpdates ?? '');
+
+  for (const locale of ['ru-RU', 'en-GB', 'en-US'] as const) {
+    await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption(locale);
+    expect((await input.inputValue()).replaceAll(getInputLocaleProfile(locale).number.group, '')).toBe('9'.repeat(400));
+    await expect(model).toHaveText('null');
+    await expect(status).toHaveText('out-of-range');
+    await expect(status).toHaveAttribute('data-updates', rangeUpdates ?? '');
+  }
+
+  await root.getByRole('button', { name: 'Clear optional number', exact: true }).click();
+  await expect(status).toHaveText('empty');
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await root.getByRole('button', { name: 'Increase Optional', exact: true }).click();
+  await expect(model).toHaveText('1');
+  await expect(status).toHaveText('valid');
+  await input.fill('');
+  await root.getByRole('button', { name: 'Decrease Optional', exact: true }).click();
+  await expect(model).toHaveText('-1');
+
+  const modelUpdates = await model.getAttribute('data-updates');
+  await root.update({ externalAmount: 42 });
+  await expect(input).toHaveValue('42');
+  await expect(status).toHaveText('valid');
+  await root.update({ externalAmount: null });
+  await expect(input).toHaveValue('');
+  await expect(status).toHaveText('empty');
+  await expect(model).toHaveAttribute('data-updates', modelUpdates ?? '');
+});
+
+for (const { source, expectedStatus } of [
+  { source: '-', expectedStatus: 'incomplete' },
+  { source: '+1', expectedStatus: 'invalid' },
+  { source: '9'.repeat(400), expectedStatus: 'out-of-range' },
+]) {
+  test(`number disables every stepping route for ${expectedStatus} and recovers after correction`, async ({ mount, page }) => {
+    const root = await mount(numberStoryId);
+    const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+    const model = root.getByTestId('number-gallery-model');
+    const status = root.getByTestId('number-gallery-status');
+    const increase = root.getByRole('button', { name: 'Increase Optional', exact: true });
+    const decrease = root.getByRole('button', { name: 'Decrease Optional', exact: true });
+
+    await input.fill(source);
+    const draft = await input.inputValue();
+    await expect(status).toHaveText(expectedStatus);
+    await expect(model).toHaveText('null');
+    await expect(increase).toBeDisabled();
+    await expect(decrease).toBeDisabled();
+    await expect(input).not.toHaveAttribute('aria-valuenow');
+    await expect(input).not.toHaveAttribute('aria-invalid');
+
+    await expect(input).toHaveAttribute('aria-valuetext', expectedStatus === 'incomplete'
+      ? 'Negative number entry is incomplete'
+      : draft);
+
+    await selectInputRange(input, 0, Math.min(draft.length, 2));
+    const selection = await readSelection(input);
+
+    await increase.click({ force: true });
+    await decrease.click({ force: true });
+    await input.press('ArrowUp');
+    await input.press('ArrowDown');
+
+    for (const deltaY of [-100, 100]) {
+      const prevented = await input.evaluate((element, delta) => {
+        const event = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: delta });
+        element.dispatchEvent(event);
+
+        return event.defaultPrevented;
+      }, deltaY);
+
+      expect(prevented).toBe(false);
+    }
+
+    await page.evaluate(() => {
+      document.body.style.minHeight = '200vh';
+    });
+
+    await input.hover();
+    const scrollBeforeWheel = await page.evaluate(() => window.scrollY);
+
+    await page.mouse.wheel(0, 100);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollBeforeWheel);
+
+    await expect(input).toHaveValue(draft);
+    await expect(input).toBeFocused();
+    expect(await readSelection(input)).toEqual(selection);
+    await expect(model).toHaveText('null');
+    await expect(status).toHaveText(expectedStatus);
+
+    await input.fill('12');
+    await expect(status).toHaveText('valid');
+    await expect(increase).toBeEnabled();
+    await expect(decrease).toBeEnabled();
+    await increase.click();
+    await expect(model).toHaveText('13');
+    await input.press('ArrowDown');
+    await expect(model).toHaveText('12');
+    await input.dispatchEvent('wheel', { deltaY: -100 });
+    await expect(model).toHaveText('13');
+  });
+}
+
+test('number diagnoses unsupported external models and keeps business bounds separate', async ({ mount }) => {
+  const root = await mount(numberStoryId);
+  const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+  const status = root.getByTestId('number-gallery-status');
+
+  for (const [externalAmount, expectedStatus] of [
+    [1.5, 'invalid'], [Number.NaN, 'invalid'], [Number.POSITIVE_INFINITY, 'invalid'],
+    [Number.MAX_SAFE_INTEGER + 1, 'out-of-range'], [Number.MIN_SAFE_INTEGER - 1, 'out-of-range'],
+  ] as const) {
+    await root.update({ externalAmount, min: 1, max: 10 });
+    await expect(status).toHaveText(expectedStatus);
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await expect(input).not.toHaveAttribute('aria-valuenow');
+    await expect(root.getByRole('button', { name: 'Increase Optional', exact: true })).toBeDisabled();
+    await expect(root.getByRole('button', { name: 'Decrease Optional', exact: true })).toBeDisabled();
+  }
+
+  await root.update({ externalAmount: 3 });
+  await expect(status).toHaveText('valid');
+  await expect(root.getByTestId('number-gallery-model')).toHaveAttribute('data-updates', '0');
+
+  const quantity = root.getByRole('spinbutton', { name: 'Quantity', exact: true });
+  await quantity.fill('3000000000');
+  await expect(quantity).toHaveAttribute('aria-valuenow', '3000000000');
+  await expect(quantity).toHaveAttribute('aria-valuemin', '1');
+  await expect(quantity).toHaveAttribute('aria-valuemax', '10');
+  await expect(quantity).toHaveAttribute('aria-invalid', 'true');
+  await expect(quantity).toHaveAccessibleDescription('1–10 · Step 1');
+  await expect(root.getByRole('button', { name: 'Increase Quantity', exact: true })).toBeDisabled();
+  const decrease = root.getByRole('button', { name: 'Decrease Quantity', exact: true });
+  await expect(decrease).toBeEnabled();
+  await decrease.click();
+  await expect(quantity).toHaveValue('10');
+  await expect(quantity).not.toHaveAttribute('aria-invalid');
+});
+
 for (const interaction of ['mouse', 'touch'] as const) {
   test.describe(`number controls with ${interaction}`, () => {
     test.use(interaction === 'touch'

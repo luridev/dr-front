@@ -6,7 +6,7 @@ export type DrInputTimeSmallestUnit = TimeInputSmallestUnit;
 
 export type DrInputTimeStatus = TimeInputStatus;
 
-export type DrInputTimeAria = Pick<DrInputAria, 'clearButtonAriaLabel'>;
+export type DrInputTimeAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
 export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'type'> & {
   smallestUnit?: DrInputTimeSmallestUnit;

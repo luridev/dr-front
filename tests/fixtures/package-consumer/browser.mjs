@@ -18,6 +18,17 @@ try {
   const models = page.locator('#models');
   const updates = page.locator('#updates');
 
+  for (const input of [page.getByRole('textbox', { name: 'Text', exact: true }), date, page.getByRole('textbox', { name: 'Code', exact: true })]) {
+    await expect(input).toHaveAttribute('aria-invalid', 'true');
+    await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+  }
+  await expect(time).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(time.locator('..')).toHaveClass(/DrControl__control_error/);
+  await expect(number).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(number).toHaveAttribute('aria-valuenow', '1234567');
+  await expect(number).toHaveAttribute('aria-valuemax', '10');
+  await expect(page.locator('#number-status')).toHaveText('valid');
+
   for (const [locale, dateText, timeText, numberText] of [
     ['en-US', '12/31/2026', '11:45', '1,234,567'],
     ['ru-RU', '31.12.2026', '23:45', '1\u00a0234\u00a0567'],
@@ -46,7 +57,7 @@ try {
   await page.getByRole('button', { name: 'Feedback', exact: true }).click();
   await expect(page.getByText('Package consumer notification', { exact: true })).toBeVisible();
   assert.deepEqual(errors, []);
-  process.stdout.write(`[browser] installed package: 3 locales, model preservation, AM/PM, precision, edits, toast and CSS (Chromium ${browser.version()})\n`);
+  process.stdout.write(`[browser] installed package: 3 locales, model preservation, ARIA overrides, AM/PM, precision, edits, toast and CSS (Chromium ${browser.version()})\n`);
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.httpServer.close(error => error ? reject(error) : resolve()));

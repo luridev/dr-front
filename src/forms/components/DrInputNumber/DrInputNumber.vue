@@ -37,9 +37,14 @@ const drInput = useTemplateRef<DrInputExposed>('drInput');
 const config = useDrConfig();
 const thousandSeparator = computed(() => getInputLocaleProfile(config.value.locale).number.group);
 
-const { inputValue, canToggleSign, updateInputValue, toggleSign, canonicalizeInputValue } = useDrInputNumberModel({
+const {
+  inputValue, status, canToggleSign, updateInputValue, toggleSign, canonicalizeInputValue,
+} = useDrInputNumberModel({
   model,
   thousandSeparator,
+  onStatusUpdate: (value) => {
+    emit('update:status', value);
+  },
 });
 
 const {
@@ -53,6 +58,7 @@ const {
   decrement,
 } = useDrInputNumberControls({
   model,
+  status,
   min: () => props.min,
   max: () => props.max,
   step: () => props.step,
@@ -62,6 +68,7 @@ const {
 const { inputAria, incrementAriaLabel, decrementAriaLabel, signAriaLabel } = useDrInputNumberAria({
   model,
   inputValue,
+  status,
   min,
   max,
   isBoundsValid,
@@ -70,6 +77,7 @@ const { inputAria, incrementAriaLabel, decrementAriaLabel, signAriaLabel } = use
 
 const aria = computed<DrInputAria>(() => ({
   ...inputAria.value,
+  ariaInvalid: props.aria?.ariaInvalid ?? inputAria.value.ariaInvalid,
   role: 'spinbutton',
   clearButtonAriaLabel: props.aria?.clearButtonAriaLabel,
 }));

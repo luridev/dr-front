@@ -1,7 +1,5 @@
 import { computed, toValue } from 'vue';
 import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
-import { integerInputMinusSign } from '@/forms/lib/inputFormats/integer/config';
-import { isFiniteNumber } from '@/numbers/lib/isFiniteNumber/isFiniteNumber';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
 import type { DrInputAria } from '@/forms/components/DrInput/types';
 import type { UseDrInputNumberAriaParams } from '@/forms/components/DrInputNumber/composables/useDrInputNumberAria/types';
@@ -9,6 +7,7 @@ import type { UseDrInputNumberAriaParams } from '@/forms/components/DrInputNumbe
 export function useDrInputNumberAria({
   model,
   inputValue,
+  status,
   min,
   max,
   isBoundsValid,
@@ -22,20 +21,36 @@ export function useDrInputNumberAria({
     return isNonBlankString(value) ? value.trim() : undefined;
   });
 
-  function getIncompleteValueText(value: string) {
-    return value === integerInputMinusSign ? t('inputNumber.incompleteNegative') : t('inputNumber.empty');
+  function getDraftValueText() {
+    switch (toValue(status)) {
+      case 'empty':
+        return t('inputNumber.empty');
+      case 'incomplete':
+        return t('inputNumber.incompleteNegative');
+      case 'invalid':
+      case 'out-of-range':
+      case 'valid':
+        return inputValue.value;
+    }
   }
 
   const inputAria = computed<DrInputAria>(() => {
     const value = model.value;
     const boundsValid = toValue(isBoundsValid);
-    const isValueValid = isFiniteNumber(value);
+    const isValueValid = toValue(status) === 'valid' && Number.isSafeInteger(value);
+    const minValue = toValue(min);
+    const maxValue = toValue(max);
+
+    const isOutOfBounds = isValueValid && value !== null && boundsValid && (
+      (minValue != null && value < minValue) || (maxValue != null && value > maxValue)
+    );
 
     return {
-      ariaValueMin: boundsValid ? toValue(min) : undefined,
-      ariaValueMax: boundsValid ? toValue(max) : undefined,
-      ariaValueNow: isValueValid ? value : undefined,
-      ariaValueText: isValueValid ? undefined : getIncompleteValueText(inputValue.value),
+      ariaInvalid: isOutOfBounds || undefined,
+      ariaValueMin: boundsValid ? minValue : undefined,
+      ariaValueMax: boundsValid ? maxValue : undefined,
+      ariaValueNow: isValueValid && value !== null ? value : undefined,
+      ariaValueText: isValueValid ? undefined : getDraftValueText(),
     };
   });
 

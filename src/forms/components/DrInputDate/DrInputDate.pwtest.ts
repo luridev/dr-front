@@ -62,6 +62,7 @@ test('date supports signed extended years, Temporal boundaries and external year
     await replaceInput(input, text);
     await expect(root.getByTestId('date-model')).toHaveText('null');
     await expect(root.getByTestId('date-status')).toHaveText(status);
+    await expect(input).not.toHaveAttribute('aria-invalid');
   }
 });
 

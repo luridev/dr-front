@@ -39,12 +39,16 @@ test('editing an incompatible external string reactivates the mask', async ({ mo
   const input = root.getByRole('textbox', { name: 'Code', exact: true });
   await expect(input).toHaveValue('1234567');
   await expect(root.getByTestId('status')).toHaveText('invalid');
+  await expect(input).not.toHaveAttribute('aria-invalid');
   await expect(root.getByTestId('updates')).toHaveText('[]');
   await input.fill('123456');
   await expect(input).toHaveValue('123-456');
   await expect(root.getByTestId('model')).toHaveText('123456');
   await expect(root.getByTestId('status')).toHaveText('valid');
   await expect(root.getByTestId('updates')).toHaveText('["123456"]');
+  await input.fill('123');
+  await expect(root.getByTestId('status')).toHaveText('incomplete');
+  await expect(input).not.toHaveAttribute('aria-invalid');
 });
 
 test('integer drafts survive parent echoes, normalization and consecutive undo/redo', async ({ mount }) => {

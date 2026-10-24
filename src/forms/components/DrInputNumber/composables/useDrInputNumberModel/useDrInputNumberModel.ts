@@ -1,4 +1,4 @@
-import { computed, readonly, ref, toValue, watch } from 'vue';
+import { computed, onMounted, readonly, ref, toValue, watch } from 'vue';
 import { integerInputMinusSign } from '@/forms/lib/inputFormats/integer/config';
 import {
   parseIntegerInputValue,
@@ -11,9 +11,11 @@ function isPendingNegativeInput(value: string) {
   return value === integerInputMinusSign;
 }
 
-export function useDrInputNumberModel({ model, thousandSeparator }: UseDrInputNumberModelParams) {
+export function useDrInputNumberModel({ model, thousandSeparator, onStatusUpdate }: UseDrInputNumberModelParams) {
   const separator = computed(() => toValue(thousandSeparator));
   const inputValue = ref(stringifyIntegerInputValue(model.value, separator.value));
+  const parsedInput = computed(() => parseIntegerInputValue(inputValue.value, separator.value));
+  const status = computed(() => parsedInput.value.status);
 
   const canToggleSign = computed(() => {
     const value = model.value;
@@ -26,7 +28,8 @@ export function useDrInputNumberModel({ model, thousandSeparator }: UseDrInputNu
   });
 
   watch([model, separator], ([value, group], [, previousGroup]) => {
-    const currentInputModelValue = parseIntegerInputValue(inputValue.value, previousGroup);
+    const result = parseIntegerInputValue(inputValue.value, previousGroup);
+    const currentInputModelValue = result.status === 'valid' ? result.value : null;
 
     if (Object.is(currentInputModelValue, value)) {
       inputValue.value = inputValue.value.replaceAll(previousGroup, group);
@@ -37,10 +40,16 @@ export function useDrInputNumberModel({ model, thousandSeparator }: UseDrInputNu
     inputValue.value = stringifyIntegerInputValue(value, group);
   });
 
+  onMounted(() => {
+    onStatusUpdate(status.value);
+    watch(status, onStatusUpdate);
+  });
+
   function updateInputValue(value: string) {
     inputValue.value = value;
 
-    const nextModelValue = parseIntegerInputValue(value, separator.value);
+    const result = parsedInput.value;
+    const nextModelValue = result.status === 'valid' ? result.value : null;
 
     if (Object.is(model.value, nextModelValue)) {
       return;
@@ -77,6 +86,7 @@ export function useDrInputNumberModel({ model, thousandSeparator }: UseDrInputNu
 
   return {
     inputValue: readonly(inputValue),
+    status,
     canToggleSign,
     updateInputValue,
     toggleSign,

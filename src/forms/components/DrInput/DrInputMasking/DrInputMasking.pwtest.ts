@@ -6,6 +6,47 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const numberGroup = getInputLocaleProfile('en-US').number.group;
 
+for (const name of ['dateSlot', 'number', 'date', 'time', 'integerSlot']) {
+  test(`${name} gives explicit ariaInvalid priority without changing visual state or descriptions`, async ({ mount }) => {
+    const message = 'Input guidance';
+    const root = await mount(storyId, { message });
+    const input = getInput(root, name);
+    const control = input.locator('..');
+    const value = await input.inputValue();
+    const description = await input.getAttribute('aria-describedby');
+
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await expect(input).toHaveAccessibleDescription(message);
+
+    for (const { state, ariaInvalid, expected } of [
+      { state: 'error', ariaInvalid: undefined, expected: true },
+      { state: 'error', ariaInvalid: false, expected: false },
+      { state: 'normal', ariaInvalid: true, expected: true },
+      { state: 'error', ariaInvalid: true, expected: true },
+      { state: 'normal', ariaInvalid: false, expected: false },
+      { state: 'normal', ariaInvalid: undefined, expected: false },
+    ] as const) {
+      await root.update({ state, aria: { ariaInvalid }, message });
+
+      if (expected) {
+        await expect(input).toHaveAttribute('aria-invalid', 'true');
+      } else {
+        await expect(input).not.toHaveAttribute('aria-invalid', 'true');
+      }
+
+      if (state === 'error') {
+        await expect(control).toHaveClass(/DrControl__control_error/);
+      } else {
+        await expect(control).not.toHaveClass(/DrControl__control_error/);
+      }
+
+      await expect(input).toHaveValue(value);
+      await expect(input).toHaveAttribute('aria-describedby', description ?? '');
+      await expect(input).toHaveAccessibleDescription(message);
+    }
+  });
+}
+
 test('typed wrappers isolate slot inputs and use the nearest provider', async ({ mount }) => {
   const component = await mount(storyId);
   const date = getInput(component, 'date');

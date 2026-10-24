@@ -9,7 +9,7 @@ export const publicRuntimeExports = [
 export const publicTypeExports = [
   'DrLanguage', 'DrLocale', 'DrFrontProviderProps', 'DrConfigProviderProps', 'DrMessageKey', 'DrTranslationRequest', 'DrTranslateOverride',
   'DrToastService', 'DrToastOptions', 'DrToastVariantOptions', 'DrToastVariant',
-  'DrButtonVariant', 'DrButtonAria', 'DrAlertData', 'DrErrorAlertData', 'DrInputDateStatus',
+  'DrButtonVariant', 'DrButtonAria', 'DrAlertData', 'DrErrorAlertData', 'DrInputDateStatus', 'DrInputNumberStatus',
   'DrInputTimeSmallestUnit', 'DrInputTimeStatus', 'DrTextareaProps', 'DrTextareaEmits', 'DrTextareaExposed',
   'ControlStateDescriptor', 'DrMask', 'DrMaskedInputStatus',
 ];

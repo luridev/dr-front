@@ -171,6 +171,7 @@ test('time accepts all supported precisions and preserves adjacent fields throug
   }
 
   await expect(root.getByTestId('time-status')).toHaveText('incomplete');
+  await expect(input).not.toHaveAttribute('aria-invalid');
   await expect(root.getByTestId('time-model')).toHaveText('null');
   await input.press('6');
   await expect(root.getByTestId('time-model')).toHaveText('11:11:56');

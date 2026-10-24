@@ -1,5 +1,5 @@
 import { DrFrontProvider, DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
-import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
+import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrInputNumberStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 
 declare const button: InstanceType<typeof DrButton>;
@@ -31,6 +31,12 @@ maskedInput.$emit('update:modelValue', 42);
 // @ts-expect-error Only Pattern and Integer masks are public.
 const invalidMask: DrMask = { type: 'number', scale: 2 };
 const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2 };
+for (const status of ['empty', 'incomplete', 'invalid', 'out-of-range', 'valid'] as const satisfies ReadonlyArray<DrInputNumberStatus>) {
+  numberInput.$emit('update:status', status);
+}
+// @ts-expect-error Number statuses must retain their public union.
+numberInput.$emit('update:status', 'unknown');
+numberInput.$emit('update:modelValue', null);
 // @ts-expect-error Number models must not accept strings.
 numberInput.$emit('update:modelValue', '42');
 declare const timeInput: InstanceType<typeof DrInputTime>;
@@ -39,6 +45,19 @@ const timeProps: typeof timeInput.$props = { modelValue: null, smallestUnit: 'na
 timeInput.$emit('update:modelValue', '12:34');
 declare const date: Temporal.PlainDate | null;
 const dateProps: typeof dateInput.$props = { modelValue: date };
+
+for (const ariaInvalid of [true, false, undefined]) {
+  const aria = { ariaInvalid };
+  const textAria: NonNullable<typeof textInput.$props.aria> = aria;
+  const numberAria: NonNullable<typeof numberInput.$props.aria> = aria;
+  const dateAria: NonNullable<typeof dateInput.$props.aria> = aria;
+  const timeAria: NonNullable<typeof timeInput.$props.aria> = aria;
+  const maskedAria: NonNullable<typeof maskedInput.$props.aria> = aria;
+  void [textAria, numberAria, dateAria, timeAria, maskedAria];
+}
+// @ts-expect-error ARIA invalid overrides must be boolean, not string tokens.
+const invalidAria: NonNullable<typeof textInput.$props.aria> = { ariaInvalid: 'true' };
+void invalidAria;
 
 dateInput.$emit('update:modelValue', date);
 // @ts-expect-error Date models must not accept strings.

@@ -79,6 +79,10 @@ function setCaretToEnd() {
   element.setSelectionRange(caretPosition, caretPosition);
 }
 
+function resolveAriaInvalid(state: 'normal' | 'error'): true | undefined {
+  return (props.aria?.ariaInvalid ?? (state === 'error')) || undefined;
+}
+
 defineExpose({
   focus,
   setCaretToEnd,
@@ -123,7 +127,7 @@ defineExpose({
         :aria-valuemax="props.aria?.ariaValueMax"
         :aria-valuenow="props.aria?.ariaValueNow"
         :aria-valuetext="props.aria?.ariaValueText"
-        :aria-invalid="slot.state === 'error' || undefined"
+        :aria-invalid="resolveAriaInvalid(slot.state)"
         :aria-describedby="slot.describedBy"
         @input="handleInput"
         @blur="handleBlur"

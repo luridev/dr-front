@@ -1,6 +1,7 @@
 import type { DrControlFieldProps } from '@/forms/components/DrControl/types';
 
 export type DrInputAria = {
+  ariaInvalid?: boolean;
   role?: string;
   ariaValueMin?: number;
   ariaValueMax?: number;

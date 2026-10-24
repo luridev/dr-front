@@ -11,6 +11,7 @@ function isSafeArithmeticValue(value: unknown): value is number {
 
 export function useDrInputNumberControls({
   model,
+  status,
   min: minSource,
   max: maxSource,
   step: stepSource,
@@ -31,7 +32,10 @@ export function useDrInputNumberControls({
 
   const isStepValid = computed(() => isSafeArithmeticValue(step.value) && step.value > 0);
   const isConfigurationValid = computed(() => isBoundsValid.value && isStepValid.value);
-  const isControlsEnabled = computed(() => isConfigurationValid.value && !toValue(disabledSource));
+
+  const isControlsEnabled = computed(() =>
+    isConfigurationValid.value && !toValue(disabledSource) && (toValue(status) === 'empty' || toValue(status) === 'valid'),
+  );
 
   const allowsNegative = computed(() => isBoundsValid.value && effectiveMin.value < 0);
   const allowsPositive = computed(() => isBoundsValid.value && effectiveMax.value > 0);
