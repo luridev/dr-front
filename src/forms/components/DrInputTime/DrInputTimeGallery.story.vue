@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import { timeGalleryStatusLabels } from '@/forms/components/DrInputTime/config.support';
 import { DrConfigProvider, DrInputTime } from '@/index';
+import type { DrInputTimeGalleryProps } from '@/forms/components/DrInputTime/types.support';
 import type { DrInputTimeStatus, DrLocale } from '@/index';
 
 defineOptions({ inheritAttrs: false });
+
+const props = defineProps<DrInputTimeGalleryProps>();
 
 const initialTime = Temporal.PlainTime.from('23:45:56.123456789');
 const time = shallowRef<Temporal.PlainTime | null>(initialTime);
@@ -18,6 +21,12 @@ const state = computed(() => (status.value === 'invalid' ? 'error' : 'normal'));
 const message = computed(() => timeGalleryStatusLabels[status.value]);
 const timeText = computed(() => time.value?.toString() ?? 'null');
 const preciseTimeText = computed(() => preciseTime.value?.toString() ?? 'null');
+
+watch(() => props.externalTime, (value) => {
+  if (value !== undefined) {
+    time.value = value === null ? null : Temporal.PlainTime.from(value);
+  }
+}, { immediate: true });
 
 function handleTimeUpdate(): void {
   timeUpdates.value += 1;
@@ -55,6 +64,7 @@ function handleStatusUpdate(value: DrInputTimeStatus): void {
         <DrInputTime
           v-model="time"
           label="Minutes"
+          :smallest-unit="props.smallestUnit"
           placeholder="HH:MM"
           :state="state"
           :message="message"

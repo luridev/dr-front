@@ -161,15 +161,70 @@ describe('useDrInputTimeModel', () => {
     expect(result.writes).toEqual([]);
   });
 
-  it('preserves a draft for equivalent cycles and clears it on a 24h/12h change', async () => {
-    const result = setupTime();
+  it.each([
+    ['millisecond', '123'], ['microsecond', '123456'], ['nanosecond', '123456789'],
+  ] as const)('changes the fractional separator at %s precision without writing or rounding the model', async (unit, fraction) => {
+    const result = setupTime(fullTime, unit);
+    const original = result.source.value;
+
+    for (const [locale, hour, separator] of [
+      ['ru-RU', '23', ','], ['en-US', '11', '.'], ['en-GB', '23', '.'], ['ru-RU', '23', ','],
+    ] as const) {
+      result.profile.value = getInputLocaleProfile(locale).time;
+      await nextTick();
+      expect(result.inputValue.value).toBe(`${hour}:45:56${separator}${fraction}`);
+      expect(result.source.value).toBe(original);
+      expect(String(result.source.value)).toBe(fullTime);
+      expect(result.period.value).toBe('pm');
+      expect(result.writes).toEqual([]);
+    }
+
+    result.source.value = Temporal.PlainTime.from('01:02:03.004005006');
+    result.smallestUnit.value = 'nanosecond';
+    await nextTick();
+    expect(result.inputValue.value).toBe('01:02:03,004005006');
+    expect(result.period.value).toBe('am');
+    expect(result.writes).toEqual([]);
+  });
+
+  it('keeps localized short fractions, resets unfinished drafts on separator changes and does not echo models', async () => {
+    const result = setupTime(fullTime, 'nanosecond');
     result.profile.value = getInputLocaleProfile('ru-RU').time;
     await nextTick();
+    result.updateInputValue('23:45:56,');
+    await nextTick();
+    expect(result.inputValue.value).toBe('23:45:56,');
+    expect(result.source.value).toBeNull();
+    expect(result.statuses.at(-1)).toBe('incomplete');
+
+    result.updateInputValue('23:45:56,12');
+    await nextTick();
+    expect(result.inputValue.value).toBe('23:45:56,12');
+    expect(String(result.source.value)).toBe('23:45:56.12');
+    expect(result.statuses.at(-1)).toBe('valid');
+
+    result.updateInputValue('23:45:56,');
+    await nextTick();
+    const writes = result.writes.length;
+    result.profile.value = getInputLocaleProfile('en-GB').time;
+    await nextTick();
+    expect(result.inputValue.value).toBe('');
+    expect(result.source.value).toBeNull();
+    expect(result.statuses.at(-1)).toBe('empty');
+    expect(result.writes).toHaveLength(writes);
+  });
+
+  it.each(['minute', 'second'] as const)('preserves a %s draft for equivalent cycles and clears it on a 24h/12h change', async (unit) => {
+    const result = setupTime(fullTime, unit);
+    result.profile.value = getInputLocaleProfile('ru-RU').time;
+    await nextTick();
+    expect(result.fractionalSecondSeparator.value).toBe(',');
     result.updateInputValue('23:4');
     await nextTick();
     result.profile.value = getInputLocaleProfile('en-GB').time;
     await nextTick();
 
+    expect(result.fractionalSecondSeparator.value).toBe('.');
     expect(result.inputValue.value).toBe('23:4');
     expect(result.statuses.at(-1)).toBe('incomplete');
 
@@ -189,7 +244,7 @@ describe('useDrInputTimeModel', () => {
     expect(result.writes).toEqual([]);
 
     result.disabled.value = false;
-    result.profile.value = { hourCycle: 12, dayPeriods: null };
+    result.profile.value = { hourCycle: 12, dayPeriods: null, fractionalSecondSeparator: '.' };
     await nextTick();
     expect(result.hourCycle.value).toBe(24);
     expect(result.inputValue.value).toBe('23:45');

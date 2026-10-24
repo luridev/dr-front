@@ -6,40 +6,36 @@ const minuteIncompletePattern = /^\d{0,2}(?::\d{0,2})?$/;
 const secondPattern = /^(\d{2}):(\d{2})(?::(\d{2}))?$/;
 const secondIncompletePattern = /^\d{0,2}(?::\d{0,2}(?::\d{0,2})?)?$/;
 
-function createFractionPattern(maximumFractionDigitLength: number) {
-  return new RegExp(`^(\\d{2}):(\\d{2})(?::(\\d{2})(?:\\.(\\d{1,${maximumFractionDigitLength}}))?)?$`);
-}
-
-function createFractionIncompletePattern(maximumFractionDigitLength: number) {
-  return new RegExp(`^\\d{0,2}(?::\\d{0,2}(?::\\d{0,2}(?:\\.\\d{0,${maximumFractionDigitLength}})?)?)?$`);
-}
-
 export const defaultTimeInputSmallestUnit: TimeInputSmallestUnit = 'minute';
 
-export const timeInputConfigBySmallestUnit = {
-  minute: {
-    incompletePattern: minuteIncompletePattern,
-    maximumFractionDigitLength: 0,
-    pattern: minutePattern,
-  },
-  second: {
-    incompletePattern: secondIncompletePattern,
-    maximumFractionDigitLength: 0,
-    pattern: secondPattern,
-  },
-  millisecond: {
-    incompletePattern: createFractionIncompletePattern(3),
-    maximumFractionDigitLength: 3,
-    pattern: createFractionPattern(3),
-  },
-  microsecond: {
-    incompletePattern: createFractionIncompletePattern(6),
-    maximumFractionDigitLength: 6,
-    pattern: createFractionPattern(6),
-  },
-  nanosecond: {
-    incompletePattern: createFractionIncompletePattern(9),
-    maximumFractionDigitLength: 9,
-    pattern: createFractionPattern(9),
-  },
-} satisfies Record<TimeInputSmallestUnit, TimeInputConfig>;
+export const timeInputFractionDigitsBySmallestUnit = {
+  minute: 0,
+  second: 0,
+  millisecond: 3,
+  microsecond: 6,
+  nanosecond: 9,
+} as const satisfies Record<TimeInputSmallestUnit, number>;
+
+export function getTimeInputFractionSeparatorPattern(separator: string): string {
+  return `(?:${separator.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}|\\.)`;
+}
+
+export function getTimeInputConfig(smallestUnit: TimeInputSmallestUnit, separator: string): TimeInputConfig {
+  const maximumFractionDigitLength = timeInputFractionDigitsBySmallestUnit[smallestUnit];
+
+  if (smallestUnit === 'minute') {
+    return { maximumFractionDigitLength, pattern: minutePattern, incompletePattern: minuteIncompletePattern };
+  }
+
+  if (smallestUnit === 'second') {
+    return { maximumFractionDigitLength, pattern: secondPattern, incompletePattern: secondIncompletePattern };
+  }
+
+  const fractionSeparator = getTimeInputFractionSeparatorPattern(separator);
+
+  return {
+    maximumFractionDigitLength,
+    pattern: new RegExp(`^(\\d{2}):(\\d{2})(?::(\\d{2})(?:${fractionSeparator}(\\d{1,${maximumFractionDigitLength}}))?)?$`),
+    incompletePattern: new RegExp(`^\\d{0,2}(?::\\d{0,2}(?::\\d{0,2}(?:${fractionSeparator}\\d{0,${maximumFractionDigitLength}})?)?)?$`),
+  };
+}

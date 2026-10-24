@@ -41,7 +41,9 @@ const config = useDrConfig();
 const t = useDrTranslation();
 const timeProfile = computed(() => getInputLocaleProfile(config.value.locale).time);
 
-const { inputValue, updateInputValue, hourCycle, period, togglePeriod } = useDrInputTimeModel({
+const {
+  inputValue, updateInputValue, hourCycle, fractionalSecondSeparator, period, togglePeriod,
+} = useDrInputTimeModel({
   model,
   profile: timeProfile,
   smallestUnit: () => props.smallestUnit,
@@ -51,7 +53,9 @@ const { inputValue, updateInputValue, hourCycle, period, togglePeriod } = useDrI
   },
 });
 
-provideDrInputMask(computed(() => getTimeDrInputFormatSettings(props.smallestUnit, hourCycle.value)));
+provideDrInputMask(computed(() => props.smallestUnit === 'minute' || props.smallestUnit === 'second'
+  ? getTimeDrInputFormatSettings(props.smallestUnit, hourCycle.value)
+  : getTimeDrInputFormatSettings(props.smallestUnit, hourCycle.value, fractionalSecondSeparator.value)));
 
 const periodLabel = computed(() => timeProfile.value.dayPeriods?.[period.value]);
 

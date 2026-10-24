@@ -1,5 +1,6 @@
 import IMask from 'imask/holder';
 import { describe, expect, it } from 'vitest';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import { parseTimeInputValue, retainTimeInputPrecision } from '@/forms/lib/inputFormats/time/timeInputFormat';
 import { createTimeInputMaskOptions } from '@/forms/lib/inputFormats/time/timeInputMask';
 import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
@@ -53,6 +54,57 @@ it.each([
 
   expect(mask.value).toBe(expected);
   expect(parseTimeInputValue(mask.value, 'minute', hourCycle).status).toBe('valid');
+});
+
+describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time mask: %s', (locale) => {
+  const { hourCycle, fractionalSecondSeparator: separator } = getInputLocaleProfile(locale).time;
+
+  it.each([
+    ['millisecond', '001'], ['microsecond', '001002'], ['nanosecond', '001002003'],
+  ] as const)('accepts localized, compact and dot-separated %s input', (unit, fraction) => {
+    const mask = IMask.createMask(createTimeInputMaskOptions(unit, hourCycle, separator));
+    const expected = `11:45:56${separator}${fraction}`;
+
+    for (const text of [expected, `114556${fraction}`, `11:45:56.${fraction}`]) {
+      mask.resolve(text);
+      expect(mask.value).toBe(expected);
+      expect(mask.unmaskedValue).toBe(expected);
+      const result = parseTimeInputValue(mask.value, unit, hourCycle, 'pm', separator);
+
+      expect(result.status).toBe('valid');
+
+      if (result.status === 'valid') {
+        expect(result.value.toString()).toBe(`${hourCycle === 12 ? '23' : '11'}:45:56.${fraction}`);
+      }
+    }
+  });
+
+  it('replays short seconds without moving fractional digits into the seconds', () => {
+    const mask = IMask.createMask(createTimeInputMaskOptions('nanosecond', hourCycle, separator));
+
+    for (const sourceSeparator of [separator, '.']) {
+      mask.unmaskedValue = `11:45:6${sourceSeparator}001002003`;
+      expect(mask.value).toBe(`11:45:06${separator}001002003`);
+    }
+
+    mask.unmaskedValue = `1:2:3${separator}4`;
+    expect(mask.value).toBe(`01:02:03${separator}4`);
+    mask.resolve('11:45:5');
+    expect(mask.value).toBe('11:45:5');
+    mask.unmaskedValue = '11:45:5';
+    expect(mask.value).toBe('11:45:05');
+  });
+
+  it('accepts a typed alternative separator and leaves fractional tails unpadded during deletion', () => {
+    const mask = IMask.createMask(createTimeInputMaskOptions('millisecond', hourCycle, separator));
+    mask.resolve('11:45:56');
+    mask.append('.', { input: true });
+    expect(mask.value).toBe(`11:45:56${separator}`);
+    mask.append('12', { input: true });
+    expect(mask.value).toBe(`11:45:56${separator}12`);
+    mask.splice(9, 1, '');
+    expect(mask.value).toBe(`11:45:56${separator}2`);
+  });
 });
 
 describe('hidden time precision', () => {

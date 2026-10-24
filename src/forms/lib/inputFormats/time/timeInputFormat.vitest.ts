@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import {
   getTimeInputDayPeriod,
   parseTimeInputValue,
@@ -20,6 +21,63 @@ function expectValidTime(source: string, smallestUnit: TimeInputSmallestUnit, ex
 
   return result.value;
 }
+
+describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time fractions: %s', (locale) => {
+  const { hourCycle, fractionalSecondSeparator: separator } = getInputLocaleProfile(locale).time;
+  const hour = hourCycle === 12 ? '11' : '23';
+
+  it.each([
+    ['minute', '', '23:45'], ['second', '', '23:45:56'],
+    ['millisecond', '001', '23:45:56.001'], ['microsecond', '001002', '23:45:56.001002'],
+    ['nanosecond', '001002003', '23:45:56.001002003'],
+    ['nanosecond', '123456789', '23:45:56.123456789'],
+  ] as const)('round-trips %s with fraction %s without losing precision', (unit, fraction, iso) => {
+    const value = Temporal.PlainTime.from(iso);
+    const text = `${hour}:45${unit === 'minute' ? '' : ':56'}${fraction === '' ? '' : separator + fraction}`;
+
+    expect(stringifyTimeInputValue(value, unit, hourCycle, separator)).toBe(text);
+    const result = parseTimeInputValue(text, unit, hourCycle, 'pm', separator);
+
+    expect(result.status).toBe('valid');
+
+    if (result.status === 'valid') {
+      expect(result.value.equals(value)).toBe(true);
+    }
+  });
+
+  it.each(['millisecond', 'microsecond', 'nanosecond'] as const)('preserves optional units and draft statuses at %s precision', (unit) => {
+    const parse = (text: string) => parseTimeInputValue(text, unit, hourCycle, 'pm', separator);
+
+    expect(parse('')).toEqual({ status: 'empty' });
+    expect(parse(`${hour}:45:56${separator}`)).toEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:56.`)).toEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:5${separator}12`)).toEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:56${separator}1234567890`)).toEqual({ status: 'invalid' });
+    expect(parse(`${hour}:45:56${separator}1x`)).toEqual({ status: 'invalid' });
+    expect(parse(`${hour}:60:56${separator}12`)).toEqual({ status: 'invalid' });
+
+    for (const fraction of ['x12', ',.12', '.,12', ',12.3', '.12,3']) {
+      expect(parse(`${hour}:45:56${fraction}`)).toEqual({ status: 'invalid' });
+    }
+
+    if (separator === '.') {
+      expect(parse(`${hour}:45:56,12`)).toEqual({ status: 'invalid' });
+    }
+
+    for (const [text, expected] of [
+      [`${hour}:45`, '23:45:00'], [`${hour}:45:56`, '23:45:56'],
+      [`${hour}:45:56${separator}12`, '23:45:56.12'], [`${hour}:45:56.12`, '23:45:56.12'],
+    ]) {
+      const result = parse(text);
+
+      expect(result.status).toBe('valid');
+
+      if (result.status === 'valid') {
+        expect(result.value.equals(Temporal.PlainTime.from(expected))).toBe(true);
+      }
+    }
+  });
+});
 
 describe('parseTimeInputValue', () => {
   it.each([

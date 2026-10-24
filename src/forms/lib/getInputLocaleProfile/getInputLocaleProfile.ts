@@ -40,12 +40,22 @@ function getTimeProfile(format: Intl.DateTimeFormat): InputLocaleProfile['time']
   }
 
   const is12Hour = hourCycle === 'h11' || hourCycle === 'h12';
-  const am = is12Hour ? format.formatToParts(inputLocaleSamples.am).find((part) => part.type === 'dayPeriod')?.value : undefined;
+  const parts = format.formatToParts(inputLocaleSamples.am);
+
+  const fractionLiteral = parts.find((part, index) =>
+    part.type === 'literal' && parts.at(index + 1)?.type === 'fractionalSecond');
+
+  const fractionalSecondSeparator = fractionLiteral === undefined || fractionLiteral.value === ''
+    ? '.'
+    : fractionLiteral.value;
+
+  const am = is12Hour ? parts.find((part) => part.type === 'dayPeriod')?.value : undefined;
   const pm = is12Hour ? format.formatToParts(inputLocaleSamples.pm).find((part) => part.type === 'dayPeriod')?.value : undefined;
 
   return Object.freeze({
     hourCycle: is12Hour ? 12 : 24,
     dayPeriods: am === undefined || pm === undefined ? null : Object.freeze({ am, pm }),
+    fractionalSecondSeparator,
   });
 }
 
@@ -79,7 +89,7 @@ export function getInputLocaleProfile(locale: DrLocale): InputLocaleProfile {
       ...inputLocaleDateTimeOptions, year: 'numeric', month: '2-digit', day: '2-digit',
     })),
     time: getTimeProfile(new Intl.DateTimeFormat(locale, {
-      ...inputLocaleDateTimeOptions, hour: 'numeric', minute: '2-digit',
+      ...inputLocaleDateTimeOptions, hour: 'numeric', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3,
     })),
   });
 

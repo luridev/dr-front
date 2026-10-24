@@ -1,4 +1,4 @@
-import { timeInputConfigBySmallestUnit } from '@/forms/lib/inputFormats/time/config';
+import { getTimeInputConfig, timeInputFractionDigitsBySmallestUnit } from '@/forms/lib/inputFormats/time/config';
 import type { TimeInputDayPeriod, TimeInputParseResult, TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types';
 
 function stringifyTimeInputSegment(value: number, length: number) {
@@ -16,12 +16,13 @@ export function parseTimeInputValue(
   smallestUnit: TimeInputSmallestUnit,
   hourCycle: 12 | 24 = 24,
   dayPeriod: TimeInputDayPeriod = 'am',
+  fractionalSecondSeparator = '.',
 ): TimeInputParseResult {
   if (value === '') {
     return { status: 'empty' };
   }
 
-  const config = timeInputConfigBySmallestUnit[smallestUnit];
+  const config = getTimeInputConfig(smallestUnit, fractionalSecondSeparator);
   const match = config.pattern.exec(value);
 
   if (match == null) {
@@ -77,6 +78,7 @@ export function stringifyTimeInputValue(
   value: Temporal.PlainTime | null,
   smallestUnit: TimeInputSmallestUnit,
   hourCycle: 12 | 24 = 24,
+  fractionalSecondSeparator = '.',
 ): string {
   if (value == null) {
     return '';
@@ -93,15 +95,15 @@ export function stringifyTimeInputValue(
   }
 
   if (smallestUnit === 'millisecond') {
-    result += `.${stringifyTimeInputSegment(value.millisecond, 3)}`;
+    result += `${fractionalSecondSeparator}${stringifyTimeInputSegment(value.millisecond, 3)}`;
   }
 
   if (smallestUnit === 'microsecond') {
-    result += `.${stringifyTimeInputSegment(value.millisecond, 3)}${stringifyTimeInputSegment(value.microsecond, 3)}`;
+    result += `${fractionalSecondSeparator}${stringifyTimeInputSegment(value.millisecond, 3)}${stringifyTimeInputSegment(value.microsecond, 3)}`;
   }
 
   if (smallestUnit === 'nanosecond') {
-    result += `.${stringifyTimeInputSegment(value.millisecond, 3)}${stringifyTimeInputSegment(
+    result += `${fractionalSecondSeparator}${stringifyTimeInputSegment(value.millisecond, 3)}${stringifyTimeInputSegment(
       value.microsecond,
       3,
     )}${stringifyTimeInputSegment(value.nanosecond, 3)}`;
@@ -123,7 +125,7 @@ export function retainTimeInputPrecision(
     return value;
   }
 
-  const fractionDigits = timeInputConfigBySmallestUnit[smallestUnit].maximumFractionDigitLength;
+  const fractionDigits = timeInputFractionDigitsBySmallestUnit[smallestUnit];
 
   return value.with({
     second: smallestUnit === 'minute' ? previous.second : value.second,

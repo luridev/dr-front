@@ -12,5 +12,6 @@ export type InputLocaleProfile = Readonly<{
   time: Readonly<{
     hourCycle: 12 | 24;
     dayPeriods: Readonly<{ am: string; pm: string }> | null;
+    fractionalSecondSeparator: string;
   }>;
 }>;

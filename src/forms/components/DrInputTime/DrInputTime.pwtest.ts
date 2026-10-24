@@ -4,6 +4,193 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const timeStoryId = 'forms/components/DrInputTime/DrInputTimeGallery';
 
+for (const [locale, text] of [
+  ['ru-RU', '23:45:56,123'], ['en-GB', '23:45:56.123'], ['en-US', '11:45:56.123'],
+]) {
+  test(`time types localized milliseconds in ${locale}`, async ({ mount }) => {
+    const root = await mount(timeStoryId, { smallestUnit: 'millisecond' });
+    const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+    const model = root.getByTestId('time-gallery-model');
+
+    await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption(locale);
+    await replaceInput(input, text);
+    await expect(input).toHaveValue(text);
+    await expect(model).toHaveText('23:45:56.123');
+    await expect(model).toHaveAttribute('data-status', 'valid');
+    await input.press('Tab');
+    await expect(input).toHaveValue(text);
+
+    if (locale === 'en-US') {
+      const period = root.locator('.DrInputTime__periodButton').first();
+
+      await expect(period).toHaveText('PM');
+      await period.click();
+      await expect(model).toHaveText('11:45:56.123');
+      await expect(input).toHaveValue(text);
+    }
+  });
+}
+
+test('nanosecond locale changes and external updates keep exact models without emitting updates', async ({ mount }) => {
+  const root = await mount(timeStoryId, { smallestUnit: 'nanosecond' });
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+  const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+  const nativeInput = await input.elementHandle();
+
+  expect(nativeInput).not.toBeNull();
+
+  for (const [locale, text] of [
+    ['ru-RU', '23:45:56,123456789'], ['en-US', '11:45:56.123456789'],
+    ['en-GB', '23:45:56.123456789'], ['ru-RU', '23:45:56,123456789'],
+  ]) {
+    await localeSelect.selectOption(locale);
+    await expect(input).toHaveValue(text);
+    await expect(model).toHaveText('23:45:56.123456789');
+    await expect(model).toHaveAttribute('data-initial-identity', 'true');
+    await expect(model).toHaveAttribute('data-updates', '0');
+    expect(await nativeInput.evaluate((element) => element.isConnected)).toBe(true);
+
+    if (locale === 'en-US') {
+      await expect(root.locator('.DrInputTime__periodButton').first()).toHaveText('PM');
+    }
+  }
+
+  await selectInputRange(input, 12, 15);
+  await root.update({ smallestUnit: 'nanosecond', externalTime: '01:02:03.004005006' });
+  await expect(input).toHaveValue('01:02:03,004005006');
+  await expect(input).toBeFocused();
+  await expect.poll(() => readSelection(input)).toEqual([18, 18]);
+  await expect(model).toHaveText('01:02:03.004005006');
+  await expect(model).toHaveAttribute('data-updates', '0');
+  await localeSelect.selectOption('en-US');
+  await expect(input).toHaveValue('01:02:03.004005006');
+  await expect(root.locator('.DrInputTime__periodButton').first()).toHaveText('AM');
+  await expect(model).toHaveAttribute('data-updates', '0');
+});
+
+test('Russian fractions preserve editing, native paste, history and unfinished draft behavior', async ({ mount, page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const root = await mount(timeStoryId, { smallestUnit: 'nanosecond' });
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+  const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+
+  await localeSelect.selectOption('ru-RU');
+  await selectInputRange(input, 15, 18);
+  await input.pressSequentially('006');
+  await expect(input).toHaveValue('23:45:56,123456006');
+  await expect(model).toHaveText('23:45:56.123456006');
+  await expect.poll(() => readSelection(input)).toEqual([18, 18]);
+  await input.press('Backspace');
+  await expect(input).toHaveValue('23:45:56,12345600');
+  await expect(model).toHaveText('23:45:56.123456');
+  await expect.poll(() => readSelection(input)).toEqual([17, 17]);
+
+  await selectInputRange(input, 0, 17);
+  await page.evaluate(() => navigator.clipboard.writeText('23:45:56.004005006'));
+  await input.press('ControlOrMeta+V');
+  await expect(input).toHaveValue('23:45:56,004005006');
+  await expect(model).toHaveText('23:45:56.004005006');
+  await expect.poll(() => readSelection(input)).toEqual([18, 18]);
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('23:45:56,12345600');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(input).toHaveValue('23:45:56,004005006');
+
+  await selectInputRange(input, 9, 18);
+  await input.press('Delete');
+  await expect(input).toHaveValue('23:45:56,');
+  await expect(model).toHaveText('null');
+  await expect(model).toHaveAttribute('data-status', 'incomplete');
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await input.pressSequentially('12');
+  await expect(input).toHaveValue('23:45:56,12');
+  await expect(model).toHaveText('23:45:56.12');
+  await expect(model).toHaveAttribute('data-status', 'valid');
+  await input.press('Tab');
+  await expect(input).toHaveValue('23:45:56,12');
+
+  await selectInputRange(input, 9, 11);
+  await input.press('Delete');
+  const updates = await model.getAttribute('data-updates');
+
+  await localeSelect.selectOption('en-GB');
+  await expect(input).toHaveValue('');
+  await expect(model).toHaveText('null');
+  await expect(model).toHaveAttribute('data-status', 'empty');
+  await expect(model).toHaveAttribute('data-updates', updates ?? '');
+});
+
+test('Russian time edits the separator and deletes fractional digits without inserting zeros', async ({ mount }) => {
+  const root = await mount(timeStoryId, { smallestUnit: 'millisecond' });
+  const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+  const model = root.getByTestId('time-gallery-model');
+
+  await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption('ru-RU');
+  await replaceInput(input, '23:45:56');
+  await input.press('.');
+  await expect(input).toHaveValue('23:45:56,');
+  await expect(model).toHaveAttribute('data-status', 'incomplete');
+  await input.pressSequentially('12');
+  await expect(input).toHaveValue('23:45:56,12');
+  await expect(model).toHaveText('23:45:56.12');
+  const updates = await model.getAttribute('data-updates');
+
+  await selectInputRange(input, 8, 9);
+  await input.press('.');
+  await expect(input).toHaveValue('23:45:56,12');
+  await expect.poll(() => readSelection(input)).toEqual([9, 9]);
+  await expect(model).toHaveAttribute('data-updates', updates ?? '');
+  await input.press('Delete');
+  await expect(input).toHaveValue('23:45:56,2');
+  await expect(model).toHaveText('23:45:56.2');
+  await selectInputRange(input, 9, 10);
+  await pasteInput(input, '34');
+  await expect(input).toHaveValue('23:45:56,34');
+  await expect(model).toHaveText('23:45:56.34');
+  await selectInputRange(input, 8, 9);
+  await input.press('Delete');
+  await expect(input).toHaveValue('23:45:56,34');
+  await expect(model).toHaveText('23:45:56.34');
+});
+
+for (const smallestUnit of ['minute', 'second']) {
+  test(`${smallestUnit} locale changes preserve drafts, selection and history without fractional mask changes`, async ({ mount }) => {
+    const root = await mount(timeStoryId, { smallestUnit });
+    const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
+    const model = root.getByTestId('time-gallery-model');
+    const localeSelect = root.getByRole('combobox', { name: 'Locale', exact: true });
+    const seconds = smallestUnit === 'second' ? ':56' : '';
+
+    await localeSelect.selectOption('ru-RU');
+    await replaceInput(input, `23:14${seconds}`);
+    await selectInputRange(input, 4, 5);
+    await input.press('5');
+    await localeSelect.selectOption('en-GB');
+    await input.press('ControlOrMeta+Z');
+    await expect(input).toHaveValue(`23:14${seconds}`);
+    await localeSelect.selectOption('ru-RU');
+    await input.press('ControlOrMeta+Shift+Z');
+    await expect(input).toHaveValue(`23:15${seconds}`);
+
+    const draft = smallestUnit === 'second' ? '23:15:5' : '23:1';
+
+    await replaceInput(input, draft);
+    await selectInputRange(input, 0, 2);
+    const updates = await model.getAttribute('data-updates');
+
+    for (const locale of ['en-GB', 'ru-RU']) {
+      await localeSelect.selectOption(locale);
+      await expect(input).toHaveValue(draft);
+      await expect.poll(() => readSelection(input)).toEqual([0, 2]);
+      await expect(model).toHaveText('null');
+      await expect(model).toHaveAttribute('data-status', 'incomplete');
+      await expect(model).toHaveAttribute('data-updates', updates ?? '');
+    }
+  });
+}
+
 test('native clipboard paste integrates Date and Time masks with history and hidden precision', async ({ mount, page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const root = await mount(storyId);

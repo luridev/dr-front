@@ -6,9 +6,10 @@ import type { TimeInputSmallestUnit } from '@/forms/lib/inputFormats/time/types'
 export function getTimeDrInputFormatSettings(
   smallestUnit: TimeInputSmallestUnit,
   hourCycle: InputLocaleProfile['time']['hourCycle'],
+  fractionalSecondSeparator?: string,
 ): DrInputMaskSettings {
   return {
-    maskOptions: createTimeInputMaskOptions(smallestUnit, hourCycle),
+    maskOptions: createTimeInputMaskOptions(smallestUnit, hourCycle, fractionalSecondSeparator),
     inputMode: 'numeric',
   };
 }

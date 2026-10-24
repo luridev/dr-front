@@ -19,8 +19,20 @@ describe('getInputLocaleProfile', () => {
     }).formatToParts(Date.UTC(2031, 6, 19));
 
     const timeFormat = new Intl.DateTimeFormat(locale, {
-      calendar: 'gregory', numberingSystem: 'latn', timeZone: 'UTC', hour: 'numeric', minute: '2-digit',
+      calendar: 'gregory',
+      numberingSystem: 'latn',
+      timeZone: 'UTC',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      fractionalSecondDigits: 3,
     });
+
+    const timeParts = timeFormat.formatToParts(Date.UTC(2031, 6, 19, 23, 45, 56, 123));
+    const fractionIndex = timeParts.findIndex((part) => part.type === 'fractionalSecond');
+
+    expect(profile.time.fractionalSecondSeparator).toBe(locale === 'ru-RU' ? ',' : '.');
+    expect(profile.time.fractionalSecondSeparator).toBe(timeParts[fractionIndex - 1].value);
 
     expect(profile.number).toEqual({
       group: numberParts.find((part) => part.type === 'group')?.value,
@@ -117,7 +129,34 @@ describe('getInputLocaleProfile', () => {
 
     expect(profile.number).toEqual({ group: '\u202f', decimal: '·' });
     expect(profile.date).toEqual({ order: ['month', 'day', 'year'], separators: [' / ', '\u202f·'] });
-    expect(profile.time).toEqual({ hourCycle: 12, dayPeriods: null });
+    expect(profile.time).toEqual({ hourCycle: 12, dayPeriods: null, fractionalSecondSeparator: '.' });
+  });
+
+  it.each([
+    { preceding: { type: 'literal', value: '·' }, expected: '·' },
+    { preceding: { type: 'literal', value: '' }, expected: '.' },
+    { preceding: { type: 'second', value: '56' }, expected: '.' },
+  ] as const)('uses the time literal before fractionalSecond or a fallback: $preceding', async ({ preceding, expected }) => {
+    vi.resetModules();
+    const NativeDateTimeFormat = Intl.DateTimeFormat;
+
+    vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (locale, options) {
+      const format = new NativeDateTimeFormat(locale, options);
+
+      if (options?.hour !== undefined) {
+        vi.spyOn(format, 'formatToParts').mockReturnValue([
+          preceding, { type: 'fractionalSecond', value: '123' }, { type: 'literal', value: ' ' },
+        ]);
+      }
+
+      return format;
+    });
+
+    const { getInputLocaleProfile: getFreshProfile } = await import('@/forms/lib/getInputLocaleProfile/getInputLocaleProfile');
+    const profile = getFreshProfile('en-US');
+
+    expect(profile.number.decimal).toBe('.');
+    expect(profile.time.fractionalSecondSeparator).toBe(expected);
   });
 
   it.each(['NumberFormat', 'DateTimeFormat'] as const)('rejects missing %s locale data instead of falling back to the host locale', async (constructor) => {
