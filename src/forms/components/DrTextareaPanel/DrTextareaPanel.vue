@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { formatNumber } from '@/formatting/lib/formatNumber/formatNumber';
+import { useDrConfig } from '@/configuration/composables/useDrConfig/useDrConfig';
 import { characterCounterDisplayThreshold } from '@/forms/components/DrTextareaPanel/config';
 import type { DrTextareaPanelProps } from '@/forms/components/DrTextareaPanel/types';
 
@@ -12,8 +12,12 @@ const props = withDefaults(defineProps<DrTextareaPanelProps>(), {
   showCounter: true,
 });
 
+const config = useDrConfig();
+const locale = computed(() => config.value.locale);
+const numberFormat = computed(() => new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }));
+
 const counterText = computed(() =>
-  props.maxLength == null ? '' : `${formatNumber(props.textLength)} / ${formatNumber(props.maxLength)}`,
+  props.maxLength == null ? '' : `${numberFormat.value.format(props.textLength)} / ${numberFormat.value.format(props.maxLength)}`,
 );
 
 const isCounterVisible = computed(

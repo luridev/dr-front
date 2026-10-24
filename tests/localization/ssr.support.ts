@@ -12,5 +12,10 @@ export async function renderLocalization(options: LocalizationOptions) {
 
   const html = await renderToString(app);
 
-  return { html, warnings, updates: [state.numberUpdates, state.dateUpdates, state.timeUpdates, state.maskedUpdates] };
+  return {
+    html,
+    warnings,
+    updates: [state.numberUpdates, state.dateUpdates, state.timeUpdates, state.maskedUpdates],
+    textareaUpdates: state.textareaUpdates,
+  };
 }

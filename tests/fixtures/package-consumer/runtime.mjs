@@ -13,10 +13,9 @@ const packageName = '@protoapps/dr-front';
 
 const root = await import(packageName);
 const icons = await import(`${packageName}/icons`);
-const lib = await import(`${packageName}/lib`);
 const expected = JSON.parse(readFileSync(new URL('./expected-exports.json', import.meta.url), 'utf8'));
 
-for (const [name, actual] of Object.entries({ root, icons, lib })) {
+for (const [name, actual] of Object.entries({ root, icons })) {
   assert.deepEqual(Object.keys(actual).sort(), expected[name].toSorted());
 }
 

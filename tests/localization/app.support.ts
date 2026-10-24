@@ -1,6 +1,6 @@
 import 'temporal-polyfill/global';
 import { createSSRApp, h, shallowReactive } from 'vue';
-import { DrConfigProvider, DrFrontProvider, DrInputDate, DrInputNumber, DrInputTime, DrMaskedInput } from '@/index';
+import { DrConfigProvider, DrFrontProvider, DrInputDate, DrInputNumber, DrInputTime, DrMaskedInput, DrTextarea } from '@/index';
 import type { DrTranslateOverride } from '@/configuration/types';
 import type { LocalizationOptions, LocalizationState } from '~/tests/localization/types.support';
 
@@ -15,10 +15,12 @@ export function createLocalizationApp(options: LocalizationOptions) {
     date: initialDate,
     time: initialTime,
     masked: '-1234567',
+    textarea: 'x'.repeat(1234),
     numberUpdates: 0,
     dateUpdates: 0,
     timeUpdates: 0,
     maskedUpdates: 0,
+    textareaUpdates: 0,
     dateStatus: '',
     timeStatus: '',
   });
@@ -59,6 +61,16 @@ export function createLocalizationApp(options: LocalizationOptions) {
       'onUpdate:modelValue': (value: string) => {
         state.masked = value;
         state.maskedUpdates += 1;
+      },
+    }),
+    h(DrTextarea, {
+      modelValue: state.textarea,
+      label: 'Textarea',
+      maxLength: 1500,
+      clearable: false,
+      'onUpdate:modelValue': (value: string) => {
+        state.textarea = value;
+        state.textareaUpdates += 1;
       },
     }),
     h('output', { 'data-testid': 'models', 'data-updates': [state.numberUpdates, state.dateUpdates, state.timeUpdates, state.maskedUpdates].join(',') }, `${state.number}|${String(state.date)}|${String(state.time)}|${state.masked}`),

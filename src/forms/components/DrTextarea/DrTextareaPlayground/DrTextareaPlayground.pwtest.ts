@@ -4,6 +4,28 @@ import type { DrTextareaPlaygroundProps } from '@/forms/components/DrTextarea/Dr
 
 const compositionStoryId = 'forms/components/DrTextarea/DrTextareaPlayground/DrTextareaPlayground';
 
+test('textarea counter respects the display threshold, content mode and optional limit', async ({ mount }) => {
+  const component = await mount(compositionStoryId, { maxLength: 0 });
+
+  await expect(component.getByText('0 / 0', { exact: true })).toHaveCount(0);
+  await component.update({ maxLength: 2000 });
+  await component.getByRole('button', { name: 'Clear Source' }).click();
+
+  const textarea = component.getByRole('textbox', { name: 'Source' });
+
+  await textarea.fill('x'.repeat(1399));
+  await expect(component.getByText('1,399 / 2,000', { exact: true })).toHaveCount(0);
+  await textarea.fill('x'.repeat(1400));
+  await expect(component.getByText('1,400 / 2,000', { exact: true })).toBeVisible();
+  await textarea.fill('x'.repeat(2000));
+  await expect(component.getByText('2,000 / 2,000', { exact: true })).toBeVisible();
+
+  await component.update({ maxLength: undefined });
+  await expect(component.getByText('2,000 / 2,000', { exact: true })).toHaveCount(0);
+  await expect(textarea).toHaveValue('x'.repeat(2000));
+  await expect(textarea).not.toHaveAttribute('maxlength');
+});
+
 test('generic textarea rejects oversized paste and emits limitExceeded', async ({ mount }) => {
   const maxLength = 10;
   const props: DrTextareaPlaygroundProps = { maxLength };

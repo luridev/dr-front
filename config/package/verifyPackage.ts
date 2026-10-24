@@ -7,7 +7,6 @@ import {
   forbiddenRuntimeDependencies,
   publicEntrypoints,
   publicIconExports,
-  publicLibExports,
   publicRuntimeExports,
   publicTypeExports,
   publishedFilePattern,
@@ -108,7 +107,6 @@ try {
     root: publicRuntimeExports,
     types: publicTypeExports,
     icons: publicIconExports,
-    lib: publicLibExports,
   }));
 
   runNpm(['install', '--no-audit', '--no-fund', '--include=dev'], { cwd: consumer });

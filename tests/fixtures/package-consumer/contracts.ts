@@ -1,7 +1,6 @@
 import { DrFrontProvider, DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
 import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
-import { formatNumber } from '@protoapps/dr-front/lib';
 
 declare const button: InstanceType<typeof DrButton>;
 const buttonProps: typeof button.$props = { variant: 'outline', size: 'small', state: 'warning' };
@@ -66,7 +65,6 @@ const toastId: number = toast.info({ message: 'Typed consumer' });
 const controls = useControlsState({ controls: { date: {} }, isValid: () => true });
 const disabled: boolean = controls.controls.date.disabled;
 const iconProps: InstanceType<typeof DrCloseIcon>['$props'] = { size: 16 };
-const formatted: string = formatNumber(1234);
 
 const language: DrLanguage = 'ru';
 const locale: DrLocale = 'en-GB';
@@ -122,4 +120,4 @@ translate({ language: 'en', key: 'input.clearNamed', params: { label: 'Email', e
 // @ts-expect-error Only a string or undefined may be returned.
 const badTranslate: DrTranslateOverride = () => null;
 
-void [frontComponentProps, emptyFrontProps, emptyFrontComponentProps, undefinedComponentRoot, invalidRoot, destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps, formatted];
+void [frontComponentProps, emptyFrontProps, emptyFrontComponentProps, undefinedComponentRoot, invalidRoot, destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps];

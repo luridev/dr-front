@@ -2,7 +2,6 @@
 import { DrConfigProvider, DrButton, DrInputDate, DrInputNumber, DrInputTime, DrMaskedInput, useDrToast, useControlsState } from '@protoapps/dr-front';
 import type { DrLocale, DrTranslateOverride, DrMask, DrMaskedInputStatus } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
-import { formatNumber } from '@protoapps/dr-front/lib';
 import { ref } from 'vue';
 
 const toast = useDrToast();
@@ -22,7 +21,7 @@ const translate: DrTranslateOverride = ({ language, key, params }) => language =
   : undefined;
 
 function showFeedback() {
-  toast.info({ message: formatNumber(1234) });
+  toast.info({ message: 'Package consumer notification' });
 }
 </script>
 

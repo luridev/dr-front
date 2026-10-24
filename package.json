@@ -17,10 +17,6 @@
       "types": "./dist/types/icons.d.ts",
       "default": "./dist/icons.js"
     },
-    "./lib": {
-      "types": "./dist/types/lib.d.ts",
-      "default": "./dist/lib.js"
-    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [

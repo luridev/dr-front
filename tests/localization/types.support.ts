@@ -12,10 +12,12 @@ export type LocalizationState = LocalizationOptions & {
   date: Temporal.PlainDate | null;
   time: Temporal.PlainTime | null;
   masked: string;
+  textarea: string;
   numberUpdates: number;
   dateUpdates: number;
   timeUpdates: number;
   maskedUpdates: number;
+  textareaUpdates: number;
   dateStatus: string;
   timeStatus: string;
 };

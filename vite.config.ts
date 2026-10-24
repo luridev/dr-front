@@ -26,12 +26,12 @@ export default defineConfig({
   ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {
+    emptyOutDir: true,
     target: getBrowserTargets({ widelyAvailableOnDate }),
     lib: {
       entry: {
         index: fileURLToPath(new URL('./config/build/index.ts', import.meta.url)),
         icons: fileURLToPath(new URL('./src/icons.ts', import.meta.url)),
-        lib: fileURLToPath(new URL('./src/lib.ts', import.meta.url)),
       },
       formats: ['es'],
       fileName: (_format, entryName) => `${entryName}.js`,

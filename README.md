@@ -23,7 +23,6 @@ import {
 } from '@protoapps/dr-front';
 
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
-import { formatNumber } from '@protoapps/dr-front/lib';
 
 import '@protoapps/dr-front/styles.css';
 ```
@@ -47,7 +46,7 @@ const translate: DrTranslateOverride = ({ language, key }) =>
   language === 'en' && key === 'dialog.close' ? 'Dismiss' : undefined;
 ```
 
-Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. Settings are inferred automatically, defaulting to `en` and `en-US`. Locale-based input formatting is not yet implemented.
+Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. Settings are inferred automatically, defaulting to `en` and `en-US`. The effective locale controls number, date and time input formatting and textarea counters. Set `language` and `locale` independently when the interface language and regional format differ.
 
 ## Requirements
 

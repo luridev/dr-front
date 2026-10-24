@@ -18,8 +18,7 @@ export const publicIconExports = [
   'DrArrowLeftIcon', 'DrCheckIcon', 'DrChevronDownIcon', 'DrChevronUpIcon', 'DrCloseIcon', 'DrPlusMinusIcon',
 ];
 
-export const publicLibExports = ['formatFileSize', 'formatNumber'];
-export const publicEntrypoints = ['.', './icons', './lib', './styles.css'];
+export const publicEntrypoints = ['.', './icons', './styles.css'];
 
 export const forbiddenRuntimeDependencies = ['temporal-polyfill'];
 

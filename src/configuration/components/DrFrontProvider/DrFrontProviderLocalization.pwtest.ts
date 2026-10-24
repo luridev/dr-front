@@ -69,15 +69,23 @@ for (const sample of cases) {
 
     expect(result.warnings).toEqual([]);
     expect(result.updates).toEqual([0, 0, 0, 0]);
+    expect(result.textareaUpdates).toBe(0);
     serverHTML = result.html;
     await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
     const number = page.getByRole('spinbutton', { name: 'Number', exact: true });
     const date = page.getByRole('textbox', { name: 'Date', exact: true });
     const time = page.getByRole('textbox', { name: 'Time', exact: true });
+    const textarea = page.getByRole('textbox', { name: 'Textarea', exact: true });
+
+    const counterText = sample.options.locale === 'ru-RU' || (sample.options.language === 'ru' && sample.options.locale === undefined)
+      ? '1\u00a0234 / 1\u00a0500'
+      : '1,234 / 1,500';
 
     await expect(number).toHaveValue(sample.number);
     await expect(date).toHaveValue(sample.date);
     await expect(time).toHaveValue(sample.time);
+    await expect(page.getByText(counterText, { exact: true })).toBeVisible();
+    await expect(textarea).toHaveValue('x'.repeat(1234));
     const inputs = await page.locator('input').elementHandles();
 
     await page.evaluate(async ({ url, options }) => {
@@ -91,6 +99,8 @@ for (const sample of cases) {
     await expect(number).toHaveValue(sample.number);
     await expect(date).toHaveValue(sample.date);
     await expect(time).toHaveValue(sample.time);
+    await expect(page.getByText(counterText, { exact: true })).toBeVisible();
+    await expect(textarea).toHaveValue('x'.repeat(1234));
     await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,0');
     await expect(page.getByTestId('identity')).toHaveText('true,true');
 
@@ -111,6 +121,20 @@ for (const sample of cases) {
 
     if (sample.name === 'independent language and locale') {
       await page.evaluate(() => {
+        (window as unknown as LocalizationWindow).localization.state.language = 'en';
+      });
+
+      await expect(page.getByRole('button', { name: 'Switch Time to AM', exact: true })).toBeVisible();
+      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
+
+      await page.evaluate(() => {
+        (window as unknown as LocalizationWindow).localization.state.language = 'ru';
+      });
+
+      await expect(page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true })).toBeVisible();
+      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
+
+      await page.evaluate(() => {
         (window as unknown as LocalizationWindow).localization.state.locale = 'ru-RU';
       });
 
@@ -118,15 +142,25 @@ for (const sample of cases) {
       await expect(date).toHaveValue('31.12.2026');
       await expect(time).toHaveValue('23:46');
       await expect(page.getByRole('textbox', { name: 'Masked integer' })).toHaveValue('-1\u00a0234\u00a0567');
+      await expect(page.getByText('1\u00a0234 / 1\u00a0500', { exact: true })).toBeVisible();
       await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
 
       await page.evaluate(() => {
         (window as unknown as LocalizationWindow).localization.state.locale = 'en-US';
       });
 
+      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true }).click();
       await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|11:46:56.123456789|-1234567');
     }
+
+    await expect(textarea).toHaveValue('x'.repeat(1234));
+
+    expect(await page.evaluate(() => {
+      const { state } = (window as unknown as LocalizationWindow).localization;
+
+      return { text: state.textarea, updates: state.textareaUpdates };
+    })).toEqual({ text: 'x'.repeat(1234), updates: 0 });
 
     expect(diagnostics).toEqual([]);
   });

@@ -43,8 +43,10 @@ try {
   await number.fill('-12345');
   await expect(number).toHaveValue('-12,345');
   await expect(models).toHaveText('2024-02-29|11:45:56.123456789|-12345');
+  await page.getByRole('button', { name: 'Feedback', exact: true }).click();
+  await expect(page.getByText('Package consumer notification', { exact: true })).toBeVisible();
   assert.deepEqual(errors, []);
-  process.stdout.write(`[browser] installed package: 3 locales, model preservation, AM/PM, precision, edits and CSS (Chromium ${browser.version()})\n`);
+  process.stdout.write(`[browser] installed package: 3 locales, model preservation, AM/PM, precision, edits, toast and CSS (Chromium ${browser.version()})\n`);
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.httpServer.close(error => error ? reject(error) : resolve()));
