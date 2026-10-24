@@ -1,30 +1,46 @@
-import { onMounted, readonly, ref, watch } from 'vue';
+import { createMask } from 'imask';
+import { computed, onMounted, ref, shallowRef, triggerRef, watch } from 'vue';
 import type { UseDrMaskedInputModelParams } from '@/forms/components/DrMaskedInput/composables/useDrMaskedInputModel/types';
-import type { DrMaskValue } from '@/forms/components/DrMaskedInput/lib/maskCodec/types';
 import type { DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 
-export function useDrMaskedInputModel({ model, codec, onStatusUpdate }: UseDrMaskedInputModelParams) {
+export function useDrMaskedInputModel({ model, mask, onStatusUpdate }: UseDrMaskedInputModelParams) {
+  const options = computed(() => typeof mask.value === 'string' ? { mask: mask.value } : mask.value);
+  const masked = shallowRef(createMask(options.value));
   const inputValue = ref('');
-  const invalidExternal = ref(false);
   const status = ref<DrMaskedInputStatus>('empty');
   let requestedValue = model.value;
+  let mounted = false;
 
-  function apply(result: DrMaskValue) {
-    inputValue.value = result.display;
-    status.value = result.status;
-    invalidExternal.value = result.status === 'invalid';
+  function accept() {
+    const engine = masked.value;
+    inputValue.value = engine.displayValue;
+    status.value = engine.rawInputValue === '' ? 'empty' : engine.isComplete ? 'valid' : 'incomplete';
+
+    if (mounted && requestedValue !== engine.unmaskedValue) {
+      requestedValue = engine.unmaskedValue;
+      model.value = requestedValue;
+    }
   }
 
-  watch([model, codec], ([value, nextCodec], [previousValue, previousCodec]) => {
-    if (previousValue !== undefined && nextCodec === previousCodec && value === requestedValue) {
+  watch([model, options], ([value, nextOptions], [, previousOptions]) => {
+    if (nextOptions === previousOptions && value === requestedValue) {
       return;
     }
 
     requestedValue = value;
-    apply(nextCodec.write(value));
+
+    if (previousOptions !== undefined && nextOptions !== previousOptions) {
+      masked.value = createMask(nextOptions);
+    }
+
+    masked.value.unmaskedValue = value;
+    accept();
+    triggerRef(masked);
   }, { immediate: true });
 
   onMounted(() => {
+    mounted = true;
+    accept();
     onStatusUpdate(status.value);
 
     watch(status, (next) => {
@@ -32,15 +48,12 @@ export function useDrMaskedInputModel({ model, codec, onStatusUpdate }: UseDrMas
     });
   });
 
-  function updateInputValue(display: string) {
-    const result = codec.value.read(display);
-    apply(result);
-
-    if (requestedValue !== result.canonical) {
-      requestedValue = result.canonical;
-      model.value = result.canonical;
-    }
+  function updateInputValue(value: string) {
+    masked.value.reset();
+    masked.value.unmaskedValue = value;
+    accept();
+    triggerRef(masked);
   }
 
-  return { inputValue: readonly(inputValue), invalidExternal: readonly(invalidExternal), updateInputValue };
+  return { options, masked, inputValue, accept, updateInputValue };
 }

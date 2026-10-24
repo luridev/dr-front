@@ -1,12 +1,11 @@
 import { maskingStoryId as storyId } from '@/forms/components/DrInput/DrInputMasking/config.support';
 import { getInput } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
-import { integerInputParams } from '@/forms/lib/inputFormats/integer/config';
 import { expect, test } from '~/tests/playwright/fixtures';
 
 const numberGroup = getInputLocaleProfile('en-US').number.group;
 
-for (const name of ['dateSlot', 'number', 'date', 'time', 'integerSlot']) {
+for (const name of ['dateSlot', 'number', 'date', 'time', 'maskedSlot']) {
   test(`${name} gives explicit ariaInvalid priority without changing visual state or descriptions`, async ({ mount }) => {
     const message = 'Input guidance';
     const root = await mount(storyId, { message });
@@ -61,11 +60,11 @@ test('typed wrappers isolate slot inputs and use the nearest provider', async ({
   await expect(plain).toHaveValue('plain text / 123');
   await expect(plain).not.toHaveAttribute('inputmode');
 
-  const integer = getInput(component, 'integerSlot');
+  const integer = getInput(component, 'maskedSlot');
 
   await integer.fill('12345');
-  await expect(integer).toHaveValue(`12${integerInputParams.thousandSeparator}345`);
-  await expect(integer).toHaveAttribute('inputmode', 'numeric');
+  await expect(integer).toHaveValue('123-45');
+  await expect(integer).toHaveAttribute('inputmode', 'text');
 
   const time = getInput(component, 'nestedTime');
   const nestedPlain = getInput(component, 'nestedTimeSlot');

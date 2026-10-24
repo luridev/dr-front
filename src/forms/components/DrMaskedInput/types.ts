@@ -1,13 +1,14 @@
+import type { FactoryConstructorOpts, FactoryStaticOpts } from 'imask';
 import type { Slot } from 'vue';
-import type { DrTypedInputStatus } from '@/forms/components/DrInput/composables/useDrTypedInputModel/types';
 import type { DrInputEmits, DrInputProps } from '@/forms/components/DrInput/types';
 
-export type DrMask = string | Readonly<{
-  pattern: string;
-  definitions?: Readonly<Record<string, RegExp>>;
-}> | Readonly<{ type: 'integer' }>;
+type NativeMaskOptions = FactoryStaticOpts | FactoryConstructorOpts;
 
-export type DrMaskedInputStatus = DrTypedInputStatus;
+export type DrMask = string | (NativeMaskOptions & {
+  mask: NonNullable<NativeMaskOptions['mask']>;
+});
+
+export type DrMaskedInputStatus = 'empty' | 'incomplete' | 'valid';
 
 export type DrMaskedInputProps = Omit<DrInputProps, 'type'> & {
   mask: DrMask;

@@ -1,4 +1,4 @@
-import type { HTMLAttributes, Ref } from 'vue';
+import type { HTMLAttributes, MaybeRef, Ref } from 'vue';
 
 export type DrInputEditorParams = {
   input: Readonly<Ref<HTMLInputElement | null>>;
@@ -7,8 +7,8 @@ export type DrInputEditorParams = {
 };
 
 export type DrInputEditor = {
-  inputMode?: Readonly<Ref<HTMLAttributes['inputmode']>>;
-  handleInput: () => void;
+  inputMode?: MaybeRef<HTMLAttributes['inputmode']>;
+  handleInput?: () => void;
 };
 
 export type DrInputEditorFactory = (params: DrInputEditorParams) => DrInputEditor;

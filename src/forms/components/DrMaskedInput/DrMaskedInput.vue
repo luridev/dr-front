@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue';
-import { provideDrInputMask } from '@/forms/components/DrInput/composables/useDrInputMask/useDrInputMask';
+import { toRef, useTemplateRef } from 'vue';
+import { provideDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
 import DrInput from '@/forms/components/DrInput/DrInput.vue';
+import { useDrMaskedInputEditor } from '@/forms/components/DrMaskedInput/composables/useDrMaskedInputEditor/useDrMaskedInputEditor';
 import { useDrMaskedInputModel } from '@/forms/components/DrMaskedInput/composables/useDrMaskedInputModel/useDrMaskedInputModel';
-import { createMaskCodec } from '@/forms/components/DrMaskedInput/lib/maskCodec/maskCodec';
 import type { DrInputExposed } from '@/forms/components/DrInput/types';
-import type { DrMaskCodec } from '@/forms/components/DrMaskedInput/lib/maskCodec/types';
 import type { DrMaskedInputEmits, DrMaskedInputProps, DrMaskedInputSlots } from '@/forms/components/DrMaskedInput/types';
 
 defineOptions({ inheritAttrs: false });
@@ -21,18 +20,21 @@ const emit = defineEmits<DrMaskedInputEmits>();
 const model = defineModel<string>({ required: true });
 defineSlots<DrMaskedInputSlots>();
 const input = useTemplateRef<DrInputExposed>('input');
-const codec = computed<DrMaskCodec>((previous) => createMaskCodec(props.mask, previous));
 
-const { inputValue, invalidExternal, updateInputValue } = useDrMaskedInputModel({
+const { options: maskOptions, masked, inputValue, accept, updateInputValue } = useDrMaskedInputModel({
   model,
-  codec,
+  mask: toRef(props, 'mask'),
   onStatusUpdate: (status) => { emit('update:status', status); },
 });
 
-provideDrInputMask(computed(() => ({
-  maskOptions: invalidExternal.value ? null : codec.value.options,
-  inputMode: codec.value.inputMode,
-})));
+provideDrInputEditor(({ input: inputElement, readonly }) => useDrMaskedInputEditor({
+  input: inputElement,
+  readonly,
+  options: maskOptions,
+  masked,
+  inputValue,
+  accept,
+}));
 
 function handleBlur(event: FocusEvent) {
   emit('blur', event);

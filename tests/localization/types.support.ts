@@ -5,6 +5,8 @@ export type LocalizationOptions = {
   language?: DrLanguage;
   locale?: DrLocale;
   nested?: boolean;
+  maskedValue?: string;
+  maskedNumberMin?: number;
 };
 
 export type LocalizationState = LocalizationOptions & {

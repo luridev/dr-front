@@ -20,16 +20,23 @@ const invalidText: typeof textInput.$props = { modelValue: 123 };
 
 declare const numberInput: InstanceType<typeof DrInputNumber>;
 declare const maskedInput: InstanceType<typeof DrMaskedInput>;
-const masks = ['000-000', { pattern: 'HH-0000', definitions: { H: /[A-F0-9]/ } }, { type: 'integer' }] as const satisfies ReadonlyArray<DrMask>;
+const masks = ['000-000', { mask: 'HH-0000', definitions: { H: /[A-F0-9]/ } }, { mask: /^\d*$/ }, { mask: 'code', blocks: { code: { mask: '0', repeat: [1, 30] } } }, { mask: Number, scale: 2 }, { mask: Date }, { mask: (value: string) => /^\d*$/.test(value) }, { mask: [{ mask: '00' }, { mask: 'aa' }] }] satisfies ReadonlyArray<DrMask>;
 const maskedProps: typeof maskedInput.$props = { modelValue: '123456', mask: masks[0] };
 maskedInput.$emit('update:modelValue', '123');
-maskedInput.$emit('update:status', 'incomplete' satisfies DrMaskedInputStatus);
+for (const status of ['empty', 'incomplete', 'valid'] as const satisfies ReadonlyArray<DrMaskedInputStatus>) {
+  maskedInput.$emit('update:status', status);
+}
 maskedInput.focus({ preventScroll: true });
 maskedInput.setCaretToEnd();
 // @ts-expect-error Masked string models must not accept numbers.
 maskedInput.$emit('update:modelValue', 42);
-// @ts-expect-error Only Pattern and Integer masks are public.
-const invalidMask: DrMask = { type: 'number', scale: 2 };
+// @ts-expect-error A configuration must identify its mask.
+const invalidMask: DrMask = {};
+// @ts-expect-error Number scale must be numeric.
+const invalidScale: DrMask = { mask: Number, scale: 'two' };
+// @ts-expect-error Repeat bounds are a pair of numbers.
+const invalidRepeat: DrMask = { mask: 'code', blocks: { code: { mask: '0', repeat: [1, '30'] } } };
+void [invalidScale, invalidRepeat];
 const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2 };
 for (const status of ['empty', 'incomplete', 'invalid', 'out-of-range', 'valid'] as const satisfies ReadonlyArray<DrInputNumberStatus>) {
   numberInput.$emit('update:status', status);

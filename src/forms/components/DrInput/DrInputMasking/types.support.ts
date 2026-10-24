@@ -13,7 +13,7 @@ export type DrInputMaskingProps = {
   externalDate?: string | null;
   externalTime?: string | null;
   externalNumber?: number | null;
-  externalInteger?: string;
+  externalMasked?: string;
   min?: number;
   max?: number;
   step?: number;

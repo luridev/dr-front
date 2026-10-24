@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { computed, createRenderer, createSSRApp, defineComponent, h, nextTick, ref, shallowRef } from 'vue';
+import { computed, createRenderer, createSSRApp, defineComponent, h, nextTick, ref, shallowRef, unref } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { provideDrInputEditor, useDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
 import type { Component } from 'vue';
@@ -100,16 +100,17 @@ describe('useDrInputEditor', () => {
     await renderToString(createSSRApp(() => h(Input, { name: 'input' })));
 
     expect(editor().inputMode).toBeUndefined();
-    editor().handleInput();
+    expect(editor().handleInput).toBeTypeOf('function');
+    editor().handleInput?.();
     expect(params.model.value).toBe('initial');
 
     params.input.value = { value: 'plain / 日本語' } as HTMLInputElement;
-    editor().handleInput();
+    editor().handleInput?.();
     expect(params.model.value).toBe('plain / 日本語');
 
     readonly.value = true;
     params.input.value.value = 'blocked';
-    editor().handleInput();
+    editor().handleInput?.();
     expect(params.model.value).toBe('plain / 日本語');
   });
 
@@ -124,11 +125,21 @@ describe('useDrInputEditor', () => {
 
     expect(factory).toHaveBeenCalledExactlyOnceWith(params);
     expect(editor()).toBe(result);
-    expect(editor().inputMode?.value).toBe('text');
+    expect(unref(editor().inputMode)).toBe('text');
     mode.value = 'numeric';
-    expect(editor().inputMode?.value).toBe('numeric');
+    expect(unref(editor().inputMode)).toBe('numeric');
     readonly.value = true;
     expect(params.readonly()).toBe(true);
+  });
+
+  it('accepts a constant input mode without adding a fallback input handler', async () => {
+    const { Input, provider, editor } = createEditorProbe();
+    const Provider = provider(() => ({ inputMode: 'text' }));
+
+    await renderToString(createSSRApp(() => h(Provider, null, () => h(Input, { name: 'input' }))));
+
+    expect(unref(editor().inputMode)).toBe('text');
+    expect(editor().handleInput).toBeUndefined();
   });
 
   it('isolates slot descendants while preserving the provider for sibling fields', async () => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, watch } from 'vue';
-import { integerMask, serialMask } from '@/forms/components/DrMaskedInput/config.support';
+import { computed, ref, useTemplateRef, watch } from 'vue';
+import { digitsMask, dynamicMask, nativeMasks, repeatMask, serialMask } from '@/forms/components/DrMaskedInput/config.support';
 import { DrButton, DrInput, DrMaskedInput } from '@/index';
 import type { DrInputExposed } from '@/forms/components/DrInput/types';
 import type { DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
@@ -16,7 +16,11 @@ const props = withDefaults(defineProps<DrMaskedInputStoryProps>(), {
 
 const value = ref('');
 const serial = ref('AB1234');
-const integer = ref('1234567');
+const digits = ref('1234567');
+const repeated = ref('123');
+const dynamic = ref('AB123');
+const renders = ref(0);
+const activeMask = computed(() => props.variant === undefined ? props.mask : nativeMasks[props.variant]);
 const phone = ref('');
 const plain = ref('');
 const status = ref<DrMaskedInputStatus>('empty');
@@ -43,6 +47,10 @@ function handleEvent(event: FocusEvent | KeyboardEvent | WheelEvent) {
   lastEvent.value = event.type;
 }
 
+function rerender() {
+  renders.value += 1;
+}
+
 function focusAtEnd() {
   input.value?.focus({ preventScroll: true });
   input.value?.setCaretToEnd();
@@ -56,7 +64,7 @@ function focusAtEnd() {
         ref="input"
         class="DrMaskedInputGallery__main"
         :model-value="value"
-        :mask="props.mask"
+        :mask="activeMask"
         label="Code"
         placeholder="000-000"
         message="Decorative separators stay in the field; the model keeps semantic characters."
@@ -89,10 +97,10 @@ function focusAtEnd() {
       />
 
       <DrMaskedInput
-        v-model="integer"
-        label="Integer"
-        :mask="integerMask"
-        message="Arbitrary precision. Leading zeros and negative zero normalize only in the model."
+        v-model="digits"
+        label="Digits"
+        :mask="digitsMask"
+        message="RegExp accepts digits of any length."
       />
 
       <DrMaskedInput
@@ -100,6 +108,20 @@ function focusAtEnd() {
         label="Phone"
         mask="+{7} (000) 000-00-00"
         message="The semantic literal {7} belongs to the model."
+      />
+
+      <DrMaskedInput
+        v-model="repeated"
+        label="Repeated code"
+        :mask="repeatMask"
+        message="A digit block repeated up to 30 times."
+      />
+
+      <DrMaskedInput
+        v-model="dynamic"
+        label="Reference"
+        :mask="dynamicMask"
+        message="Numeric or alphanumeric reference, selected by native dispatch."
       />
     </div>
 
@@ -109,13 +131,16 @@ function focusAtEnd() {
 
     <p>Serial model: <span data-testid="serial-model">{{ serial }}</span></p>
 
-    <p>Integer model: <span data-testid="integer-model">{{ integer }}</span></p>
+    <p>Digits model: <span data-testid="digits-model">{{ digits }}</span></p>
 
     <p>Phone model: <span data-testid="phone-model">{{ phone }}</span></p>
 
-    <p>A partial pattern publishes its partial string. A lone minus keeps an incomplete draft with an empty model.</p>
+    <p>The model is a string from IMask unmaskedValue.
+      Completeness belongs to the mask; application validation is separate.</p>
 
     <DrButton @click="focusAtEnd">Focus code at end</DrButton>
+
+    <DrButton @click="rerender">Rerender {{ renders }}</DrButton>
 
     <span data-testid="updates">{{ JSON.stringify(updates) }}</span>
 

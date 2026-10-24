@@ -1,169 +1,6 @@
 import { selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
-import { integerMask, maskedInputStoryId as storyId } from '@/forms/components/DrMaskedInput/config.support';
+import { maskedInputStoryId as storyId } from '@/forms/components/DrMaskedInput/config.support';
 import { expect, test } from '~/tests/playwright/fixtures';
-
-test('multiple mask instances edit independently', async ({ mount }) => {
-  const root = await mount(storyId);
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  const serial = root.getByRole('textbox', { name: 'Serial', exact: true });
-  const integer = root.getByRole('textbox', { name: 'Integer', exact: true });
-  await input.fill('123456');
-  await serial.fill('CD5678');
-  await integer.fill('-42');
-  await expect(input).toHaveValue('123-456');
-  await expect(root.getByTestId('model')).toHaveText('123456');
-  await expect(serial).toHaveValue('CD-5678');
-  await expect(root.getByTestId('serial-model')).toHaveText('CD5678');
-  await expect(integer).toHaveValue('-42');
-  await expect(root.getByTestId('integer-model')).toHaveText('-42');
-});
-
-test('external canonical updates and mask replacement do not emit model writes', async ({ mount }) => {
-  const root = await mount(storyId, { externalValue: '123456' });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await expect(input).toHaveValue('123-456');
-  await root.update({ mask: '00/00/00', externalValue: '001234' });
-  await expect(input).toHaveValue('00/12/34');
-  await root.update({ mask: integerMask, externalValue: '-1234567' });
-  await expect(input).toHaveValue('-1\u00a0234\u00a0567');
-  await expect(root.getByTestId('updates')).toHaveText('[]');
-  await input.fill('42');
-  await expect(root.getByTestId('updates')).toHaveText('["42"]');
-  await root.update({ mask: '000-000', externalValue: '654321' });
-  await input.fill('987654');
-  await expect(root.getByTestId('updates')).toHaveText('["42","987654"]');
-});
-
-test('editing an incompatible external string reactivates the mask', async ({ mount }) => {
-  const root = await mount(storyId, { externalValue: '1234567' });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await expect(input).toHaveValue('1234567');
-  await expect(root.getByTestId('status')).toHaveText('invalid');
-  await expect(input).not.toHaveAttribute('aria-invalid');
-  await expect(root.getByTestId('updates')).toHaveText('[]');
-  await input.fill('123456');
-  await expect(input).toHaveValue('123-456');
-  await expect(root.getByTestId('model')).toHaveText('123456');
-  await expect(root.getByTestId('status')).toHaveText('valid');
-  await expect(root.getByTestId('updates')).toHaveText('["123456"]');
-  await input.fill('123');
-  await expect(root.getByTestId('status')).toHaveText('incomplete');
-  await expect(input).not.toHaveAttribute('aria-invalid');
-});
-
-test('integer drafts survive parent echoes, normalization and consecutive undo/redo', async ({ mount }) => {
-  const root = await mount(storyId, { mask: integerMask });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await input.pressSequentially('-');
-  await expect(input).toHaveValue('-');
-  await expect(root.getByTestId('model')).toHaveText('');
-  await expect(root.getByTestId('status')).toHaveText('incomplete');
-  await input.pressSequentially('0');
-  await expect(input).toHaveValue('-0');
-  await expect(root.getByTestId('model')).toHaveText('0');
-  await input.pressSequentially('01');
-  await expect(input).toHaveValue('-001');
-  await expect(root.getByTestId('model')).toHaveText('-1');
-  await expect(root.getByTestId('updates')).toHaveText('["0","-1"]');
-
-  for (const [display, model, status] of [
-    ['-00', '0', 'valid'], ['-0', '0', 'valid'], ['-', '', 'incomplete'], ['', '', 'empty'],
-  ]) {
-    await input.press('ControlOrMeta+Z');
-    await expect(input).toHaveValue(display);
-    await expect(root.getByTestId('model')).toHaveText(model);
-    await expect(root.getByTestId('status')).toHaveText(status);
-  }
-
-  for (const display of ['-', '-0', '-00', '-001']) {
-    await input.press('ControlOrMeta+Shift+Z');
-    await expect(input).toHaveValue(display);
-  }
-
-  await expect(root.getByTestId('model')).toHaveText('-1');
-  await input.press('Tab');
-  await expect(input).toHaveValue('-001');
-});
-
-test('integer preserves 400 digits through history and programmatic replacement', async ({ mount }) => {
-  const root = await mount(storyId, { mask: integerMask });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  const digits = '1234567890'.repeat(40);
-  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
-  await input.fill(`-${digits}`);
-  await expect(input).toHaveValue(`-${grouped}`);
-  await expect(root.getByTestId('model')).toHaveText(`-${digits}`);
-  await input.press('ControlOrMeta+Z');
-  await expect(input).toHaveValue('');
-  await expect(root.getByTestId('model')).toHaveText('');
-  await input.press('ControlOrMeta+Shift+Z');
-  await expect(input).toHaveValue(`-${grouped}`);
-  await expect(root.getByTestId('model')).toHaveText(`-${digits}`);
-  await root.update({ mask: integerMask, externalValue: digits });
-  await expect(input).toHaveValue(grouped);
-  await expect(root.getByTestId('updates')).toHaveText(JSON.stringify([`-${digits}`, '', `-${digits}`]));
-  await root.update({ mask: integerMask, externalValue: '' });
-  await expect(input).toHaveValue('');
-  await expect(root.getByTestId('status')).toHaveText('empty');
-});
-
-test('integer selection, middle paste and deletion preserve caret and history', async ({ mount, page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  const root = await mount(storyId, { mask: integerMask, externalValue: '123456' });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await selectInputRange(input, 1, 2);
-  await page.evaluate(() => navigator.clipboard.writeText('90'));
-  await input.press('ControlOrMeta+V');
-  await expect(input).toHaveValue('1\u00a0903\u00a0456');
-  await expect(root.getByTestId('model')).toHaveText('1903456');
-  await expect.poll(() => input.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe(4);
-  await input.press('Backspace');
-  await expect(root.getByTestId('model')).toHaveText('193456');
-  await input.press('ControlOrMeta+Z');
-  await expect(root.getByTestId('model')).toHaveText('1903456');
-  await input.press('ControlOrMeta+Z');
-  await expect(root.getByTestId('model')).toHaveText('123456');
-  await input.press('ControlOrMeta+Shift+Z');
-  await expect(root.getByTestId('model')).toHaveText('1903456');
-  await input.press('ControlOrMeta+A');
-  await input.pressSequentially('-42');
-  await expect(root.getByTestId('model')).toHaveText('-42');
-});
-
-test('clear resets even an empty canonical model with a minus draft and preserves focus', async ({ mount }) => {
-  const root = await mount(storyId, { mask: integerMask });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await input.fill('-');
-  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
-  await expect(input).toHaveValue('');
-  await expect(input).toBeFocused();
-  await expect(root.getByTestId('status')).toHaveText('empty');
-  await expect(root.getByTestId('updates')).toHaveText('[]');
-  await input.fill('123');
-  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
-  await expect(root.getByTestId('updates')).toHaveText('["123",""]');
-  await expect(root.getByTestId('model')).toHaveText('');
-});
-
-test('locked fields follow external models and cannot replay mask history', async ({ mount }) => {
-  const root = await mount(storyId, { mask: integerMask });
-  const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await input.fill('-00123');
-  await root.update({ mask: integerMask, readonly: true });
-  await expect(input).toHaveValue('-00\u00a0123');
-  await input.press('ControlOrMeta+Z');
-  await input.pressSequentially('9');
-  await expect(input).toHaveValue('-00\u00a0123');
-  await root.update({ mask: integerMask, readonly: true, externalValue: '12345' });
-  await expect(input).toHaveValue('12\u00a0345');
-  await root.update({ mask: integerMask, readonly: true, disabled: true, externalValue: '-42' });
-  await expect(input).toBeDisabled();
-  await expect(input).toHaveValue('-42');
-  await root.update({ mask: integerMask, readonly: false, disabled: false });
-  await input.fill('6');
-  await expect(root.getByTestId('model')).toHaveText('6');
-  await expect(root.getByTestId('updates')).toHaveText('["-123","6"]');
-});
 
 test('base field props, slots, events and exposed methods work independently', async ({ mount }) => {
   const root = await mount(storyId, { externalValue: '123456' });
@@ -187,13 +24,15 @@ test('base field props, slots, events and exposed methods work independently', a
   await plain.focus();
   await expect(root.getByTestId('event')).toHaveText('blur');
   await expect(root.getByTestId('model')).toHaveText('123456');
-  await expect(root.getByTestId('integer-model')).toHaveText('1234567');
+  await expect(root.getByTestId('digits-model')).toHaveText('1234567');
 });
 
 for (const externalValue of ['', 'invalid external']) {
   test(`composition waits for committed text with external value = ${externalValue}`, async ({ mount }) => {
     const root = await mount(storyId, { externalValue });
     const input = root.getByRole('textbox', { name: 'Code', exact: true });
+    const initialUpdates = externalValue === '' ? [] : [''];
+    await expect(root.getByTestId('updates')).toHaveText(JSON.stringify(initialUpdates));
     await input.focus();
 
     await input.evaluate((element: HTMLInputElement) => {
@@ -203,7 +42,7 @@ for (const externalValue of ['', 'invalid external']) {
     });
 
     await expect(input).toHaveValue('に');
-    await expect(root.getByTestId('updates')).toHaveText('[]');
+    await expect(root.getByTestId('updates')).toHaveText(JSON.stringify(initialUpdates));
 
     await input.evaluate((element: HTMLInputElement) => {
       element.value = '123456';
@@ -212,6 +51,246 @@ for (const externalValue of ['', 'invalid external']) {
     });
 
     await expect(input).toHaveValue('123-456');
-    await expect(root.getByTestId('updates')).toHaveText('["123456"]');
+    await expect(root.getByTestId('updates')).toHaveText(JSON.stringify([...initialUpdates, '123456']));
   });
 }
+
+test('multiple native mask instances edit independently', async ({ mount }) => {
+  const root = await mount(storyId);
+  const code = root.getByRole('textbox', { name: 'Code', exact: true });
+  const serial = root.getByRole('textbox', { name: 'Serial', exact: true });
+  const digits = root.getByRole('textbox', { name: 'Digits', exact: true });
+  await code.fill('123456');
+  await serial.fill('CD5678');
+  await digits.fill('0'.repeat(400));
+  await expect(code).toHaveValue('123-456');
+  await expect(root.getByTestId('model')).toHaveText('123456');
+  await expect(serial).toHaveValue('CD-5678');
+  await expect(root.getByTestId('serial-model')).toHaveText('CD5678');
+  await expect(digits).toHaveValue('0'.repeat(400));
+  await expect(root.getByTestId('digits-model')).toHaveText('0'.repeat(400));
+});
+
+test('external changes and config replacement preserve models without emitting writes', async ({ mount }) => {
+  const root = await mount(storyId, { externalValue: '123456' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await expect(input).toHaveValue('123-456');
+  await root.update({ mask: '00/00/00', externalValue: '001234' });
+  await expect(input).toHaveValue('00/12/34');
+  await root.update({ variant: 'digits', externalValue: '001234567' });
+  await expect(input).toHaveValue('001234567');
+  await expect(root.getByTestId('updates')).toHaveText('[]');
+  await input.fill('42');
+  await root.update({ mask: '000-000', externalValue: '654321' });
+  await input.fill('987654');
+  await expect(root.getByTestId('updates')).toHaveText('["42","987654"]');
+});
+
+test('external strings follow native filtering and publish the accepted model', async ({ mount }) => {
+  const root = await mount(storyId, { externalValue: '1234567' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await expect(input).toHaveValue('123-456');
+  await expect(root.getByTestId('model')).toHaveText('123456');
+  await expect(root.getByTestId('status')).toHaveText('valid');
+  await expect(root.getByTestId('updates')).toHaveText('["123456"]');
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await root.update({ externalValue: '12a3' });
+  await expect(input).toHaveValue('123');
+  await expect(root.getByTestId('model')).toHaveText('123');
+  await expect(root.getByTestId('status')).toHaveText('incomplete');
+  await expect(input).not.toHaveAttribute('aria-invalid');
+  await root.update({ externalValue: 'bad' });
+  await expect(input).toHaveValue('');
+  await expect(root.getByTestId('model')).toHaveText('');
+  await expect(root.getByTestId('status')).toHaveText('empty');
+  await expect(root.getByTestId('updates')).toHaveText('["123456","123",""]');
+  await input.fill('987654');
+  await expect(root.getByTestId('model')).toHaveText('987654');
+});
+
+test('ordinary Pattern keeps selection, middle edits, paste and undo/redo', async ({ mount, page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const root = await mount(storyId);
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await input.pressSequentially('123456');
+  await selectInputRange(input, 1, 3);
+  await page.evaluate(() => navigator.clipboard.writeText('90'));
+  await input.press('ControlOrMeta+V');
+  await expect(input).toHaveValue('190-456');
+  await expect(root.getByTestId('model')).toHaveText('190456');
+  await expect.poll(() => input.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe(3);
+  await input.press('Backspace');
+  await expect(root.getByTestId('model')).toHaveText('19456');
+  await input.press('ControlOrMeta+Z');
+  await expect(root.getByTestId('model')).toHaveText('190456');
+  await input.press('ControlOrMeta+Z');
+  await expect(root.getByTestId('model')).toHaveText('123456');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(root.getByTestId('model')).toHaveText('190456');
+  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
+  await expect(input).toHaveValue('');
+  await expect(input).toBeFocused();
+  await expect(root.getByTestId('status')).toHaveText('empty');
+});
+
+test('readonly and disabled block history and editing but accept external values', async ({ mount }) => {
+  const root = await mount(storyId);
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await input.fill('123456');
+  await root.update({ readonly: true });
+  await input.press('ControlOrMeta+Z');
+  await input.pressSequentially('9');
+  await expect(input).toHaveValue('123-456');
+  await root.update({ readonly: true, externalValue: '654321' });
+  await expect(input).toHaveValue('654-321');
+  await root.update({ disabled: true, externalValue: '123' });
+  await expect(input).toBeDisabled();
+  await expect(input).toHaveValue('123');
+  await root.update({ disabled: false });
+  await input.fill('987654');
+  await expect(root.getByTestId('model')).toHaveText('987654');
+  await expect(root.getByTestId('updates')).toHaveText('["123456","987654"]');
+});
+
+for (const [variant, entered, display, model] of [
+  ['prepared', 'ab', 'bc', 'bc'],
+  ['hidden', '123456', '###-###', '123456'],
+  ['exposed', '1234', '12:34', '34'],
+  ['repeat', '123456789', '123456789', '123456789'],
+  ['function', '123', '123', '123'],
+  ['number', '12,5', '12,5', '12.5'],
+  ['date', '01022024', '01.02.2024', '01.02.2024'],
+] as const) {
+  test(`${variant} uses live native state across parent echoes and rerenders`, async ({ mount }) => {
+    const root = await mount(storyId, { variant });
+    const input = root.getByRole('textbox', { name: 'Code', exact: true });
+    await input.fill(entered);
+    await expect(input).toHaveValue(display);
+    await expect(root.getByTestId('model')).toHaveText(model);
+    await root.getByRole('button', { name: 'Rerender 0', exact: true }).click();
+    await expect(input).toHaveValue(display);
+    await expect(root.getByTestId('model')).toHaveText(model);
+    await expect(input).toHaveAttribute('inputmode', 'text');
+    await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
+    await expect(input).toHaveValue('');
+    await expect(root.getByTestId('model')).toHaveText('');
+    await expect(root.getByTestId('status')).toHaveText('empty');
+  });
+}
+
+test('placeholders remain empty and Dynamic chooses a matching branch', async ({ mount }) => {
+  const root = await mount(storyId, { variant: 'placeholders' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await expect(input).toHaveValue('+7 (___)');
+  await expect(root.getByTestId('model')).toHaveText('7');
+  await expect(root.getByTestId('status')).toHaveText('empty');
+  await input.fill('7123');
+  await expect(root.getByTestId('status')).toHaveText('valid');
+  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
+  await expect(root.getByTestId('status')).toHaveText('empty');
+  await root.update({ variant: 'dynamic' });
+  await input.fill('1234');
+  await expect(input).toHaveValue('12-34');
+  await input.fill('AB123');
+  await expect(input).toHaveValue('AB-123');
+  await expect(root.getByTestId('model')).toHaveText('AB123');
+});
+
+test('native overwrite replaces a middle character and keeps the caret', async ({ mount }) => {
+  const root = await mount(storyId, { variant: 'overwrite', externalValue: '123456' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await selectInputRange(input, 1, 1);
+  await input.pressSequentially('9');
+  await expect(input).toHaveValue('193-456');
+  await expect(root.getByTestId('model')).toHaveText('193456');
+  await expect.poll(() => input.evaluate((element: HTMLInputElement) => element.selectionStart)).toBe(2);
+});
+
+test('external updates keep ordinary Pattern undo history with the same config', async ({ mount }) => {
+  const root = await mount(storyId, { externalValue: '123456' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await input.fill('654321');
+  await root.update({ externalValue: '987654' });
+  await expect(input).toHaveValue('987-654');
+  await expect(root.getByTestId('updates')).toHaveText('["654321"]');
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('654-321');
+  await expect(root.getByTestId('model')).toHaveText('654321');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(input).toHaveValue('987-654');
+  await expect(root.getByTestId('model')).toHaveText('987654');
+});
+
+for (const [variant, externalValue, display, model] of [
+  ['boundedNumber', '1', '5', '5'],
+  ['number', '001.20', '1,2', '1.2'],
+  ['prepared', 'ab', 'bc', 'bc'],
+  ['hidden', '1234567', '###-###', '123456'],
+  ['emptyPlaceholders', '', '___-___', ''],
+  ['exposed', '123', '12', '12'],
+  ['dynamic', 'AB1234', 'AB-123', 'AB123'],
+] as const) {
+  test(`${variant} synchronizes initial normalization and parent echoes`, async ({ mount }) => {
+    const root = await mount(storyId, { variant, externalValue });
+    const input = root.getByRole('textbox', { name: 'Code', exact: true });
+    await expect(input).toHaveValue(display);
+    await expect(root.getByTestId('model')).toHaveText(model);
+    const writes = externalValue === model ? [] : [model];
+    await expect(root.getByTestId('updates')).toHaveText(JSON.stringify(writes));
+    await root.getByRole('button', { name: 'Rerender 0', exact: true }).click();
+    await expect(input).toHaveValue(display);
+    await expect(root.getByTestId('updates')).toHaveText(JSON.stringify(writes));
+  });
+}
+
+test('external normalization and configuration replacement settle without extra writes', async ({ mount }) => {
+  const root = await mount(storyId, { externalValue: '123456' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await root.update({ mask: '00-00' });
+  await expect(input).toHaveValue('12-34');
+  await expect(root.getByTestId('model')).toHaveText('1234');
+  await expect(root.getByTestId('updates')).toHaveText('["1234"]');
+  await root.update({ variant: 'boundedNumber', externalValue: '1' });
+  await expect(input).toHaveValue('5');
+  await expect(root.getByTestId('model')).toHaveText('5');
+  await root.update({ variant: 'boundedNumber', externalValue: '2' });
+  await expect(input).toHaveValue('5');
+  await expect(root.getByTestId('model')).toHaveText('5');
+  await expect(root.getByTestId('updates')).toHaveText('["1234","5","5"]');
+  await root.update({ variant: 'boundedNumber', externalValue: '5' });
+  await expect(root.getByTestId('updates')).toHaveText('["1234","5","5"]');
+  await root.update({ variant: 'number', externalValue: '001.20' });
+  await expect(input).toHaveValue('1,2');
+  await expect(root.getByTestId('model')).toHaveText('1.2');
+});
+
+test('external writes update hidden values and preserve native expose context', async ({ mount }) => {
+  const root = await mount(storyId, { variant: 'hidden', externalValue: '123456' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await root.update({ variant: 'hidden', externalValue: '9876543' });
+  await expect(input).toHaveValue('###-###');
+  await expect(root.getByTestId('model')).toHaveText('987654');
+  await input.press('ControlOrMeta+Z');
+  await expect(root.getByTestId('model')).toHaveText('123456');
+  await root.update({ variant: 'exposed', externalValue: '' });
+  await input.fill('1234');
+  await root.update({ variant: 'exposed', externalValue: '567' });
+  await expect(input).toHaveValue('12:56');
+  await expect(root.getByTestId('model')).toHaveText('56');
+});
+
+test('clear updates native history even when displayChar equals the placeholder', async ({ mount }) => {
+  const root = await mount(storyId, { variant: 'concealedPlaceholder', externalValue: '1' });
+  const input = root.getByRole('textbox', { name: 'Code', exact: true });
+  await expect(input).toHaveValue('_');
+  await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
+  await expect(input).toHaveValue('_');
+  await expect(root.getByTestId('model')).toHaveText('');
+  await expect(root.getByTestId('status')).toHaveText('empty');
+  await input.press('ControlOrMeta+Z');
+  await expect(input).toHaveValue('_');
+  await expect(root.getByTestId('model')).toHaveText('1');
+  await expect(root.getByTestId('status')).toHaveText('valid');
+  await input.press('ControlOrMeta+Shift+Z');
+  await expect(root.getByTestId('model')).toHaveText('');
+});

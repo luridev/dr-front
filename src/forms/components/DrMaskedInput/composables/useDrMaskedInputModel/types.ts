@@ -1,9 +1,8 @@
 import type { Ref } from 'vue';
-import type { DrMaskCodec } from '@/forms/components/DrMaskedInput/lib/maskCodec/types';
-import type { DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
+import type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 
 export type UseDrMaskedInputModelParams = {
   model: Ref<string>;
-  codec: Readonly<Ref<DrMaskCodec>>;
+  mask: Readonly<Ref<DrMask>>;
   onStatusUpdate: (status: DrMaskedInputStatus) => void;
 };

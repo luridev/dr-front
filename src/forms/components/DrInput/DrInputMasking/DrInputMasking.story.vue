@@ -7,7 +7,6 @@ import {
 import DrInputDate from '@/forms/components/DrInputDate/DrInputDate.vue';
 import DrInputNumber from '@/forms/components/DrInputNumber/DrInputNumber.vue';
 import DrInputTime from '@/forms/components/DrInputTime/DrInputTime.vue';
-import { integerMask } from '@/forms/components/DrMaskedInput/config.support';
 import DrMaskedInput from '@/forms/components/DrMaskedInput/DrMaskedInput.vue';
 import type { DrInputMaskingProps } from '@/forms/components/DrInput/DrInputMasking/types.support';
 
@@ -21,7 +20,7 @@ const props = withDefaults(defineProps<DrInputMaskingProps>(), {
 const date = shallowRef<Temporal.PlainDate | null>(null);
 const number = ref<number | null>(1234);
 const dateSlot = ref('');
-const integerSlot = ref('');
+const maskedSlot = ref('');
 const numberSlot = ref('');
 const nestedTime = shallowRef<Temporal.PlainTime | null>(null);
 const nestedTimeSlot = ref('');
@@ -56,9 +55,9 @@ watch(() => props.externalNumber, (value) => {
   }
 }, { immediate: true });
 
-watch(() => props.externalInteger, (value) => {
+watch(() => props.externalMasked, (value) => {
   if (value !== undefined) {
-    integerSlot.value = value;
+    maskedSlot.value = value;
   }
 }, { immediate: true });
 </script>
@@ -88,13 +87,13 @@ watch(() => props.externalInteger, (value) => {
           />
 
           <DrMaskedInput
-            v-model="integerSlot"
-            class="DrInputMasking__integerSlot"
-            label="Integer date slot"
+            v-model="maskedSlot"
+            class="DrInputMasking__maskedSlot"
+            label="Masked date slot"
             :aria="props.aria"
             :state="props.state"
             :message="props.message"
-            :mask="integerMask"
+            mask="000-000"
             :readonly="props.readonly"
             :disabled="props.disabled"
           />
@@ -161,7 +160,7 @@ watch(() => props.externalInteger, (value) => {
 
     <div data-testid="time-model-identity">{{ time === initialTime }}</div>
 
-    <div data-testid="integer-model">{{ integerSlot }}</div>
+    <div data-testid="masked-model">{{ maskedSlot }}</div>
 
     <div data-testid="date-status">{{ dateStatus }}</div>
 

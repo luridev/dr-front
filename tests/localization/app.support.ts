@@ -5,6 +5,7 @@ import type { DrTranslateOverride } from '@/configuration/types';
 import type { LocalizationOptions, LocalizationState } from '~/tests/localization/types.support';
 
 export function createLocalizationApp(options: LocalizationOptions) {
+  const mask = options.maskedNumberMin === undefined ? '000-000' : { mask: Number, min: options.maskedNumberMin };
   const initialDate = Temporal.PlainDate.from('2026-12-31');
   const initialTime = Temporal.PlainTime.from('23:45:56.123456789');
 
@@ -14,7 +15,7 @@ export function createLocalizationApp(options: LocalizationOptions) {
     number: 1234567,
     date: initialDate,
     time: initialTime,
-    masked: '-1234567',
+    masked: options.maskedValue ?? '123456',
     textarea: 'x'.repeat(1234),
     numberUpdates: 0,
     dateUpdates: 0,
@@ -56,8 +57,8 @@ export function createLocalizationApp(options: LocalizationOptions) {
     }),
     h(DrMaskedInput, {
       modelValue: state.masked,
-      label: 'Masked integer',
-      mask: { type: 'integer' },
+      label: 'Masked code',
+      mask,
       'onUpdate:modelValue': (value: string) => {
         state.masked = value;
         state.maskedUpdates += 1;

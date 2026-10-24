@@ -116,7 +116,7 @@ for (const sample of cases) {
     }
 
     await time.fill(sample.time.startsWith('23') ? '23:46' : '11:46');
-    await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:46:56.123456789|-1234567');
+    await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:46:56.123456789|123456');
     await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
 
     if (sample.name === 'independent language and locale') {
@@ -141,7 +141,7 @@ for (const sample of cases) {
       await expect(number).toHaveValue('1\u00a0234\u00a0567');
       await expect(date).toHaveValue('31.12.2026');
       await expect(time).toHaveValue('23:46');
-      await expect(page.getByRole('textbox', { name: 'Masked integer' })).toHaveValue('-1\u00a0234\u00a0567');
+      await expect(page.getByRole('textbox', { name: 'Masked code' })).toHaveValue('123-456');
       await expect(page.getByText('1\u00a0234 / 1\u00a0500', { exact: true })).toBeVisible();
       await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
 
@@ -151,7 +151,7 @@ for (const sample of cases) {
 
       await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true }).click();
-      await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|11:46:56.123456789|-1234567');
+      await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|11:46:56.123456789|123456');
     }
 
     await expect(textarea).toHaveValue('x'.repeat(1234));
@@ -165,3 +165,46 @@ for (const sample of cases) {
     expect(diagnostics).toEqual([]);
   });
 }
+
+test('masked Number normalizes after hydration without mismatches or duplicate updates', async ({ page }) => {
+  const diagnostics: Array<string> = [];
+  page.on('pageerror', (error) => diagnostics.push(error.message));
+
+  page.on('console', (message) => {
+    if (message.type() === 'warning' || message.type() === 'error') {
+      diagnostics.push(message.text());
+    }
+  });
+
+  const options = { maskedValue: '1', maskedNumberMin: 5 };
+  const result = await render(options);
+  expect(result.warnings).toEqual([]);
+  expect(result.updates).toEqual([0, 0, 0, 0]);
+  serverHTML = result.html;
+  await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
+  const input = page.getByRole('textbox', { name: 'Masked code', exact: true });
+  await expect(input).toHaveValue('5');
+  await expect(page.getByTestId('models')).toContainText('|1');
+  const original = await input.elementHandle();
+
+  await page.evaluate(async ({ url, options: hydrationOptions }) => {
+    const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
+    const localization = module.createLocalizationApp(hydrationOptions);
+    (window as unknown as LocalizationWindow).localization = localization;
+    localization.app.mount('#hydration');
+  }, { url: moduleURL, options });
+
+  await expect(input).toHaveValue('5');
+  await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
+  await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,1');
+  expect(await original.evaluate((element) => element.isConnected)).toBe(true);
+
+  await page.evaluate(() => {
+    (window as unknown as LocalizationWindow).localization.state.masked = '2';
+  });
+
+  await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,2');
+  await expect(input).toHaveValue('5');
+  await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
+  expect(diagnostics).toEqual([]);
+});

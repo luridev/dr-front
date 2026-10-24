@@ -5,7 +5,7 @@ import { build } from 'vite';
 const scenarios = {
   plain: ['DrInput'],
   pattern: ['DrMaskedInput'],
-  integer: ['DrMaskedInput'],
+  regexp: ['DrMaskedInput'],
   number: ['DrInputNumber'],
   date: ['DrInputDate'],
   time: ['DrInputTime'],
@@ -22,7 +22,7 @@ async function buildConsumer(entries) {
         const values = [${components.map((component) => `ref(${component === 'DrInput' ? "'abc'" : component === 'DrMaskedInput' ? "'123456'" : component === 'DrInputNumber' ? '42' : 'null'})`).join(', ')}];
         return () => h('div', {}, [${components.map((component, index) => `h(${component}, {
           modelValue: values[${index}].value,
-          ${component === 'DrMaskedInput' ? `mask: ${name === 'integer' ? "{ type: 'integer' }" : "'000-000'"},` : ''}
+          ${component === 'DrMaskedInput' ? `mask: ${name === 'regexp' ? "{ mask: /^[0-9]*$/ }" : "'000-000'"},` : ''}
           'onUpdate:modelValue': value => values[${index}].value = value,
         })`).join(', ')}]);
       }}).mount('#app');
