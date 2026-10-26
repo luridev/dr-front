@@ -9,7 +9,7 @@ const DialogBody = defineComponent({
     const toast = useDrToast();
     const selected = ref('one');
 
-    return () => [
+    return () => h('div', { style: { padding: 'var(--dr-space-large)' } }, [
       h('button', { onClick: () => toast.info({ message: `dialog ${props.name}`, duration: 30_000 }) }, 'Dialog toast'),
       h(DrSelect<string>, {
         label: 'Nested select',
@@ -19,7 +19,7 @@ const DialogBody = defineComponent({
           selected.value = value;
         },
       }),
-    ];
+    ]);
   },
 });
 

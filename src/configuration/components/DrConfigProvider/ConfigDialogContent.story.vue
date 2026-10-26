@@ -10,10 +10,18 @@ const value = ref('Dialog text');
 </script>
 
 <template>
-  <p data-testid="dialog-config">{{ config.language }} / {{ config.locale }}</p>
+  <div class="DrConfigDialogContent">
+    <p data-testid="dialog-config">{{ config.language }} / {{ config.locale }}</p>
 
-  <DrInput
-    v-model="value"
-    label="Dialog value"
-  />
+    <DrInput
+      v-model="value"
+      label="Dialog value"
+    />
+  </div>
 </template>
+
+<style scoped>
+  .DrConfigDialogContent {
+    padding: var(--dr-space-large);
+  }
+</style>

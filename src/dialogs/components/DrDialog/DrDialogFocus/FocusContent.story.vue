@@ -49,5 +49,6 @@ function handleRemove() {
   .DrFocusContent {
     display: grid;
     gap: var(--dr-space-small);
+    padding: var(--dr-space-large);
   }
 </style>

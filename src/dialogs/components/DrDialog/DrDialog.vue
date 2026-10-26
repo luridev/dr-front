@@ -138,7 +138,6 @@ provide(floatingScopeKey, {
   .DrDialog__body {
     min-width: 0;
     min-height: 0;
-    padding: var(--dr-space-large);
     overflow: auto;
   }
 

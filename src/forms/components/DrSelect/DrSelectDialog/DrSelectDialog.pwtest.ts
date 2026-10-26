@@ -3,6 +3,32 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const selectDialogStoryId = 'forms/components/DrSelect/DrSelectDialog/DrSelectDialog';
 
+test('consumer spacing scrolls with the body while the header and footer stay visible', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 390, height: 220 });
+  const root = await mount(selectDialogStoryId);
+  await root.getByRole('button', { name: 'Open dialog', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const body = dialog.locator('.DrDialog__body');
+  const header = dialog.locator('header');
+  const footer = dialog.locator('footer');
+
+  await expect(body).toHaveCSS('padding', '0px');
+  await expect(header).toBeInViewport({ ratio: 1 });
+  await expect(footer).toBeInViewport({ ratio: 1 });
+  const headerBefore = await header.boundingBox();
+  const footerBefore = await footer.boundingBox();
+
+  await body.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+
+  expect(await body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  expect(await header.boundingBox()).toEqual(headerBefore);
+  expect(await footer.boundingBox()).toEqual(footerBefore);
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+});
+
 test('popup escapes the panel without scrolling it and preserves modal Tab and Escape', async ({ mount, page }) => {
   await page.setViewportSize(standardDesktopViewport);
   const root = await mount(selectDialogStoryId);
