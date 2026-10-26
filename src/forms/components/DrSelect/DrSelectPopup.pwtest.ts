@@ -125,22 +125,41 @@ for (const theme of ['light', 'dark']) {
   });
 }
 
-for (const interaction of ['mouse', 'touch']) {
-  test.describe(`mobile ${interaction} focus`, () => {
-    test.use({ hasTouch: interaction === 'touch' });
+for (const [mode, width, action] of [
+  ['desktop touch', 900, 'tap'],
+  ['mobile touch', 390, 'tap'],
+  ['mobile mouse', 390, 'click'],
+] as const) {
+  test.describe(mode, () => {
+    test.use({ hasTouch: action === 'tap' });
 
-    test('selects an option without a keyboard focus outline', async ({ mount, page, browserName }) => {
-      await page.setViewportSize({ width: 390, height: 844 });
+    test('selects an option without transferring DOM focus or showing a keyboard outline', async ({ mount, page }) => {
+      await page.setViewportSize({ width, height: 844 });
       const root = await mount(story);
       const trigger = root.getByRole('combobox', { name: 'Choice' });
       const list = page.getByRole('listbox');
-      const action = interaction === 'touch' ? 'tap' : 'click';
+
+      const optionFocus = await page.evaluateHandle(() => {
+        const state = { occurred: false };
+
+        document.addEventListener('focusin', (event) => {
+          if (event.target instanceof Element && event.target.closest('[role="option"]') != null) {
+            state.occurred = true;
+          }
+        });
+
+        return state;
+      });
+
       await trigger[action]();
+      await expect(width === 390 ? list : trigger).toBeFocused();
       await expect(list.getByRole('option', { selected: true })).toHaveCSS('outline-style', 'none');
       await list.getByRole('option', { name: 'Option 39', exact: true })[action]();
-      test.fail(browserName === 'webkit' && interaction === 'touch', 'Existing WebKit touch issue: prevented pointerdown suppresses click, also reproduced before the styling change.');
       await expect(root.getByTestId('selection')).toHaveText('38');
-      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(width === 390 ? page.getByRole('dialog') : list).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+      expect(await optionFocus.evaluate((state) => state.occurred)).toBe(false);
+      await optionFocus.dispose();
     });
   });
 }

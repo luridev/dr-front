@@ -199,7 +199,7 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
     :aria-activedescendant="props.tabindex === 0 ? activeDescendant : undefined"
     :data-dr-dialog-initial-focus="props.tabindex === 0 ? '' : undefined"
     @keydown="handleKeydown"
-    @pointerdown.prevent
+    @mousedown.prevent
   >
     <button
       v-for="option in options"
