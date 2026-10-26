@@ -6,6 +6,11 @@ import GalleryHost from '~/gallery/GalleryHost.vue';
 import type { GalleryState, GalleryTheme, HostWindow, MountParams, StoryModule, StoryProps } from '~/gallery/types';
 
 const stories = import.meta.glob<StoryModule | undefined>('../src/**/*.story.vue', { eager: true });
+
+function findStory(storyId: string): StoryModule | undefined {
+  return stories[`../src/${storyId}.story.vue`];
+}
+
 const backgroundRoot = document.getElementById('gallery');
 
 if (backgroundRoot == null) {
@@ -45,7 +50,7 @@ async function renderStory(storyId: string | null, props: StoryProps = {}): Prom
     await clearStory();
   }
 
-  const module = stories[`../src/${storyId}.story.vue`];
+  const module = findStory(storyId);
 
   state.storyId = storyId;
   state.error = module == null ? `Unknown story: ${storyId}` : null;
@@ -94,7 +99,7 @@ async function syncWithURL(): Promise<void> {
 }
 
 async function mount({ story, props }: MountParams): Promise<void> {
-  if (stories[`../src/${story}.story.vue`] == null) {
+  if (findStory(story) == null) {
     throw new Error(`Unknown component story: ${story}`);
   }
 

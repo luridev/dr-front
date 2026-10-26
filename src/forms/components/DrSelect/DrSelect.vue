@@ -12,6 +12,7 @@ import { useDrSelectTriggerKeyboard } from '@/forms/components/DrSelect/composab
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
 import type {
   DrSelectListEmits,
+  DrSelectListExposed,
   DrSelectListProps,
 } from '@/forms/components/DrSelect/components/DrSelectList/types';
 import type { DrSelectTriggerExposed } from '@/forms/components/DrSelect/components/DrSelectTrigger/types';
@@ -43,6 +44,9 @@ const mobileMediaQuery = '(width <= 560px)';
 
 const rootElement = useTemplateRef<HTMLElement>('rootElement');
 const trigger = useTemplateRef<DrSelectTriggerExposed>('trigger');
+const popupElement = useTemplateRef<HTMLElement>('popupElement');
+const list = useTemplateRef<DrSelectListExposed>('list');
+const reference = computed(() => trigger.value?.element ?? null);
 
 const selectId = useId();
 const desktopListboxId = `${selectId}-listbox`;
@@ -57,6 +61,19 @@ const navigation = useDrSelectNavigation({
 
 const desktopPopup = useDrSelectDesktopPopup({
   rootElement,
+  popupElement,
+  reference,
+});
+
+watch(desktopPopup.isPositioned, async (positioned) => {
+  if (positioned) {
+    await nextTick();
+    list.value?.ensureActiveVisible();
+  }
+});
+
+watch(model, () => {
+  navigation.activateInitialItem();
 });
 
 const presentation = ref<DrSelectPresentation>('listbox');
@@ -143,6 +160,11 @@ function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') 
   }
 
   updatePresentation();
+
+  if (presentation.value === 'listbox' && !desktopPopup.ownerActive.value) {
+    return;
+  }
+
   navigation.activateInitialItem(initialActiveItem);
 
   if (presentation.value === 'dialog') {
@@ -150,21 +172,18 @@ function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') 
 
     openItemsDialog({
       select: selectDialogItem,
-    });
+    }, { opener: reference.value });
 
     return;
   }
 
+  reference.value?.focus({ preventScroll: true });
   desktopPopup.open();
 }
 
 function selectDesktopItem(item: T) {
   model.value = item;
   desktopPopup.close();
-
-  void nextTick(() => {
-    trigger.value?.focus();
-  });
 }
 
 function selectDialogItem(item: T) {
@@ -179,22 +198,16 @@ function selectActiveDesktopItem() {
   }
 }
 
-const handleTriggerKeydown = useDrSelectTriggerKeyboard({
+const triggerKeyboard = useDrSelectTriggerKeyboard({
   popup: desktopPopup,
   navigation,
   openOptions,
   selectActiveItem: selectActiveDesktopItem,
 });
 
-function handleTriggerClick() {
-  if (desktopPopup.isOpen.value) {
-    desktopPopup.close();
-  } else {
-    openOptions();
-  }
-}
+function handleTriggerKeydown(event: KeyboardEvent) {
+  triggerKeyboard(event);
 
-function handleRootKeydown(event: KeyboardEvent) {
   if (event.key !== 'Escape' || event.defaultPrevented || !desktopPopup.isOpen.value) {
     return;
   }
@@ -202,10 +215,14 @@ function handleRootKeydown(event: KeyboardEvent) {
   event.preventDefault();
   event.stopPropagation();
   desktopPopup.close();
+}
 
-  void nextTick(() => {
-    trigger.value?.focus();
-  });
+function handleTriggerClick() {
+  if (desktopPopup.isOpen.value) {
+    desktopPopup.close();
+  } else {
+    openOptions();
+  }
 }
 
 function focus(options?: FocusOptions) {
@@ -245,11 +262,10 @@ defineExpose<DrSelectExposed>({
     </template>
 
     <template #default="slotProps">
-      <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- Delegated Escape. -->
       <div
         ref="rootElement"
         class="DrSelect"
-        @keydown="handleRootKeydown"
+        @focusout="desktopPopup.close"
       >
         <DrSelectTrigger
           :id="slotProps.id"
@@ -276,56 +292,57 @@ defineExpose<DrSelectExposed>({
           </template>
         </DrSelectTrigger>
 
-        <div
-          v-if="desktopPopup.isOpen.value"
-          class="DrSelect__popup"
+        <Teleport
+          v-if="desktopPopup.portalTarget.value != null"
+          :to="desktopPopup.portalTarget.value"
         >
-          <DrSelectList
-            :id="desktopListboxId"
-            :items="props.items"
-            :selected-item="selectedItem"
-            :has-selection="hasSelection"
-            :active-index="navigation.activeIndex.value"
-            :accessible-label="accessibleLabel"
-            @activate="navigation.activateItem"
-            @select="selectDesktopItem"
+          <div
+            v-if="desktopPopup.isOpen.value"
+            ref="popupElement"
+            class="DrSelect__popup"
+            :style="[
+              desktopPopup.floatingStyles.value,
+              { visibility: desktopPopup.isPositioned.value ? 'visible' : 'hidden' },
+            ]"
           >
-            <template
-              v-if="slots.item != null"
-              #item="itemSlotProps"
+            <DrSelectList
+              :id="desktopListboxId"
+              ref="list"
+              :items="props.items"
+              :selected-item="selectedItem"
+              :has-selection="hasSelection"
+              :active-index="navigation.activeIndex.value"
+              :accessible-label="accessibleLabel"
+              @activate="navigation.activateItem"
+              @select="selectDesktopItem"
             >
-              <slot
-                name="item"
-                v-bind="itemSlotProps"
-              ></slot>
-            </template>
-          </DrSelectList>
-        </div>
+              <template
+                v-if="slots.item != null"
+                #item="itemSlotProps"
+              >
+                <slot
+                  name="item"
+                  v-bind="itemSlotProps"
+                ></slot>
+              </template>
+            </DrSelectList>
+          </div>
+        </Teleport>
       </div>
     </template>
   </DrControl>
 </template>
 
 <style scoped>
-  .DrSelect__control :deep(.DrControl__control_bordered) {
-    overflow: visible;
-  }
-
   .DrSelect {
-    position: relative;
     align-self: stretch;
     width: 100%;
     min-width: 0;
   }
 
   .DrSelect__popup {
-    position: absolute;
     z-index: var(--dr-layer-floating);
-    top: calc(100% + var(--dr-space-xsmall));
-    left: 0;
     width: max-content;
-    min-width: 100%;
-    max-width: min(40rem, calc(100vw - var(--dr-space-medium) * 2));
     border-radius: var(--dr-border-radius-surface);
     box-shadow: 0 var(--dr-space-small) var(--dr-space-large) rgb(0 0 0 / 18%);
   }

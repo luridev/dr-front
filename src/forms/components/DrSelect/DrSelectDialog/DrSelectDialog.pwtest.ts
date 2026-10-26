@@ -3,35 +3,43 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const selectDialogStoryId = 'forms/components/DrSelect/DrSelectDialog/DrSelectDialog';
 
-for (const focusTarget of ['trigger', 'listbox'] as const) {
-  test(`Escape with focus=${focusTarget} closes the select, then the dialog`, async ({ mount, page }) => {
-    await page.setViewportSize(standardDesktopViewport);
+test('popup escapes the panel without scrolling it and preserves modal Tab and Escape', async ({ mount, page }) => {
+  await page.setViewportSize(standardDesktopViewport);
+  const root = await mount(selectDialogStoryId);
+  await root.getByRole('button', { name: 'Open dialog', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const trigger = dialog.getByRole('combobox');
+  const body = dialog.locator('.DrDialog__body');
 
-    const component = await mount(selectDialogStoryId);
-    const dialog = page.getByRole('dialog');
-    const trigger = dialog.getByRole('combobox');
-    const listbox = dialog.getByRole('listbox');
-
-    await component.getByRole('button', { name: 'Open dialog', exact: true }).click();
-    await trigger.click();
-    await expect(listbox).toBeVisible();
-
-    if (focusTarget === 'listbox') {
-      await listbox.focus();
-    }
-
-    await expect(focusTarget === 'listbox' ? listbox : trigger).toBeFocused();
-    await page.keyboard.press('Escape');
-
-    await expect(listbox).toHaveCount(0);
-    await expect(dialog).toBeVisible();
-    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    await expect(trigger).toBeFocused();
-
-    await page.keyboard.press('Escape');
-    await expect(dialog).toHaveCount(0);
+  await dialog.locator('.DrDialog__panel').evaluate((element: HTMLElement) => {
+    element.style.transform = 'translateZ(0)';
   });
-}
+
+  const before = await body.evaluate((element) => [element.scrollHeight, element.scrollTop, scrollY]);
+  await trigger.click();
+  const list = dialog.getByRole('listbox');
+  await expect(list.getByRole('option').last()).toBeInViewport({ ratio: 1 });
+  expect(await body.evaluate((element) => [element.scrollHeight, element.scrollTop, scrollY])).toEqual(before);
+  const panel = await dialog.locator('.DrDialog__panel').boundingBox();
+  const popup = await list.boundingBox();
+  expect((popup?.y ?? 0) + (popup?.height ?? 0)).toBeGreaterThan((panel?.y ?? 0) + (panel?.height ?? 0));
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
+  await expect(list).toHaveCount(0);
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(list).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(list).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+});
 
 test('nested mobile Select keeps Tab navigation within the topmost dialog', async ({ mount, page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

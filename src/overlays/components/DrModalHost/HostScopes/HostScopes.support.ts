@@ -31,8 +31,8 @@ function createProbe(name: string, registry: ScopeRegistry) {
 
       registry.set(name, { toast, dialog });
 
-      return () => h('button', { onClick: () => {
-        dialog.open();
+      return () => h('button', { onClick: (event: MouseEvent) => {
+        dialog.open(undefined, { opener: event.currentTarget as HTMLElement });
       } }, `Trigger ${name}`);
     },
   });

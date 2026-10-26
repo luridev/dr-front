@@ -52,9 +52,9 @@ test('mobile Select follows Host readiness and an open dialog survives language 
   const dialog = page.getByRole('dialog', { name: 'Primary choice' });
 
   await trigger.click();
-  await expect(primary.getByRole('listbox')).toBeVisible();
+  await expect(page.getByRole('listbox')).toBeVisible();
   await expect(dialog).toHaveCount(0);
-  await primary.getByRole('option', { name: 'Beta', exact: true }).click();
+  await page.getByRole('listbox').getByRole('option', { name: 'Beta', exact: true }).click();
   await component.update({ ready: true });
   await trigger.click();
   await expect(dialog).toBeVisible();
@@ -76,7 +76,7 @@ test('mobile Select follows Host readiness and an open dialog survives language 
   await expect(primary).not.toHaveAttribute('inert');
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
   await trigger.click();
-  await expect(primary.getByRole('listbox')).toBeVisible();
+  await expect(page.getByRole('listbox')).toBeVisible();
   await expect(dialog).toHaveCount(0);
 });
 

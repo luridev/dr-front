@@ -32,6 +32,9 @@ function focus(options?: FocusOptions) {
 }
 
 defineExpose<DrSelectTriggerExposed>({
+  get element() {
+    return triggerElement.value;
+  },
   focus,
 });
 </script>

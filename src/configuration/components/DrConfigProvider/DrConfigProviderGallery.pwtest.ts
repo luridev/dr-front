@@ -111,7 +111,12 @@ test('programmatic dialogs retain caller configuration and react to nested and i
   await component.getByLabel('Override translations', { exact: true }).check();
   await configured.getByRole('button', { name: 'Open dialog' }).click();
   await expect(dialog.getByRole('button', { name: 'Dismiss', exact: true })).toBeVisible();
-  await component.getByLabel('English close message').fill('Done', { force: true });
+
+  await component.getByLabel('English close message').evaluate((input: HTMLInputElement) => {
+    input.value = 'Done';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
   await expect(dialog.getByRole('button', { name: 'Done', exact: true })).toBeVisible();
   await component.getByRole('combobox', { name: 'Language', exact: true }).selectOption('ru', { force: true });
   await expect(dialog.getByRole('button', { name: 'Закрыть окно', exact: true })).toBeVisible();

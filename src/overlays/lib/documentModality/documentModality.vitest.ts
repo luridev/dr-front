@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import { nextTick } from 'vue';
 import { defaultConfig } from '@/configuration/config';
 import { createDocumentFixture, FocusTarget } from '@/overlays/lib/documentModality/document.support';
 import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';
@@ -46,7 +45,7 @@ describe('document resource ownership', () => {
     expect(fixture.removeListener).toHaveBeenCalledWith('keydown', expect.any(Function));
   });
 
-  it('does not run a stale focus restoration after a new top layer opens before the next tick', async () => {
+  it('invalidates a pending return target when another top layer opens', () => {
     const fixture = createDocumentFixture();
     const modality = getDocumentModality(fixture.document);
     const root = fixture.background();
@@ -57,17 +56,20 @@ describe('document resource ownership', () => {
 
     fixture.focus(opener);
     modality.register(a, root, vi.fn());
+    const returnA = modality.focusReturnFor(a);
+    expect(returnA()).toBe(false);
     modality.release(a);
     fixture.focus(replacementOpener);
     modality.register(b, root, vi.fn());
-    await nextTick();
+    const returnB = modality.focusReturnFor(b);
+    expect(returnA()).toBe(false);
     expect(opener.focus).not.toHaveBeenCalled();
     modality.release(b);
-    await nextTick();
-    expect(replacementOpener.focus).toHaveBeenCalledOnce();
+    expect(returnB()).toBe(replacementOpener);
+    expect(replacementOpener.focus).not.toHaveBeenCalled();
   });
 
-  it.each(['disconnected', 'inert', 'suppressed'] as const)('skips %s return-focus targets', async (reason) => {
+  it.each(['disconnected', 'inert', 'suppressed'] as const)('skips %s return-focus targets', (reason) => {
     const fixture = createDocumentFixture();
     const modality = getDocumentModality(fixture.document);
     const target = new FocusTarget();
@@ -75,11 +77,28 @@ describe('document resource ownership', () => {
 
     fixture.focus(target);
     modality.register(token, fixture.background(), vi.fn());
+    const returnFocus = modality.focusReturnFor(token);
     target.isConnected = reason !== 'disconnected';
     target.inert = reason === 'inert';
     modality.release(token, reason !== 'suppressed');
-    await nextTick();
+    expect(returnFocus()).toBe(false);
     expect(target.focus).not.toHaveBeenCalled();
+  });
+
+  it('captures an explicit opener without focusing it', () => {
+    const fixture = createDocumentFixture();
+    const modality = getDocumentModality(fixture.document);
+    const active = new FocusTarget();
+    const opener = new FocusTarget();
+    const token = Symbol();
+    fixture.focus(active);
+    modality.register(token, fixture.background(), vi.fn(), opener as unknown as HTMLElement);
+    const returnFocus = modality.focusReturnFor(token);
+    modality.release(token);
+    expect(returnFocus()).toBe(opener);
+    expect(opener.focus).not.toHaveBeenCalled();
+    expect(active.focus).not.toHaveBeenCalled();
+    expect(modality.focusReturnFor(Symbol())()).toBe(false);
   });
 
   it('routes an unhandled Escape to just the current top layer and removes the listener at rest', () => {
@@ -108,6 +127,68 @@ describe('document resource ownership', () => {
     fixture.keydown();
     expect(closeA).toHaveBeenCalledOnce();
     expect(fixture.keydown().defaultPrevented).toBe(false);
+  });
+
+  it.each(['body', 'html', 'null', 'non-html', 'no-window', 'explicit-null'] as const)(
+    'does not infer an opener from %s',
+    (reason) => {
+      const fixture = createDocumentFixture();
+      const modality = getDocumentModality(fixture.document);
+      const token = Symbol();
+      const target = new FocusTarget();
+
+      const active = reason === 'body'
+        ? fixture.document.body
+        : reason === 'html'
+          ? fixture.document.documentElement
+          : reason === 'null' ? null : target;
+
+      fixture.focus(active);
+
+      if (reason === 'non-html') {
+        Object.defineProperty(fixture.document, 'activeElement', { value: new EventTarget() });
+      }
+
+      if (reason === 'no-window') {
+        Object.defineProperty(fixture.document, 'defaultView', { value: null });
+      }
+
+      modality.register(token, fixture.background(), vi.fn(), reason === 'explicit-null' ? null : undefined);
+      const returnFocus = modality.focusReturnFor(token);
+      modality.release(token);
+      expect(returnFocus()).toBe(false);
+      expect(target.focus).not.toHaveBeenCalled();
+    },
+  );
+
+  it('keeps per-layer return targets and never restores a lower layer closed beneath another', () => {
+    const fixture = createDocumentFixture();
+    const modality = getDocumentModality(fixture.document);
+    const a = Symbol();
+    const b = Symbol();
+    const openerA = new FocusTarget();
+    const openerB = new FocusTarget();
+    modality.register(a, fixture.background(), vi.fn(), openerA as unknown as HTMLElement);
+    modality.register(b, fixture.background(), vi.fn(), openerB as unknown as HTMLElement);
+    const returnA = modality.focusReturnFor(a);
+    const returnB = modality.focusReturnFor(b);
+    modality.release(a);
+    expect(returnA()).toBe(false);
+    modality.release(b);
+    expect(returnB()).toBe(openerB);
+  });
+
+  it('registers a layer only once and keeps its original close callback', () => {
+    const fixture = createDocumentFixture();
+    const modality = getDocumentModality(fixture.document);
+    const token = Symbol();
+    const close = vi.fn();
+    const duplicate = vi.fn();
+    modality.register(token, fixture.background(), close);
+    modality.register(token, fixture.background(), duplicate);
+    fixture.keydown();
+    expect(close).toHaveBeenCalledOnce();
+    expect(duplicate).not.toHaveBeenCalled();
   });
 
   it('transfers background ownership without reordering layers, and unbinds disposed Hosts', () => {

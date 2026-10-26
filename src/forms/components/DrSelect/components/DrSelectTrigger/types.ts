@@ -22,5 +22,6 @@ export type DrSelectTriggerEmits = {
 };
 
 export type DrSelectTriggerExposed = {
+  readonly element: HTMLButtonElement | null;
   focus(options?: FocusOptions): void;
 };

@@ -43,7 +43,7 @@
     "prepublishOnly": "npm --dry-run=false run validate",
     "preview:gallery": "vite preview --config vite.gallery.config.ts",
     "release": "bumpp",
-    "test:e2e": "playwright test --project=components",
+    "test:e2e": "playwright test",
     "test:e2e:serve": "vite --config vite.gallery.config.ts --host 127.0.0.1 --port 4323 --strictPort",
     "test:mutation": "stryker run",
     "test:package": "jiti config/package/verifyPackage.ts",
@@ -61,7 +61,10 @@
     "components"
   ],
   "dependencies": {
-    "imask": "^7.6.1"
+    "@floating-ui/vue": "^2.0.1",
+    "focus-trap": "^8.2.3",
+    "imask": "^7.6.1",
+    "tabbable": "^6.5.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

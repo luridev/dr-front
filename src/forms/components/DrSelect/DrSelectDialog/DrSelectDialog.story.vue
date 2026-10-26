@@ -7,8 +7,8 @@ const dialog = useDialog({
   component: DrSelect<string>,
   props: {
     label: 'Dialog select',
-    items: ['Alpha', 'Beta'],
-    modelValue: 'Alpha',
+    items: Array.from({ length: 40 }, (_, index) => `Option ${index + 1}`),
+    modelValue: 'Option 40',
   },
 });
 </script>

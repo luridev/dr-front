@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onMounted, useId, useTemplateRef } from 'vue';
+import { computed, inject, provide, useId, useTemplateRef } from 'vue';
 import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
 import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
+import { dialogReturnFocusKey } from '@/overlays/lib/dialogFocus/dialogFocus';
+import { useDialogFocus } from '@/overlays/lib/dialogFocus/useDialogFocus';
+import { floatingScopeKey } from '@/overlays/lib/floatingScope/floatingScope';
 import type { DrDialogProps, DrDialogSlots } from '@/dialogs/components/DrDialog/types';
 
 defineOptions({
@@ -16,102 +19,92 @@ const slots = defineSlots<DrDialogSlots>();
 const t = useDrTranslation();
 
 const titleId = useId();
-const panel = useTemplateRef<HTMLElement>('panel');
+const dialogElement = useTemplateRef<HTMLElement>('dialogElement');
+const floatingTarget = useTemplateRef<HTMLElement>('floatingTarget');
+const owner = inject(floatingScopeKey, undefined);
+const active = computed(() => owner?.active.value ?? true);
 
-function handlePanelKeydown(event: KeyboardEvent) {
-  const element = panel.value;
+useDialogFocus({
+  root: dialogElement,
+  active,
+  returnFocus: inject(dialogReturnFocusKey, undefined),
+});
 
-  if (
-    event.key !== 'Tab' || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
-    element == null || element.closest('[inert]') != null
-  ) {
-    return;
-  }
-
-  const initialFocusElement = element.querySelector<HTMLElement>('[data-dr-dialog-initial-focus]');
-  const closeButton = element.querySelector<HTMLButtonElement>('.DrDialog__close');
-
-  if (initialFocusElement == null || initialFocusElement.tabIndex < 0 || closeButton == null) {
-    return;
-  }
-
-  if (event.target !== (event.shiftKey ? closeButton : initialFocusElement)) {
-    return;
-  }
-
-  event.preventDefault();
-  (event.shiftKey ? initialFocusElement : closeButton).focus();
-}
-
-onMounted(async () => {
-  await nextTick();
-
-  if (panel.value?.closest('[inert]') != null) {
-    return;
-  }
-
-  const initialFocusElement = panel.value?.querySelector<HTMLElement>('[data-dr-dialog-initial-focus], [autofocus]');
-
-  (initialFocusElement ?? panel.value)?.focus();
+provide(floatingScopeKey, {
+  target: floatingTarget,
+  active,
 });
 </script>
 
 <template>
-  <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -- Delegated Tab boundaries. -->
   <section
     :id="props.id"
-    ref="panel"
+    ref="dialogElement"
     class="DrDialog"
     :class="$attrs.class"
     role="dialog"
     aria-modal="true"
     :aria-labelledby="titleId"
     tabindex="-1"
-    @keydown="handlePanelKeydown"
   >
-    <header class="DrDialog__header">
-      <h2
-        :id="titleId"
-        class="DrDialog__title"
-      >
-        {{ props.title }}
-      </h2>
+    <div class="DrDialog__panel">
+      <header class="DrDialog__header">
+        <h2
+          :id="titleId"
+          class="DrDialog__title"
+        >
+          {{ props.title }}
+        </h2>
 
-      <DrIconButton
-        class="DrDialog__close"
-        :aria="{ ariaLabel: t('dialog.close') }"
-        @click="props.close"
-      >
-        <DrCloseIcon :size="20" />
-      </DrIconButton>
-    </header>
+        <DrIconButton
+          class="DrDialog__close"
+          :aria="{ ariaLabel: t('dialog.close') }"
+          @click="props.close"
+        >
+          <DrCloseIcon :size="20" />
+        </DrIconButton>
+      </header>
 
-    <div class="DrDialog__body">
-      <slot></slot>
+      <div class="DrDialog__body">
+        <slot></slot>
+      </div>
+
+      <footer
+        v-if="slots.footer != null"
+        class="DrDialog__footer"
+      >
+        <slot name="footer"></slot>
+      </footer>
     </div>
 
-    <footer
-      v-if="slots.footer != null"
-      class="DrDialog__footer"
-    >
-      <slot name="footer"></slot>
-    </footer>
+    <div
+      ref="floatingTarget"
+      class="DrDialog__floating"
+    ></div>
   </section>
 </template>
 
 <style scoped>
   .DrDialog {
-    display: flex;
-    flex-direction: column;
     width: min(32rem, calc(100vw - var(--dr-space-medium) * 2));
     max-height: calc(100vh - var(--dr-space-medium) * 2);
     max-height: calc(100dvh - var(--dr-space-medium) * 2);
+  }
+
+  .DrDialog__panel {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
     overflow: hidden;
     border: 1px solid var(--dr-color-border-primary);
     border-radius: var(--dr-border-radius-dialog);
     background: var(--dr-color-background-primary);
     color: var(--dr-color-text-primary);
     box-shadow: 0 1rem 3rem rgb(0 0 0 / 25%);
+  }
+
+  .DrDialog__floating {
+    display: contents;
   }
 
   .DrDialog__header {

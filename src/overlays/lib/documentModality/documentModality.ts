@@ -1,4 +1,4 @@
-import { computed, nextTick, shallowRef } from 'vue';
+import { computed, shallowRef } from 'vue';
 import type { BackgroundOwnership, DocumentLayer, OverflowSnapshot } from '@/overlays/lib/documentModality/types';
 
 const documents = new WeakMap<Document, ReturnType<typeof createDocumentModality>>();
@@ -60,7 +60,7 @@ function createDocumentModality(document: Document) {
     }
   }
 
-  function register(token: symbol, backgroundRoot: HTMLElement, close: () => void) {
+  function register(token: symbol, backgroundRoot: HTMLElement, close: () => void, opener?: HTMLElement | null) {
     if (layers.value.some((layer) => layer.token === token)) {
       return;
     }
@@ -79,9 +79,13 @@ function createDocumentModality(document: Document) {
       document.addEventListener('keydown', handleKeydown);
     }
 
-    const activeElement = document.activeElement;
+    const activeElement = opener === undefined ? document.activeElement : opener;
     const elementType = document.defaultView?.HTMLElement;
-    const restoreFocusTo = elementType != null && activeElement instanceof elementType ? activeElement : undefined;
+
+    const restoreFocusTo = elementType != null && activeElement instanceof elementType &&
+      activeElement !== document.body && activeElement !== document.documentElement
+      ? activeElement
+      : undefined;
 
     acquireBackground(backgroundRoot, token);
     layers.value = [...layers.value, { token, backgroundRoot, close, restoreFocusTo }];
@@ -112,17 +116,8 @@ function createDocumentModality(document: Document) {
       document.removeEventListener('keydown', handleKeydown);
     }
 
-    if (wasTop && restoreFocus) {
-      const expectedTop = topToken();
-
-      void nextTick(() => {
-        const target = layer.restoreFocusTo;
-
-        if (topToken() === expectedTop && target?.isConnected === true && target.closest('[inert]') == null) {
-          target.focus();
-        }
-      });
-    }
+    const expectedTop = topToken();
+    layer.canReturnFocus = () => wasTop && restoreFocus && topToken() === expectedTop;
   }
 
   function updateBackground(token: symbol, backgroundRoot: HTMLElement) {
@@ -137,11 +132,25 @@ function createDocumentModality(document: Document) {
     layer.backgroundRoot = backgroundRoot;
   }
 
+  function focusReturnFor(token: symbol) {
+    const layer = layers.value.find((entry) => entry.token === token);
+
+    return (): HTMLElement | false => {
+      const target = layer?.restoreFocusTo;
+
+      return layer?.canReturnFocus?.() === true && target?.isConnected === true &&
+        target.closest('[inert]') == null
+        ? target
+        : false;
+    };
+  }
+
   return {
     hasModal: computed(() => layers.value.length > 0),
     register,
     release,
     updateBackground,
+    focusReturnFor,
     isTop: (token: symbol) => topToken() === token,
     order: (token: symbol) => layers.value.findIndex((layer) => layer.token === token),
   };

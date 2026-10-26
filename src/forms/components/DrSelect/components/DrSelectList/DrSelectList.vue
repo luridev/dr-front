@@ -1,10 +1,11 @@
 <script setup lang="ts" generic="T">
-import { computed, nextTick, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onBeforeUnmount, useTemplateRef, watch } from 'vue';
 import { useCollectionKeys } from '@/collections/composables/useCollectionKeys/useCollectionKeys';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
 import DrCheckIcon from '@/icons/components/DrCheckIcon/DrCheckIcon.generated.vue';
 import type {
   DrSelectListEmits,
+  DrSelectListExposed,
   DrSelectListProps,
   DrSelectListSlots,
 } from '@/forms/components/DrSelect/components/DrSelectList/types';
@@ -20,6 +21,8 @@ const props = withDefaults(defineProps<DrSelectListProps<T>>(), {
 const emit = defineEmits<DrSelectListEmits<T>>();
 defineSlots<DrSelectListSlots<T>>();
 
+const listElement = useTemplateRef<HTMLElement>('listElement');
+let resizeObserver: ResizeObserver | undefined;
 const optionElements = useTemplateRef<Array<HTMLButtonElement>>('optionElements');
 const getItemKey = useCollectionKeys(() => props.items);
 
@@ -125,9 +128,9 @@ function handleKeydown(event: KeyboardEvent) {
 
 watch(
   navigation.activeIndex,
-  async (index) => {
+  async () => {
     await nextTick();
-    optionElements.value?.[index]?.scrollIntoView({ block: 'nearest' });
+    ensureActiveVisible();
   },
   {
     immediate: true,
@@ -147,20 +150,56 @@ watch(
     immediate: true,
   },
 );
+
+watch(() => props.selectedItem, () => {
+  navigation.activateInitialItem();
+});
+
+function ensureActiveVisible() {
+  const scroller = listElement.value;
+  const option = optionElements.value?.[navigation.activeIndex.value];
+
+  if (scroller == null || option == null || scroller.clientHeight === 0) {
+    return;
+  }
+
+  const viewport = scroller.getBoundingClientRect();
+  const rect = option.getBoundingClientRect();
+  const top = rect.top - viewport.top - scroller.clientTop;
+  const bottom = rect.bottom - viewport.top - scroller.clientTop;
+
+  if (top < 0) {
+    scroller.scrollTop += top;
+  } else if (bottom > scroller.clientHeight) {
+    scroller.scrollTop += Math.min(top, bottom - scroller.clientHeight);
+  }
+}
+
+onMounted(() => {
+  if (listElement.value != null) {
+    resizeObserver = new ResizeObserver(ensureActiveVisible);
+    resizeObserver.observe(listElement.value);
+  }
+});
+
+onBeforeUnmount(() => resizeObserver?.disconnect());
+defineExpose<DrSelectListExposed>({ ensureActiveVisible });
 </script>
 
 <template>
   <!-- eslint-disable-next-line vuejs-accessibility/interactive-supports-focus -- Typed -1/0 tabindex. -->
   <div
     :id="props.id"
+    ref="listElement"
     class="DrSelectList"
     :class="$attrs.class"
     role="listbox"
     :tabindex="props.tabindex"
     :aria-label="props.accessibleLabel"
-    :aria-activedescendant="activeDescendant"
-    data-dr-dialog-initial-focus
+    :aria-activedescendant="props.tabindex === 0 ? activeDescendant : undefined"
+    :data-dr-dialog-initial-focus="props.tabindex === 0 ? '' : undefined"
     @keydown="handleKeydown"
+    @pointerdown.prevent
   >
     <button
       v-for="option in options"
@@ -205,7 +244,7 @@ watch(
 <style scoped>
   .DrSelectList {
     min-width: 100%;
-    max-height: 20rem;
+    max-height: min(20rem, var(--dr-select-available-height, 20rem));
     padding: var(--dr-space-xsmall);
     overflow-y: auto;
     border: 1px solid var(--dr-color-border-primary);

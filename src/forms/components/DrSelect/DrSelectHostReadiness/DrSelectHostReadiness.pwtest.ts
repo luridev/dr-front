@@ -7,7 +7,7 @@ test('a late background root preserves the mobile popup and selection until the 
 
   const component = await mount(story, { ready: false });
   const trigger = component.getByRole('combobox', { name: 'Ready select' });
-  const popup = component.getByRole('listbox');
+  const popup = page.getByRole('listbox', { name: 'Ready select', exact: true });
 
   await trigger.click();
   await expect(popup).toBeVisible();
@@ -59,7 +59,7 @@ test('losing the background root closes the modal, releases resources and allows
   await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
   await component.update({ ready: false });
   await expect(dialog).toHaveCount(0);
-  await expect(component.getByRole('listbox')).toHaveCount(0);
+  await expect(page.getByRole('listbox')).toHaveCount(0);
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(trigger).toBeFocused();
   await expect(background).not.toHaveAttribute('inert');
@@ -68,7 +68,7 @@ test('losing the background root closes the modal, releases resources and allows
   await expect(trigger).toHaveText('Option 1 with a longer label');
 
   await trigger.click();
-  await component.getByRole('option', { name: 'Option 2 with a longer label', exact: true }).click();
+  await page.getByRole('option', { name: 'Option 2 with a longer label', exact: true }).click();
   await expect(trigger).toHaveText('Option 2 with a longer label');
   await component.update({ ready: true });
   await trigger.click();

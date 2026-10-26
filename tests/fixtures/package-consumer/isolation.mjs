@@ -3,6 +3,8 @@ import { gzipSync } from 'node:zlib';
 import { build } from 'vite';
 
 const scenarios = {
+  button: ['DrButton'],
+  select: ['DrSelect'],
   plain: ['DrInput'],
   pattern: ['DrMaskedInput'],
   regexp: ['DrMaskedInput'],
@@ -54,11 +56,24 @@ function getServiceModules(chunks) {
     .map(([id]) => id));
 }
 
+function getFloatingModules(chunks) {
+  return chunks.flatMap((chunk) => Object.entries(chunk.modules)
+    .filter(([id, module]) => /node_modules[/\\](?:@floating-ui|focus-trap|tabbable)[/\\]/.test(id) && module.renderedLength !== 0)
+    .map(([id]) => id));
+}
+
 for (const [scenario, components] of Object.entries(scenarios)) {
   const chunks = await buildConsumer({ [scenario]: components });
   const maskModules = getMaskModules(chunks);
 
-  if (scenario === 'plain') {
+  if (scenario === 'button') {
+    assert.equal(maskModules.size, 0, 'DrButton must not bundle IMask.');
+    assert.deepEqual(getFloatingModules(chunks), [], 'DrButton must not bundle Floating UI, focus-trap or tabbable.');
+    assert.deepEqual(getServiceModules(chunks), [], 'DrButton must not bundle overlay or toast infrastructure.');
+  } else if (scenario === 'select') {
+    assert.ok(getFloatingModules(chunks).length > 0, 'DrSelect must retain its floating and focus engines.');
+    assert.equal(maskModules.size, 0, 'DrSelect must not bundle IMask.');
+  } else if (scenario === 'plain') {
     assert.equal(maskModules.size, 0, 'A consumer importing only DrInput must not bundle IMask.');
     assert.deepEqual(getServiceModules(chunks), [], 'DrInput configuration must not bring toast or overlay infrastructure.');
   } else {

@@ -18,3 +18,7 @@ export type DrSelectListEmits<T> = {
 export type DrSelectListSlots<T> = {
   item?: DrSelectItemSlot<T>;
 };
+
+export type DrSelectListExposed = {
+  ensureActiveVisible(): void;
+};

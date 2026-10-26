@@ -191,7 +191,7 @@ for (const width of [320, 1280]) {
 
     const component = await mount(story);
     const trigger = component.getByRole('combobox', { name: 'Without Host', exact: true });
-    const listbox = component.getByRole('listbox', { name: 'Without Host', exact: true });
+    const listbox = page.getByRole('listbox', { name: 'Without Host', exact: true });
 
     await trigger.click();
     await expect(listbox).toBeVisible();

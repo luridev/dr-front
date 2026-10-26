@@ -38,7 +38,7 @@ export default defineConfig({
       cssFileName: 'styles',
     },
     rolldownOptions: {
-      external: ['vue', /^imask(?:\/|$)/],
+      external: ['vue', /^imask(?:\/|$)/, /^@floating-ui\//, /^focus-trap(?:\/|$)/, /^tabbable(?:\/|$)/],
       output: {
         preserveModules: true,
         preserveModulesRoot: fileURLToPath(new URL('.', import.meta.url)),

@@ -49,7 +49,7 @@ export function createOverlayContext() {
       close: handle.close,
     }];
 
-    modality.value?.register(token, root, handle.close);
+    modality.value?.register(token, root, handle.close, options.opener);
 
     return handle;
   }

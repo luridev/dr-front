@@ -3,6 +3,7 @@ export type DocumentLayer = {
   backgroundRoot: HTMLElement;
   close: () => void;
   restoreFocusTo: HTMLElement | undefined;
+  canReturnFocus?: () => boolean;
 };
 
 export type BackgroundOwnership = {

@@ -36,8 +36,8 @@ export function createDocumentFixture() {
   }
 
   const document = Object.assign(new EventTarget(), {
-    body: element(),
-    documentElement: element(),
+    body: Object.assign(new FocusTarget(), element()),
+    documentElement: Object.assign(new FocusTarget(), element()),
     activeElement: null,
     defaultView: { HTMLElement: FocusTarget },
   }) as unknown as Document;
@@ -58,7 +58,7 @@ export function createDocumentFixture() {
     return event;
   }
 
-  function focus(target: FocusTarget) {
+  function focus(target: FocusTarget | Element | null) {
     Object.defineProperty(document, 'activeElement', { configurable: true, value: target });
   }
 

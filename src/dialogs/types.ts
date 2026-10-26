@@ -26,6 +26,10 @@ export type UseDialog<TEvents extends object> = {
   id: string;
   canOpenModal: ComputedRef<boolean>;
   isOpen: Readonly<Ref<boolean>>;
-  open: (handlers?: DialogEventHandlers<TEvents>) => void;
+  open: (handlers?: DialogEventHandlers<TEvents>, options?: DialogOpenOptions) => void;
   close: () => void;
+};
+
+export type DialogOpenOptions = {
+  opener?: HTMLElement | null;
 };

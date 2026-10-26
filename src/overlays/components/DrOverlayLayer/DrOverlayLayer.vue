@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, provide } from 'vue';
+import { computed, provide, useTemplateRef } from 'vue';
 import { drConfigKey } from '@/configuration/keys';
 import DrComponent from '@/dynamic-components/components/DrComponent/DrComponent.vue';
 import { drToastKey } from '@/feedback/toasts/keys';
+import { dialogReturnFocusKey } from '@/overlays/lib/dialogFocus/dialogFocus';
+import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';
+import { floatingScopeKey } from '@/overlays/lib/floatingScope/floatingScope';
 import type { DrOverlayLayerProps } from '@/overlays/components/DrOverlayLayer/types';
 
 defineOptions({
@@ -10,9 +13,19 @@ defineOptions({
 });
 
 const props = defineProps<DrOverlayLayerProps>();
+const floatingTarget = useTemplateRef<HTMLElement>('floatingTarget');
 
-function handleBackdropPointerdown() {
+// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- The keyed layer token is immutable.
+provide(dialogReturnFocusKey, getDocumentModality(document).focusReturnFor(props.layer.token));
+
+provide(floatingScopeKey, {
+  target: floatingTarget,
+  active: computed(() => props.isTopLayer),
+});
+
+function handleBackdropPointerdown(event: PointerEvent) {
   if (props.isTopLayer && props.layer.closeOnBackdrop) {
+    event.preventDefault();
     props.layer.close();
   }
 }
@@ -39,6 +52,11 @@ const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }))
         <DrComponent :definition="props.layer.content" />
       </div>
     </div>
+
+    <div
+      ref="floatingTarget"
+      class="DrOverlayLayer__floating"
+    ></div>
   </div>
 </template>
 
@@ -76,5 +94,9 @@ const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }))
 
   .DrOverlayLayer_top .DrOverlayLayer__contentValue {
     pointer-events: auto;
+  }
+
+  .DrOverlayLayer__floating {
+    display: contents;
   }
 </style>

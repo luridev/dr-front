@@ -12,6 +12,7 @@ export type OverlayHandle = {
 };
 
 export type OverlayOptions = {
+  opener?: HTMLElement | null;
   content: DrComponentDefinition;
   closeOnBackdrop?: boolean;
   onClose?: () => void;
