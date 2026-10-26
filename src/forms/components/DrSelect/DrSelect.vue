@@ -342,8 +342,15 @@ defineExpose<DrSelectExposed>({
 
   .DrSelect__popup {
     z-index: var(--dr-layer-floating);
+    display: flex;
+    flex-direction: column;
     width: max-content;
+    max-height: min(20rem, var(--dr-select-available-height, 20rem));
+    overflow: clip;
+    border: 1px solid var(--dr-color-border-primary);
     border-radius: var(--dr-border-radius-surface);
+    background: var(--dr-color-background-primary);
+    color: var(--dr-color-text-primary);
     box-shadow: 0 var(--dr-space-small) var(--dr-space-large) rgb(0 0 0 / 18%);
   }
 </style>

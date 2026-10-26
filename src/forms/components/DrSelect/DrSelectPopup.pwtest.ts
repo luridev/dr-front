@@ -25,14 +25,17 @@ test('viewport placement and local scrolling preserve object selection through a
 
   await trigger.click();
   const list = page.getByRole('listbox');
+  const shell = page.locator('.DrSelect__popup');
   await expect(list).toBeVisible();
   await expect(root.getByRole('listbox')).toHaveCount(0);
-  const popup = await list.boundingBox();
+  const popup = await shell.boundingBox();
   const anchor = await trigger.boundingBox();
   expect(popup).not.toBeNull();
   expect(anchor).not.toBeNull();
   expect((popup?.y ?? Infinity) + (popup?.height ?? 0)).toBeLessThan(anchor?.y ?? 0);
-  await expect(list).toBeInViewport({ ratio: 1 });
+  await expect(shell).toBeInViewport({ ratio: 1 });
+  expect(await shell.evaluate((element) => element.scrollHeight === element.clientHeight)).toBe(true);
+  expect(await list.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await expect(list.getByRole('option').last()).toBeInViewport({ ratio: 1 });
   const scroll = await frame.evaluate((element) => [element.scrollTop, scrollY]);
 
@@ -62,6 +65,85 @@ test('viewport placement and local scrolling preserve object selection through a
   await expect(trigger).not.toHaveAttribute('aria-activedescendant');
   expect(await frame.evaluate((element) => [element.scrollTop, scrollY])).toEqual(hiddenScroll);
 });
+
+for (const theme of ['light', 'dark']) {
+  test(`mobile keyboard focus follows the active option independently of selection in ${theme} theme`, async ({ mount, page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const root = await mount(story);
+
+    await page.evaluate((value) => {
+      document.documentElement.dataset.theme = value;
+    }, theme);
+
+    const trigger = root.getByRole('combobox', { name: 'Choice' });
+    await trigger.press('Enter');
+    const list = page.getByRole('listbox');
+    const selected = list.getByRole('option', { selected: true });
+    await expect(list).toBeFocused();
+    await expect(list).toHaveCSS('border-top-width', '0px');
+    await expect(list).toHaveCSS('border-radius', '0px');
+    await expect(list).toHaveCSS('box-shadow', 'none');
+    await expect(selected).toHaveCSS('outline-style', 'solid');
+    const selectedId = await selected.getAttribute('id');
+
+    for (const [key, name] of [['ArrowUp', 'Option 39'], ['Home', 'Option 1'], ['ArrowDown', 'Option 2'], ['End', 'Option 40']]) {
+      await list.press(key);
+      const active = list.getByRole('option', { name, exact: true });
+      await expect(list).toHaveAttribute('aria-activedescendant', await active.getAttribute('id') ?? '');
+      await expect(active).toHaveCSS('outline-style', 'solid');
+      await expect(active).toBeInViewport({ ratio: 1 });
+      await expect(selected).toHaveAttribute('id', selectedId ?? '');
+
+      const indicator = await active.evaluate((element) => {
+        const style = getComputedStyle(element);
+
+        return { width: parseFloat(style.outlineWidth), offset: parseFloat(style.outlineOffset) };
+      });
+
+      expect(indicator.width).toBeGreaterThan(0);
+      expect(indicator.offset).toBeLessThanOrEqual(-indicator.width);
+
+      if (name !== 'Option 40') {
+        await expect(selected).toHaveCSS('outline-style', 'none');
+      }
+    }
+
+    await page.emulateMedia({ forcedColors: 'active' });
+    await expect(selected).toHaveCSS('outline-style', 'solid');
+
+    expect(await selected.evaluate((element) => {
+      const style = getComputedStyle(element);
+
+      return style.outlineColor !== style.backgroundColor;
+    })).toBe(true);
+
+    await list.press('Home');
+    await list.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(root.getByTestId('selection')).toHaveText('0');
+    await expect(trigger).toBeFocused();
+  });
+}
+
+for (const interaction of ['mouse', 'touch']) {
+  test.describe(`mobile ${interaction} focus`, () => {
+    test.use({ hasTouch: interaction === 'touch' });
+
+    test('selects an option without a keyboard focus outline', async ({ mount, page, browserName }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      const root = await mount(story);
+      const trigger = root.getByRole('combobox', { name: 'Choice' });
+      const list = page.getByRole('listbox');
+      const action = interaction === 'touch' ? 'tap' : 'click';
+      await trigger[action]();
+      await expect(list.getByRole('option', { selected: true })).toHaveCSS('outline-style', 'none');
+      await list.getByRole('option', { name: 'Option 39', exact: true })[action]();
+      test.fail(browserName === 'webkit' && interaction === 'touch', 'Existing WebKit touch issue: prevented pointerdown suppresses click, also reproduced before the styling change.');
+      await expect(root.getByTestId('selection')).toHaveText('38');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    });
+  });
+}
 
 test('Tab with a teleported popup follows the trigger in both directions', async ({ mount, page }) => {
   const root = await mount(story);

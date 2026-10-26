@@ -244,20 +244,11 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
 <style scoped>
   .DrSelectList {
     min-width: 100%;
+    min-height: 0;
     max-height: min(20rem, var(--dr-select-available-height, 20rem));
     padding: var(--dr-space-xsmall);
     overflow-y: auto;
-    border: 1px solid var(--dr-color-border-primary);
-    border-radius: var(--dr-border-radius-surface);
-    background: var(--dr-color-background-primary);
-    color: var(--dr-color-text-primary);
     outline: none;
-    box-shadow: var(--dr-select-list-box-shadow, none);
-  }
-
-  .DrSelectList:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: 2px;
   }
 
   .DrSelectList__option {
@@ -283,9 +274,17 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
     background: var(--dr-color-background-highlight);
   }
 
+  .DrSelectList:focus-visible .DrSelectList__option_active,
   .DrSelectList__option:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
+    outline: 2px solid var(--dr-color-text-primary);
+    outline-offset: -4px;
+  }
+
+  @media (forced-colors: active) {
+    .DrSelectList:focus-visible .DrSelectList__option_active,
+    .DrSelectList__option:focus-visible {
+      outline-color: Highlight;
+    }
   }
 
   .DrSelectList__option_selected {
