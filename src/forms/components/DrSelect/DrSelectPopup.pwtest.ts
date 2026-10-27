@@ -115,6 +115,70 @@ test('viewport placement and local scrolling preserve object selection through a
   expect(await frame.evaluate((element) => [element.scrollTop, scrollY])).toEqual(hiddenScroll);
 });
 
+test('mobile list keeps keyboard navigation visible when an open dialog becomes shorter', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const root = await mount(story);
+  const trigger = root.getByRole('combobox', { name: 'Choice' });
+  await trigger.press('Enter');
+  const dialog = page.getByRole('dialog', { name: 'Choice', exact: true });
+  const list = dialog.getByRole('listbox');
+  await expect(list).toBeFocused();
+
+  async function expectActiveVisible(name: string) {
+    const active = list.getByRole('option', { name, exact: true });
+    await expect(list).toHaveAttribute('aria-activedescendant', await active.getAttribute('id') ?? '');
+
+    await expect.poll(() => active.evaluate((option) => {
+      const listbox = option.closest<HTMLElement>('[role="listbox"]');
+      const body = option.closest<HTMLElement>('.DrDialog__body');
+
+      if (listbox == null || body == null) {
+        return null;
+      }
+
+      const rect = option.getBoundingClientRect();
+      const listRect = listbox.getBoundingClientRect();
+      const bodyRect = body.getBoundingClientRect();
+      const listTop = listRect.top + listbox.clientTop;
+      const bodyTop = bodyRect.top + body.clientTop;
+      const listLeft = listRect.left + listbox.clientLeft;
+      const bodyLeft = bodyRect.left + body.clientLeft;
+      const tolerance = 1;
+
+      return {
+        activeVisible: rect.height > 0 && rect.width > 0 &&
+          rect.top >= Math.max(listTop, bodyTop) - tolerance &&
+          rect.bottom <= Math.min(listTop + listbox.clientHeight, bodyTop + body.clientHeight) + tolerance &&
+          rect.left >= Math.max(listLeft, bodyLeft) - tolerance &&
+          rect.right <= Math.min(listLeft + listbox.clientWidth, bodyLeft + body.clientWidth) + tolerance,
+        listFitsBody: listRect.top >= bodyTop - tolerance &&
+          listRect.bottom <= bodyTop + body.clientHeight + tolerance,
+        listScrollable: listbox.scrollHeight > listbox.clientHeight,
+        bodyScrollable: body.scrollHeight > body.clientHeight + tolerance,
+      };
+    })).toEqual({ activeVisible: true, listFitsBody: true, listScrollable: true, bodyScrollable: false });
+  }
+
+  await list.press('End');
+  await expectActiveVisible('Option 40');
+  await page.setViewportSize({ width: 390, height: 320 });
+  await expectActiveVisible('Option 40');
+
+  for (const [key, name] of [['Home', 'Option 1'], ['End', 'Option 40']]) {
+    await list.press(key);
+    await expectActiveVisible(name);
+  }
+
+  await expect(dialog.getByRole('heading', { name: 'Choice', exact: true })).toBeInViewport({ ratio: 1 });
+  await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeInViewport({ ratio: 1 });
+  await list.press('ArrowUp');
+  await expectActiveVisible('Option 39');
+  await list.press('Enter');
+  await expect(dialog).toHaveCount(0);
+  await expect(root.getByTestId('selection')).toHaveText('38');
+  await expect(trigger).toBeFocused();
+});
+
 for (const theme of ['light', 'dark']) {
   test(`mobile keyboard focus follows the active option independently of selection in ${theme} theme`, async ({ mount, page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

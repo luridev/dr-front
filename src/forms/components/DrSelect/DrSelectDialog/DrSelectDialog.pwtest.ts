@@ -3,7 +3,7 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const selectDialogStoryId = 'forms/components/DrSelect/DrSelectDialog/DrSelectDialog';
 
-test('consumer spacing scrolls with the body while the header and footer stay visible', async ({ mount, page }) => {
+test('direct content and consumer spacing scroll with the body while the header and footer stay visible', async ({ mount, page }) => {
   await page.setViewportSize({ width: 390, height: 220 });
   const root = await mount(selectDialogStoryId);
   await root.getByRole('button', { name: 'Open dialog', exact: true }).click();
@@ -17,14 +17,24 @@ test('consumer spacing scrolls with the body while the header and footer stay vi
   await expect(footer).toBeInViewport({ ratio: 1 });
   const headerBefore = await header.boundingBox();
   const footerBefore = await footer.boundingBox();
+  const dialogBefore = await dialog.boundingBox();
+  const outsideScroll = await dialog.evaluate((element) => [element.scrollTop, scrollY]);
+  await expect(body.getByText('Choose an option below.', { exact: true })).toBeInViewport({ ratio: 1 });
 
   await body.evaluate((element) => {
     element.scrollTop = element.scrollHeight;
   });
 
   expect(await body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await expect(body.getByText('Scroll back to change your choice.', { exact: true })).toBeInViewport({ ratio: 1 });
   expect(await header.boundingBox()).toEqual(headerBefore);
   expect(await footer.boundingBox()).toEqual(footerBefore);
+  expect(await dialog.boundingBox()).toEqual(dialogBefore);
+  expect(await dialog.evaluate((element) => [element.scrollTop, scrollY])).toEqual(outsideScroll);
+  const trigger = body.getByRole('combobox', { name: 'Dialog select', exact: true });
+  await trigger.focus();
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toBeInViewport({ ratio: 1 });
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await expect(dialog).toHaveCount(0);
 });

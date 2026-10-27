@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineComponent } from 'vue';
 import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
-import DrSelect from '@/forms/components/DrSelect/DrSelect.vue';
+import { DialogContent } from '@/forms/components/DrSelect/DrSelectDialog/content.support';
 
 const DialogFooter = defineComponent({
   inheritAttrs: false,
@@ -10,13 +10,7 @@ const DialogFooter = defineComponent({
 
 const dialog = useDialog({
   title: 'Select dialog',
-  component: DrSelect<string>,
-  props: {
-    class: 'DrSelectDialog__content',
-    label: 'Dialog select',
-    items: Array.from({ length: 40 }, (_, index) => `Option ${index + 1}`),
-    modelValue: 'Option 40',
-  },
+  component: DialogContent,
   footer: { component: DialogFooter },
 });
 </script>
@@ -31,6 +25,11 @@ const dialog = useDialog({
 </template>
 
 <style scoped>
+  :global(.DrSelectDialog__note) {
+    margin: 0;
+    padding: var(--dr-space-medium);
+  }
+
   :global(.DrSelectDialog__content) {
     padding: var(--dr-space-large);
   }
