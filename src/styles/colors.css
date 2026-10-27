@@ -59,7 +59,7 @@
   --dr-color-background-success: var(--dr-color-emerald-100);
   --dr-color-border-success: var(--dr-color-emerald-700);
 
-  --dr-color-background-highlight: var(--dr-color-background-base);
+  --dr-color-background-highlight: var(--dr-color-gray-300);
   --dr-color-focus: var(--dr-color-gray-500);
 }
 
@@ -69,6 +69,7 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  --dr-color-background-highlight: var(--dr-color-gray-500);
   --dr-color-focus: var(--dr-color-gray-300);
 
   --dr-color-text-base: var(--dr-color-gray-200);
@@ -102,6 +103,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
+    --dr-color-background-highlight: var(--dr-color-gray-500);
     --dr-color-focus: var(--dr-color-gray-300);
     --dr-color-text-base: var(--dr-color-gray-200);
     --dr-color-background-base: var(--dr-color-gray-900);

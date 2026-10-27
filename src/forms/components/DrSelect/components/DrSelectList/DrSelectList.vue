@@ -270,19 +270,25 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
     gap: var(--dr-space-medium);
   }
 
-  .DrSelectList__option:hover,
+  .DrSelectList__option:where(:hover) {
+    background: var(--dr-color-background-base);
+  }
+
   .DrSelectList__option_active {
     background: var(--dr-color-background-highlight);
+    box-shadow: inset 2px 0 0 var(--dr-color-focus);
   }
 
   .DrSelectList:focus-visible .DrSelectList__option_active,
   .DrSelectList__option:focus-visible {
     outline: var(--dr-focus-width) solid var(--dr-color-focus);
+    box-shadow: none;
   }
 
   @media (forced-colors: active) {
-    .DrSelectList[tabindex='-1'] .DrSelectList__option_active {
+    .DrSelectList__option_active {
       outline: var(--dr-focus-width) solid var(--dr-color-focus);
+      box-shadow: none;
     }
   }
 

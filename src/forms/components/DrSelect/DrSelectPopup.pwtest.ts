@@ -25,6 +25,32 @@ test('desktop virtual focus remains visible in forced colors while DOM focus sta
   await expect(list.getByRole('option', { name: 'Option 1', exact: true })).toHaveCSS('outline-style', 'none');
 });
 
+test('pointer-origin navigation distinguishes the active option from the hovered selection', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const root = await mount(story);
+  await root.getByRole('combobox', { name: 'Choice' }).click();
+  const list = page.getByRole('listbox');
+  await expect(list).toBeFocused();
+  const selected = list.getByRole('option', { selected: true });
+  await selected.hover();
+  const activeBackground = await selected.evaluate((element) => getComputedStyle(element).backgroundColor);
+  await page.keyboard.press('ArrowUp');
+  const active = list.getByRole('option', { name: 'Option 39', exact: true });
+  await expect(list).toHaveAttribute('aria-activedescendant', await active.getAttribute('id') ?? '');
+  await expect(selected).toHaveText('Option 40');
+  await expect(active).toHaveCSS('background-color', activeBackground);
+  await expect(active).not.toHaveCSS('background-color', await selected.evaluate((element) => getComputedStyle(element).backgroundColor));
+
+  expect(await active.evaluate((element) => {
+    const style = getComputedStyle(element);
+
+    return style.outlineStyle !== 'none' || style.boxShadow !== 'none';
+  })).toBe(true);
+
+  await page.emulateMedia({ forcedColors: 'active' });
+  await expect(active).toHaveCSS('outline-style', 'solid');
+});
+
 test('viewport placement and local scrolling preserve object selection through a clipped parent', async ({ mount, page }) => {
   await page.setViewportSize({ width: 900, height: 300 });
   const root = await mount(story);
