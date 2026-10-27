@@ -3,3 +3,19 @@
 *::after {
   box-sizing: border-box;
 }
+
+:where(:focus-visible),
+:where([data-dr-focus-surface]:has([data-dr-focus-target]:focus-visible):not(
+  :has([data-dr-focus-surface] [data-dr-focus-target]:focus-visible)
+)) {
+  outline: var(--dr-focus-width) solid var(--dr-color-focus);
+  outline-offset: var(--dr-focus-offset);
+}
+
+:where([data-dr-focus-surface]:has([data-dr-focus-target]:focus-visible) [data-dr-focus-target]:focus-visible) {
+  outline: none;
+}
+
+:where([data-dr-focus-inset]) {
+  outline-offset: calc(-1 * (var(--dr-focus-width) + var(--dr-focus-offset)));
+}

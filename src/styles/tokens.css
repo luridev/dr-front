@@ -8,6 +8,9 @@
   --dr-border-radius-surface: var(--dr-border-radius-medium);
   --dr-border-radius-dialog: var(--dr-border-radius-large);
 
+  --dr-focus-width: 2px;
+  --dr-focus-offset: 2px;
+
   --dr-space-xsmall: 4px;
   --dr-space-small: 8px;
   --dr-space-medium: 16px;

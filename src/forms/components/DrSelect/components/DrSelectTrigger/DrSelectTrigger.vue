@@ -54,6 +54,7 @@ defineExpose<DrSelectTriggerExposed>({
     :aria-activedescendant="props.aria.activeDescendant"
     :aria-invalid="props.invalid || undefined"
     :aria-describedby="props.describedBy"
+    data-dr-focus-target
     @click="handleClick"
     @keydown="handleKeydown"
   >
@@ -81,7 +82,7 @@ defineExpose<DrSelectTriggerExposed>({
     min-height: 42px;
     padding: var(--dr-space-small) var(--dr-space-medium);
     border: 0;
-    border-radius: inherit;
+    border-radius: var(--dr-border-radius-field);
     background: transparent;
     color: inherit;
     font: inherit;
@@ -92,11 +93,6 @@ defineExpose<DrSelectTriggerExposed>({
 
   .DrSelectTrigger:disabled {
     cursor: var(--dr-disabled-cursor);
-  }
-
-  .DrSelectTrigger:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
   }
 
   .DrSelectTrigger__value {

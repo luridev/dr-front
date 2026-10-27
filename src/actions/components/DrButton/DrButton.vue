@@ -186,7 +186,7 @@ function handleClick(event: MouseEvent) {
     opacity: var(--dr-opacity-50);
   }
 
-  .DrButton:not(:disabled):hover {
+  .DrButton:not(:disabled):hover:not(:focus-visible) {
     opacity: var(--dr-opacity-80);
   }
 

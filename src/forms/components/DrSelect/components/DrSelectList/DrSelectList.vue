@@ -212,6 +212,7 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
       role="option"
       tabindex="-1"
       :aria-selected="option.selected"
+      data-dr-focus-inset
       @click="() => selectItem(option.item)"
       @pointermove="() => activateItem(option.index)"
     >
@@ -276,14 +277,12 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
 
   .DrSelectList:focus-visible .DrSelectList__option_active,
   .DrSelectList__option:focus-visible {
-    outline: 2px solid var(--dr-color-text-primary);
-    outline-offset: -4px;
+    outline: var(--dr-focus-width) solid var(--dr-color-focus);
   }
 
   @media (forced-colors: active) {
-    .DrSelectList:focus-visible .DrSelectList__option_active,
-    .DrSelectList__option:focus-visible {
-      outline-color: Highlight;
+    .DrSelectList[tabindex='-1'] .DrSelectList__option_active {
+      outline: var(--dr-focus-width) solid var(--dr-color-focus);
     }
   }
 

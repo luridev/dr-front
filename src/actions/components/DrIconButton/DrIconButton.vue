@@ -31,6 +31,7 @@ function handleClick(event: MouseEvent) {
     :tabindex="props.tabindex"
     :aria-label="props.aria.ariaLabel"
     :aria-controls="props.aria.ariaControls"
+    :data-dr-focus-inset="$attrs['data-dr-focus-inset']"
     @pointerdown="handlePointerdown"
     @click="handleClick"
   >
@@ -49,6 +50,7 @@ function handleClick(event: MouseEvent) {
     margin: 0;
     padding: 0;
     border: none;
+    border-radius: var(--dr-border-radius-control);
     background: transparent;
     color: inherit;
     font: inherit;

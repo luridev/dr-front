@@ -129,6 +129,7 @@ defineExpose({
         :aria-valuetext="props.aria?.ariaValueText"
         :aria-invalid="resolveAriaInvalid(slot.state)"
         :aria-describedby="slot.describedBy"
+        data-dr-focus-target
         @input="handleInput"
         @blur="handleBlur"
         @keydown="handleKeydown"
@@ -142,6 +143,7 @@ defineExpose({
           ariaLabel: clearButtonAriaLabel,
           ariaControls: slot.id,
         }"
+        data-dr-focus-inset
         @pointerdown.prevent
         @click="handleClear"
       >
@@ -166,7 +168,6 @@ defineExpose({
     background: transparent;
     color: inherit;
     font: inherit;
-    outline: none;
   }
 
   .DrInput_clearable {
@@ -192,16 +193,11 @@ defineExpose({
     cursor: pointer;
   }
 
-  .DrInput__clearButton:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
-  }
-
   .DrInput__clearButton:hover {
     color: var(--dr-color-text-primary);
   }
 
-  .DrInput__clearButton:active {
+  .DrInput__clearButton:active:not(:focus-visible) {
     opacity: var(--dr-opacity-65);
   }
 </style>

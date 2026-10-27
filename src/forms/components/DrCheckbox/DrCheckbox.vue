@@ -98,13 +98,4 @@ const model = defineModel<boolean>({
   .DrCheckbox[aria-invalid='true'] {
     border-color: var(--dr-color-border-danger);
   }
-
-  .DrCheckbox:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: 2px;
-  }
-
-  .DrCheckbox[aria-invalid='true']:focus-visible {
-    outline-color: var(--dr-color-border-danger);
-  }
 </style>

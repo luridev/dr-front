@@ -2,6 +2,29 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const story = 'forms/components/DrSelect/DrSelectPopup';
 
+test('desktop virtual focus remains visible in forced colors while DOM focus stays on the trigger', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 900, height: 844 });
+  await page.emulateMedia({ forcedColors: 'active' });
+  const root = await mount(story);
+  const trigger = root.getByRole('combobox', { name: 'Choice' });
+
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowDown');
+
+  const list = page.getByRole('listbox');
+  const active = list.getByRole('option', { name: 'Option 2', exact: true });
+
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute('aria-activedescendant', await active.getAttribute('id') ?? '');
+  await expect(active).toHaveCSS('outline-style', 'solid');
+  await expect(list).toHaveCSS('outline-style', 'none');
+  await expect(list.getByRole('option', { name: 'Option 1', exact: true })).toHaveCSS('outline-style', 'none');
+});
+
 test('viewport placement and local scrolling preserve object selection through a clipped parent', async ({ mount, page }) => {
   await page.setViewportSize({ width: 900, height: 300 });
   const root = await mount(story);

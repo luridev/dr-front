@@ -209,6 +209,7 @@ function handleWheel(event: WheelEvent) {
           ariaLabel: signAriaLabel,
           ariaControls: inputId,
         }"
+        data-dr-focus-inset
         @pointerdown.prevent
         @click="handleSignToggle"
       >
@@ -226,6 +227,7 @@ function handleWheel(event: WheelEvent) {
             ariaLabel: incrementAriaLabel,
             ariaControls: inputId,
           }"
+          data-dr-focus-inset
           @pointerdown.prevent
           @click="handleIncrement"
         >
@@ -240,6 +242,7 @@ function handleWheel(event: WheelEvent) {
             ariaLabel: decrementAriaLabel,
             ariaControls: inputId,
           }"
+          data-dr-focus-inset
           @pointerdown.prevent
           @click="handleDecrement"
         >
@@ -294,20 +297,14 @@ function handleWheel(event: WheelEvent) {
     opacity: var(--dr-opacity-50);
   }
 
-  .DrInputNumber__signButton:focus-visible,
-  .DrInputNumber__stepperButton:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
-  }
-
   .DrInputNumber__signButton:hover:not(:disabled),
   .DrInputNumber__stepperButton:hover:not(:disabled) {
     background: var(--dr-color-background-secondary);
     color: var(--dr-color-text-primary);
   }
 
-  .DrInputNumber__signButton:active:not(:disabled),
-  .DrInputNumber__stepperButton:active:not(:disabled) {
+  .DrInputNumber__signButton:active:not(:disabled, :focus-visible),
+  .DrInputNumber__stepperButton:active:not(:disabled, :focus-visible) {
     opacity: var(--dr-opacity-65);
   }
 </style>

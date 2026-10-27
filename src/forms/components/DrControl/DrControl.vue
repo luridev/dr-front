@@ -75,6 +75,7 @@ const controlClasses = computed(() => ({
     <div
       class="DrControl__control"
       :class="controlClasses"
+      data-dr-focus-surface
     >
       <slot
         :id="controlId"
@@ -183,12 +184,7 @@ const controlClasses = computed(() => ({
     transition: border-color 0.15s ease;
   }
 
-  .DrControl__control_bordered:focus-within {
-    border-color: var(--dr-color-border-accent);
-  }
-
-  .DrControl__control_error.DrControl__control_bordered,
-  .DrControl__control_error.DrControl__control_bordered:focus-within {
+  .DrControl__control_error.DrControl__control_bordered {
     border-color: var(--dr-color-border-danger);
   }
 

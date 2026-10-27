@@ -73,6 +73,7 @@ defineExpose({
     :readonly="props.readonly"
     :aria-invalid="props.aria?.ariaInvalid || undefined"
     :aria-describedby="props.aria?.ariaDescribedBy"
+    :data-dr-focus-target="$attrs['data-dr-focus-target']"
     @blur="handleBlur"
     @paste="handlePaste"
   ></textarea>
@@ -89,7 +90,6 @@ defineExpose({
     background: transparent;
     color: inherit;
     font: inherit;
-    outline: none;
 
     @supports (resize: none) {
       resize: none;

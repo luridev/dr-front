@@ -1,6 +1,14 @@
 import type { GalleryGroup } from '~/gallery/types';
 
 export const galleryGroups: Array<GalleryGroup> = [
+  {
+    title: 'Showcases',
+    stories: [{
+      id: 'configuration/components/DrFrontProvider/FocusShowcase/FocusShowcase',
+      title: 'Focus Showcase',
+      description: 'Keyboard focus, field states, internal actions, dialogs, and notifications on one page.',
+    }],
+  },
   { title: 'Dialogs',
     stories: [{
       id: 'dialogs/components/DrDialog/DrDialogFocus/DrDialogFocus',

@@ -131,16 +131,12 @@ function isChecked(item: T) {
     width: 16px;
     height: 16px;
     margin: 4px 0 0;
+    border-radius: 50%;
     cursor: inherit;
 
     @supports (accent-color: var(--dr-color-background-accent)) {
       accent-color: var(--dr-color-background-accent);
     }
-  }
-
-  .DrRadioGroup__input:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: 2px;
   }
 
   .DrRadioGroup__label {

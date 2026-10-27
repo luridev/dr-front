@@ -118,6 +118,7 @@ function handleBlur(event: FocusEvent) {
         class="DrInputTime__periodButton"
         :disabled="props.disabled || props.readonly"
         :aria="{ ariaLabel: periodAriaLabel, ariaControls: inputId }"
+        data-dr-focus-inset
         @pointerdown.prevent
         @click="handlePeriodToggle"
       >
@@ -145,17 +146,12 @@ function handleBlur(event: FocusEvent) {
     opacity: var(--dr-opacity-50);
   }
 
-  .DrInputTime__periodButton:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
-  }
-
   .DrInputTime__periodButton:hover:not(:disabled) {
     background: var(--dr-color-background-secondary);
     color: var(--dr-color-text-primary);
   }
 
-  .DrInputTime__periodButton:active:not(:disabled) {
+  .DrInputTime__periodButton:active:not(:disabled, :focus-visible) {
     opacity: var(--dr-opacity-65);
   }
 </style>

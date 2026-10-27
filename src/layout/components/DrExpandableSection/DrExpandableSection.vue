@@ -66,6 +66,7 @@ const slots = defineSlots<DrExpandableSectionSlots>();
     min-width: 0;
     cursor: pointer;
     list-style: none;
+    border-radius: var(--dr-border-radius-control);
   }
 
   .DrExpandableSection__summary::-webkit-details-marker {
@@ -75,12 +76,6 @@ const slots = defineSlots<DrExpandableSectionSlots>();
   .DrExpandableSection_disabled .DrExpandableSection__summary {
     cursor: var(--dr-disabled-cursor);
     opacity: var(--dr-opacity-65);
-  }
-
-  .DrExpandableSection:not(.DrExpandableSection_disabled) .DrExpandableSection__summary:focus-visible {
-    border-radius: var(--dr-border-radius-control);
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: 2px;
   }
 
   .DrExpandableSection__icon {

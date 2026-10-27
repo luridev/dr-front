@@ -60,6 +60,7 @@
   --dr-color-border-success: var(--dr-color-emerald-700);
 
   --dr-color-background-highlight: var(--dr-color-background-base);
+  --dr-color-focus: var(--dr-color-gray-500);
 }
 
 :root[data-theme='light'] {
@@ -68,6 +69,7 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  --dr-color-focus: var(--dr-color-gray-300);
 
   --dr-color-text-base: var(--dr-color-gray-200);
   --dr-color-background-base: var(--dr-color-gray-900);
@@ -100,6 +102,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
+    --dr-color-focus: var(--dr-color-gray-300);
     --dr-color-text-base: var(--dr-color-gray-200);
     --dr-color-background-base: var(--dr-color-gray-900);
     --dr-color-border-base: var(--dr-color-gray-900);
@@ -127,5 +130,12 @@
     --dr-color-text-success: var(--dr-color-emerald-300);
     --dr-color-background-success: var(--dr-color-emerald-900);
     --dr-color-border-success: var(--dr-color-emerald-300);
+  }
+}
+
+@media (forced-colors: active) {
+  :root[data-theme],
+  :root:not([data-theme]) {
+    --dr-color-focus: Highlight;
   }
 }

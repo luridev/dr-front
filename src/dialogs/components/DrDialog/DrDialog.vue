@@ -46,6 +46,7 @@ provide(floatingScopeKey, {
     aria-modal="true"
     :aria-labelledby="titleId"
     tabindex="-1"
+    data-dr-focus-inset
   >
     <div class="DrDialog__panel">
       <header class="DrDialog__header">
@@ -89,6 +90,7 @@ provide(floatingScopeKey, {
     width: min(32rem, calc(100vw - var(--dr-space-medium) * 2));
     max-height: calc(100vh - var(--dr-space-medium) * 2);
     max-height: calc(100dvh - var(--dr-space-medium) * 2);
+    border-radius: var(--dr-border-radius-dialog);
   }
 
   .DrDialog__panel {

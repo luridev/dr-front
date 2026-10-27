@@ -168,6 +168,7 @@ function handleKeydown(event: KeyboardEvent, index: number) {
       :aria-controls="tab.panelId"
       :aria-selected="tab.selected"
       :tabindex="tab.tabindex"
+      data-dr-focus-inset
       @click="() => handleTabClick(tab.item)"
       @keydown="($event) => handleKeydown($event, tab.index)"
     >
@@ -220,11 +221,6 @@ function handleKeydown(event: KeyboardEvent, index: number) {
 
   .DrTabSwitcher__tab:hover {
     color: var(--dr-color-text-primary);
-  }
-
-  .DrTabSwitcher__tab:focus-visible {
-    outline: 2px solid var(--dr-color-border-accent);
-    outline-offset: -2px;
   }
 
   .DrTabSwitcher__tab_selected {

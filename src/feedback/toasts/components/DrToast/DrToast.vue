@@ -170,8 +170,6 @@ function handleFocusOut(event: FocusEvent) {
   }
 
   .DrToast__close:focus-visible {
-    outline: 2px solid currentcolor;
-    outline-offset: 1px;
     opacity: 1;
   }
 </style>

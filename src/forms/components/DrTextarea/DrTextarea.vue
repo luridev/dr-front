@@ -120,6 +120,7 @@ defineExpose({
               :placeholder="props.placeholder"
               :rows="props.rows"
               :aria="getTextareaAria(slot.state, slot.describedBy)"
+              data-dr-focus-target
               @blur="handleBlur"
               @limit-exceeded="handleLimitExceeded"
             />
