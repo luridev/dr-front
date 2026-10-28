@@ -5,6 +5,7 @@ import { useDrTranslation } from '@/configuration/composables/useDrTranslation/u
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import DrTextareaBase from '@/forms/components/DrTextareaBase/DrTextareaBase.vue';
 import DrTextareaPanel from '@/forms/components/DrTextareaPanel/DrTextareaPanel.vue';
+import { normalizeMaxLength } from '@/forms/lib/normalizeMaxLength/normalizeMaxLength';
 import { resolveClearButtonAriaLabel } from '@/forms/lib/resolveClearButtonAriaLabel/resolveClearButtonAriaLabel';
 import type { ControlState } from '@/forms/components/DrControl/types';
 import type {
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<DrTextareaProps & DrTextareaModelProps>()
   labelPosition: 'top',
   mode: 'textarea',
   readonly: false,
+  spellCheck: undefined,
   state: 'normal',
 });
 
@@ -42,6 +44,8 @@ const model = computed({
 });
 
 const textarea = useTemplateRef<DrTextareaBaseExposed>('textarea');
+
+const maxLength = computed(() => normalizeMaxLength(props.maxLength));
 
 const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
@@ -62,8 +66,12 @@ function handleBlur(event: FocusEvent): void {
   emit('blur', event);
 }
 
-function handleLimitExceeded(maxLength: number): void {
-  emit('limitExceeded', maxLength);
+function handleFocus(event: FocusEvent): void {
+  emit('focus', event);
+}
+
+function handleLimitExceeded(limit: number): void {
+  emit('limitExceeded', limit);
 }
 
 function focus(options?: FocusOptions): void {
@@ -99,7 +107,7 @@ defineExpose({
     <template #default="slot">
       <DrTextareaPanel
         :text-length="model.length"
-        :max-length="props.maxLength"
+        :max-length="maxLength"
         :show-counter="props.mode === 'textarea'"
       >
         <div class="DrTextarea__content">
@@ -116,11 +124,17 @@ defineExpose({
               v-model="model"
               :disabled="slot.disabled || props.mode === 'content'"
               :readonly="props.readonly"
-              :max-length="props.maxLength"
+              :max-length="maxLength"
               :placeholder="props.placeholder"
               :rows="props.rows"
+              :input-mode="props.inputMode"
+              :enter-key-hint="props.enterKeyHint"
+              :spell-check="props.spellCheck"
+              :auto-capitalize="props.autoCapitalize"
+              :auto-correct="props.autoCorrect"
               :aria="getTextareaAria(slot.state, slot.describedBy)"
               data-dr-focus-target
+              @focus="handleFocus"
               @blur="handleBlur"
               @limit-exceeded="handleLimitExceeded"
             />

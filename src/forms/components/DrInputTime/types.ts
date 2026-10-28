@@ -8,7 +8,7 @@ export type DrInputTimeStatus = TimeInputStatus;
 
 export type DrInputTimeAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
-export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'type'> & {
+export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'type' | 'maxLength' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'> & {
   smallestUnit?: DrInputTimeSmallestUnit;
   aria?: DrInputTimeAria;
 };
@@ -23,6 +23,6 @@ export type DrInputTimeSlots = {
   end?: Slot<DrInputTimeAffixSlotProps>;
 };
 
-export type DrInputTimeEmits = Pick<DrInputEmits, 'blur'> & {
+export type DrInputTimeEmits = Pick<DrInputEmits, 'focus' | 'blur'> & {
   'update:status': [status: DrInputTimeStatus];
 };

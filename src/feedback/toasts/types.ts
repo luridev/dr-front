@@ -18,7 +18,6 @@ export type DrToastItem = {
 
 export type DrToastVariantOptions = Omit<DrToastOptions, 'variant'>;
 
-/** Methods return a local notification ID, or 0 after the owning Host unmounts. */
 export type DrToastService = {
   show: (options: DrToastOptions) => number;
   info: (options: DrToastVariantOptions) => number;

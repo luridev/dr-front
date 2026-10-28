@@ -2,5 +2,6 @@ import type { DrTextareaProps } from '@/forms/components/DrTextarea/types';
 
 export type DrTextareaPlaygroundProps = Pick<
   DrTextareaProps,
-  'disabled' | 'readonly' | 'state' | 'message' | 'maxLength'
+  'disabled' | 'readonly' | 'state' | 'message' | 'maxLength' |
+  'inputMode' | 'enterKeyHint' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'
 >;

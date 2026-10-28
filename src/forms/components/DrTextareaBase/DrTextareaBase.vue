@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
+import { isPasteOverMaxLength } from '@/forms/lib/isPasteOverMaxLength/isPasteOverMaxLength';
+import { normalizeMaxLength } from '@/forms/lib/normalizeMaxLength/normalizeMaxLength';
 import type { DrTextareaBaseEmits, DrTextareaBaseProps } from '@/forms/components/DrTextareaBase/types';
 
 defineOptions({
@@ -9,6 +11,7 @@ defineOptions({
 const props = withDefaults(defineProps<DrTextareaBaseProps>(), {
   disabled: false,
   readonly: false,
+  spellCheck: undefined,
   rows: 5,
 });
 
@@ -17,6 +20,12 @@ const emit = defineEmits<DrTextareaBaseEmits>();
 const model = defineModel<string>({ required: true });
 
 const textareaElement = useTemplateRef<HTMLTextAreaElement>('textareaElement');
+
+const maxLength = computed(() => normalizeMaxLength(props.maxLength));
+
+function handleFocus(event: FocusEvent) {
+  emit('focus', event);
+}
 
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
@@ -27,31 +36,16 @@ function focus(options?: FocusOptions): void {
 }
 
 function handlePaste(event: ClipboardEvent) {
-  if (props.readonly || props.maxLength == null) {
+  if (props.readonly || props.disabled || maxLength.value == null) {
     return;
   }
 
-  const pastedText = event.clipboardData?.getData('text/plain');
-
-  if (pastedText == null) {
-    return;
-  }
-
-  const textarea = event.currentTarget;
-
-  if (!(textarea instanceof HTMLTextAreaElement)) {
-    return;
-  }
-
-  const selectedTextLength = textarea.selectionEnd - textarea.selectionStart;
-  const nextLength = textarea.value.length - selectedTextLength + pastedText.length;
-
-  if (nextLength <= props.maxLength) {
+  if (!isPasteOverMaxLength(event, maxLength.value)) {
     return;
   }
 
   event.preventDefault();
-  emit('limitExceeded', props.maxLength);
+  emit('limitExceeded', maxLength.value);
 }
 
 defineExpose({
@@ -68,12 +62,18 @@ defineExpose({
     :class="$attrs.class"
     :placeholder="props.placeholder"
     :rows="props.rows"
-    :maxlength="props.maxLength"
+    :maxlength="maxLength"
     :disabled="props.disabled"
     :readonly="props.readonly"
+    :inputmode="props.inputMode"
+    :enterkeyhint="props.enterKeyHint"
+    :spellcheck="props.spellCheck"
+    :autocapitalize="props.autoCapitalize"
+    :autocorrect="props.autoCorrect"
     :aria-invalid="props.aria?.ariaInvalid || undefined"
     :aria-describedby="props.aria?.ariaDescribedBy"
     :data-dr-focus-target="$attrs['data-dr-focus-target']"
+    @focus="handleFocus"
     @blur="handleBlur"
     @paste="handlePaste"
   ></textarea>

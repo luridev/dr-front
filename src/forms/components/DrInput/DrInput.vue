@@ -4,6 +4,8 @@ import DrIconButton from '@/actions/components/DrIconButton/DrIconButton.vue';
 import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import { useDrInputEditor } from '@/forms/components/DrInput/composables/useDrInputEditor/useDrInputEditor';
+import { isPasteOverMaxLength } from '@/forms/lib/isPasteOverMaxLength/isPasteOverMaxLength';
+import { normalizeMaxLength } from '@/forms/lib/normalizeMaxLength/normalizeMaxLength';
 import { resolveClearButtonAriaLabel } from '@/forms/lib/resolveClearButtonAriaLabel/resolveClearButtonAriaLabel';
 import DrCloseIcon from '@/icons/components/DrCloseIcon/DrCloseIcon.generated.vue';
 import type { DrInputEmits, DrInputProps } from '@/forms/components/DrInput/types';
@@ -17,6 +19,7 @@ const props = withDefaults(defineProps<DrInputProps>(), {
   clearable: true,
   disabled: false,
   readonly: false,
+  spellCheck: undefined,
   state: 'normal',
 });
 
@@ -27,6 +30,8 @@ const model = defineModel<string>({ required: true });
 const t = useDrTranslation();
 
 const inputElement = useTemplateRef<HTMLInputElement>('inputElement');
+
+const maxLength = computed(() => normalizeMaxLength(props.maxLength));
 
 const isClearButtonVisible = computed(() =>
   props.clearable && model.value !== '' && !props.disabled && !props.readonly,
@@ -42,8 +47,21 @@ const { handleInput, inputMode } = useDrInputEditor({
   readonly: () => props.readonly || props.disabled,
 });
 
+function handleFocus(event: FocusEvent) {
+  emit('focus', event);
+}
+
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
+}
+
+function handlePaste(event: ClipboardEvent) {
+  if (props.disabled || props.readonly || maxLength.value == null || !isPasteOverMaxLength(event, maxLength.value)) {
+    return;
+  }
+
+  event.preventDefault();
+  emit('limitExceeded', maxLength.value);
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -117,8 +135,13 @@ defineExpose({
         class="DrInput"
         :class="{ DrInput_clearable: isClearButtonVisible }"
         :type="props.type"
-        :inputmode="inputMode"
+        :inputmode="props.inputMode ?? inputMode"
+        :enterkeyhint="props.enterKeyHint"
+        :spellcheck="props.spellCheck"
+        :autocapitalize="props.autoCapitalize"
+        :autocorrect="props.autoCorrect"
         :placeholder="props.placeholder"
+        :maxlength="maxLength"
         :disabled="slot.disabled"
         :readonly="props.readonly"
         :autocomplete="props.autocomplete"
@@ -131,7 +154,9 @@ defineExpose({
         :aria-describedby="slot.describedBy"
         data-dr-focus-target
         @input="handleInput"
+        @focus="handleFocus"
         @blur="handleBlur"
+        @paste="handlePaste"
         @keydown="handleKeydown"
         @wheel="handleWheel"
       />

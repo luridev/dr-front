@@ -88,6 +88,7 @@ function handleClick(event: MouseEvent) {
   >
     <button
       :id="props.id"
+      :form="props.form"
       class="DrButton"
       :class="buttonClasses"
       :type="props.type"

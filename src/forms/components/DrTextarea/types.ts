@@ -8,7 +8,10 @@ export type DrTextareaAria = {
 export type DrTextareaMode = 'textarea' | 'content';
 
 export type DrTextareaProps = DrControlFieldProps &
-  Pick<DrTextareaBaseProps, 'maxLength' | 'placeholder' | 'rows' | 'readonly'> & {
+  Pick<
+    DrTextareaBaseProps,
+    'maxLength' | 'placeholder' | 'rows' | 'readonly' | 'inputMode' | 'enterKeyHint' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'
+  > & {
     aria?: DrTextareaAria;
     clearable?: boolean;
     kind?: DrControlKind;

@@ -10,11 +10,11 @@ export type DrMask = string | (NativeMaskOptions & {
 
 export type DrMaskedInputStatus = 'empty' | 'incomplete' | 'valid';
 
-export type DrMaskedInputProps = Omit<DrInputProps, 'type'> & {
+export type DrMaskedInputProps = Omit<DrInputProps, 'type' | 'maxLength'> & {
   mask: DrMask;
 };
 
-export type DrMaskedInputEmits = DrInputEmits & {
+export type DrMaskedInputEmits = Omit<DrInputEmits, 'limitExceeded'> & {
   'update:status': [status: DrMaskedInputStatus];
 };
 

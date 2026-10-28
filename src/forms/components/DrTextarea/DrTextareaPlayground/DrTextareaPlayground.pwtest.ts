@@ -4,6 +4,38 @@ import type { DrTextareaPlaygroundProps } from '@/forms/components/DrTextarea/Dr
 
 const compositionStoryId = 'forms/components/DrTextarea/DrTextareaPlayground/DrTextareaPlayground';
 
+test('textarea forwards typing hints and focus from its native editor', async ({ mount }) => {
+  const props: DrTextareaPlaygroundProps = {
+    inputMode: 'url',
+    enterKeyHint: 'done',
+    spellCheck: false,
+    autoCapitalize: 'off',
+    autoCorrect: 'off',
+  };
+
+  const component = await mount(compositionStoryId, props);
+
+  await component.getByRole('button', { name: 'Clear Source' }).click();
+
+  const textarea = component.getByRole('textbox', { name: 'Source' });
+  const focusCount = component.getByTestId('focus-count');
+
+  await expect(textarea).toHaveAttribute('inputmode', 'url');
+  await expect(textarea).toHaveAttribute('enterkeyhint', 'done');
+  await expect(textarea).toHaveAttribute('spellcheck', 'false');
+  await expect(textarea).toHaveAttribute('autocapitalize', 'off');
+  await expect(textarea).toHaveAttribute('autocorrect', 'off');
+  await expect(focusCount).toHaveText('1');
+  await expect(component.getByTestId('native-focus-target')).toHaveText('true');
+  await component.getByTestId('extra-action').focus();
+  await expect(focusCount).toHaveText('1');
+  await textarea.focus();
+  await expect(focusCount).toHaveText('2');
+
+  await component.update({});
+  await expect(textarea).not.toHaveAttribute('spellcheck');
+});
+
 test('textarea counter respects the display threshold, content mode and optional limit', async ({ mount }) => {
   const component = await mount(compositionStoryId, { maxLength: 0 });
 
@@ -62,13 +94,32 @@ test('generic textarea rejects oversized paste and emits limitExceeded', async (
   expect(await dispatchPaste(textarea, pastedText)).toBe(false);
   await expect(eventCount).toHaveText('1');
 
-  await component.update({ maxLength, readonly: true, disabled: true });
+  await component.update({ maxLength, disabled: true });
   await expect(textarea).toBeDisabled();
-  await expect(textarea).toHaveAttribute('readonly', '');
+  expect(await dispatchPaste(textarea, pastedText)).toBe(false);
+  await expect(eventCount).toHaveText('1');
 
   await component.update({ maxLength: undefined, readonly: false, disabled: false });
   expect(await dispatchPaste(textarea, pastedText)).toBe(false);
   await expect(eventCount).toHaveText('1');
+});
+
+test('invalid textarea limits leave native editing, paste and the counter unlimited', async ({ mount }) => {
+  const component = await mount(compositionStoryId, { maxLength: 10 });
+  await component.getByRole('button', { name: 'Clear Source' }).click();
+
+  const textarea = component.getByRole('textbox', { name: 'Source' });
+  await textarea.fill('1234567890');
+
+  for (const maxLength of [-1, 1.5]) {
+    await component.update({ maxLength });
+    await expect(textarea).not.toHaveAttribute('maxlength');
+    await expect(component.locator('.DrTextareaPanel__counter')).toHaveCount(0);
+    expect(await dispatchPaste(textarea, 'extra text')).toBe(false);
+  }
+
+  await expect(component.getByTestId('limit-exceeded-count')).toHaveText('0');
+  await expect(component.getByTestId('model-text')).toHaveText('1234567890');
 });
 
 test('generic textarea exposes slot contexts and regains focus after clearing empty content', async ({ mount }) => {
@@ -114,14 +165,14 @@ test('read-only textarea preserves focus, parent updates and reading actions', a
   await page.keyboard.press('Tab');
   await expect(textarea).toBeFocused();
   await expect(textarea).not.toBeEditable();
+  await expect(textarea).not.toHaveAttribute('spellcheck');
   await expect(component.getByRole('textbox', { name: 'Note', exact: true })).toBeEditable();
   await expect(component.getByRole('textbox', { name: 'Disabled', exact: true })).toBeDisabled();
   await expect(component.getByRole('button', { name: 'Clear Read-only' })).toHaveCount(0);
   await expect(component.getByRole('button', { name: 'Replace value' })).toBeDisabled();
 
-  await page.keyboard.press('End');
-  await page.keyboard.type('Changed');
-  await page.keyboard.press('Backspace');
+  await textarea.selectText();
+  await textarea.press('Delete');
   await expect(textarea).toHaveValue(initialValue);
 
   await preview.click();

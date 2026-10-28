@@ -6,7 +6,7 @@ export type DrInputDateStatus = DateInputStatus;
 
 export type DrInputDateAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
-export type DrInputDateProps = Omit<DrInputProps, 'aria' | 'type'> & {
+export type DrInputDateProps = Omit<DrInputProps, 'aria' | 'type' | 'maxLength' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'> & {
   aria?: DrInputDateAria;
 };
 
@@ -20,6 +20,6 @@ export type DrInputDateSlots = {
   end?: Slot<DrInputDateAffixSlotProps>;
 };
 
-export type DrInputDateEmits = Pick<DrInputEmits, 'blur'> & {
+export type DrInputDateEmits = Pick<DrInputEmits, 'focus' | 'blur'> & {
   'update:status': [status: DrInputDateStatus];
 };

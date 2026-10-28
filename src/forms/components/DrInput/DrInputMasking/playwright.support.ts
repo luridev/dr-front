@@ -26,7 +26,17 @@ export async function pasteInput(input: Locator, text: string): Promise<void> {
     const data = new DataTransfer();
 
     data.setData('text/plain', pastedText);
-    element.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+
+    const event = new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true });
+
+    // Firefox does not preserve clipboardData supplied to the constructor.
+    if (event.clipboardData !== data) {
+      Object.defineProperty(event, 'clipboardData', { value: data });
+    }
+
+    if (!element.dispatchEvent(event)) {
+      return;
+    }
 
     const shouldInsert = element.dispatchEvent(new InputEvent('beforeinput', {
       inputType: 'insertFromPaste',

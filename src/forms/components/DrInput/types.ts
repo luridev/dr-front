@@ -1,3 +1,4 @@
+import type { HTMLAttributes } from 'vue';
 import type { DrControlFieldProps } from '@/forms/components/DrControl/types';
 
 export type DrInputAria = {
@@ -15,12 +16,20 @@ export type DrInputProps = DrControlFieldProps & {
   clearable?: boolean;
   readonly?: boolean;
   placeholder?: string;
-  autocomplete?: 'on' | 'off';
+  maxLength?: number;
+  autocomplete?: 'on' | 'off' | (string & {});
+  inputMode?: HTMLAttributes['inputmode'];
+  enterKeyHint?: HTMLAttributes['enterkeyhint'];
+  spellCheck?: HTMLAttributes['spellcheck'];
+  autoCapitalize?: HTMLAttributes['autocapitalize'];
+  autoCorrect?: HTMLAttributes['autocorrect'];
   aria?: DrInputAria;
 };
 
 export type DrInputEmits = {
+  focus: [event: FocusEvent];
   blur: [event: FocusEvent];
+  limitExceeded: [maxLength: number];
   keydown: [event: KeyboardEvent];
   wheel: [event: WheelEvent];
 };

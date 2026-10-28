@@ -14,6 +14,11 @@ export async function dispatchPaste(textarea: Locator, text: string): Promise<bo
 
     const event = new browserWindow.ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData });
 
+    // Firefox may discard clipboard data in synthetic ClipboardEvents.
+    if (event.clipboardData !== clipboardData) {
+      Object.defineProperty(event, 'clipboardData', { value: clipboardData });
+    }
+
     element.dispatchEvent(event);
 
     return event.defaultPrevented;

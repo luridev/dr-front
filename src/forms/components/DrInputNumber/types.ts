@@ -5,13 +5,13 @@ export type DrInputNumberStatus = IntegerInputStatus;
 
 export type DrInputNumberAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
-export type DrInputNumberProps = Omit<DrInputProps, 'aria' | 'type'> & {
+export type DrInputNumberProps = Omit<DrInputProps, 'aria' | 'type' | 'maxLength' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'> & {
   min?: number;
   max?: number;
   step?: number;
   aria?: DrInputNumberAria;
 };
 
-export type DrInputNumberEmits = Pick<DrInputEmits, 'blur'> & {
+export type DrInputNumberEmits = Pick<DrInputEmits, 'focus' | 'blur'> & {
   'update:status': [status: DrInputNumberStatus];
 };

@@ -13,6 +13,7 @@ const props = withDefaults(defineProps<DrMaskedInputProps>(), {
   clearable: true,
   disabled: false,
   readonly: false,
+  spellCheck: undefined,
   state: 'normal',
 });
 
@@ -35,6 +36,10 @@ provideDrInputEditor(({ input: inputElement, readonly }) => useDrMaskedInputEdit
   inputValue,
   accept,
 }));
+
+function handleFocus(event: FocusEvent) {
+  emit('focus', event);
+}
 
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
@@ -69,8 +74,14 @@ defineExpose({
     :state="props.state"
     :message="props.message"
     :autocomplete="props.autocomplete"
+    :input-mode="props.inputMode"
+    :enter-key-hint="props.enterKeyHint"
+    :spell-check="props.spellCheck"
+    :auto-capitalize="props.autoCapitalize"
+    :auto-correct="props.autoCorrect"
     :aria="props.aria"
     @update:model-value="updateInputValue"
+    @focus="handleFocus"
     @blur="handleBlur"
     @keydown="handleKeydown"
     @wheel="handleWheel"

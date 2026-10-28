@@ -3,7 +3,10 @@ import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale,
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 
 declare const button: InstanceType<typeof DrButton>;
-const buttonProps: typeof button.$props = { variant: 'outline', size: 'small', state: 'warning' };
+const buttonProps: typeof button.$props = { variant: 'outline', size: 'small', state: 'warning', form: 'parameters', type: 'submit' };
+// @ts-expect-error Form association uses an HTML id string.
+const invalidButtonForm: typeof button.$props = { form: 42 };
+void invalidButtonForm;
 
 button.$emit('click', new MouseEvent('click'));
 // @ts-expect-error Click events must retain their MouseEvent payload.
@@ -11,7 +14,20 @@ button.$emit('click', 'invalid');
 
 declare const dateInput: InstanceType<typeof DrInputDate>;
 declare const textInput: InstanceType<typeof DrInput>;
-const textProps: typeof textInput.$props = { modelValue: 'text' };
+const textProps: typeof textInput.$props = { modelValue: 'text', maxLength: 100, inputMode: 'url', enterKeyHint: 'go', spellCheck: false, autoCapitalize: 'none', autoCorrect: 'off' };
+for (const autocomplete of ['on', 'off', 'email', 'one-time-code', 'username webauthn', 'section-checkout shipping street-address']) {
+  const props: typeof textInput.$props = { modelValue: '', autocomplete };
+  void props;
+}
+textInput.$emit('focus', new FocusEvent('focus'));
+textInput.$emit('limitExceeded', 100);
+// @ts-expect-error Focus events retain the native FocusEvent payload.
+textInput.$emit('focus', 'invalid');
+// @ts-expect-error The native inputmode union rejects unknown keyboard modes.
+const invalidInputMode: typeof textInput.$props = { modelValue: '', inputMode: 'digits' };
+// @ts-expect-error The native enterkeyhint union rejects unknown actions.
+const invalidEnterKeyHint: typeof textInput.$props = { modelValue: '', enterKeyHint: 'submit' };
+void [invalidInputMode, invalidEnterKeyHint];
 textInput.focus({ preventScroll: true });
 textInput.setCaretToEnd();
 textInput.$emit('update:modelValue', 'next');
@@ -21,7 +37,13 @@ const invalidText: typeof textInput.$props = { modelValue: 123 };
 declare const numberInput: InstanceType<typeof DrInputNumber>;
 declare const maskedInput: InstanceType<typeof DrMaskedInput>;
 const masks = ['000-000', { mask: 'HH-0000', definitions: { H: /[A-F0-9]/ } }, { mask: /^\d*$/ }, { mask: 'code', blocks: { code: { mask: '0', repeat: [1, 30] } } }, { mask: Number, scale: 2 }, { mask: Date }, { mask: (value: string) => /^\d*$/.test(value) }, { mask: [{ mask: '00' }, { mask: 'aa' }] }] satisfies ReadonlyArray<DrMask>;
-const maskedProps: typeof maskedInput.$props = { modelValue: '123456', mask: masks[0] };
+const maskedProps: typeof maskedInput.$props = { modelValue: '123456', mask: masks[0], inputMode: 'numeric', enterKeyHint: 'done', autocomplete: 'one-time-code', spellCheck: false };
+maskedInput.$emit('focus', new FocusEvent('focus'));
+// @ts-expect-error Masked inputs do not expose a limit on their formatted text length.
+const invalidMaskedLimit: typeof maskedInput.$props = { modelValue: '', mask: '000', maxLength: 3 };
+// @ts-expect-error Masked inputs do not emit the plain input paste-limit event.
+maskedInput.$emit('limitExceeded', 3);
+void invalidMaskedLimit;
 maskedInput.$emit('update:modelValue', '123');
 for (const status of ['empty', 'incomplete', 'valid'] as const satisfies ReadonlyArray<DrMaskedInputStatus>) {
   maskedInput.$emit('update:status', status);
@@ -37,7 +59,13 @@ const invalidScale: DrMask = { mask: Number, scale: 'two' };
 // @ts-expect-error Repeat bounds are a pair of numbers.
 const invalidRepeat: DrMask = { mask: 'code', blocks: { code: { mask: '0', repeat: [1, '30'] } } };
 void [invalidScale, invalidRepeat];
-const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2 };
+const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2, autocomplete: 'transaction-amount', inputMode: 'text', enterKeyHint: 'next' };
+numberInput.$emit('focus', new FocusEvent('focus'));
+// @ts-expect-error Numeric editors do not expose text correction settings.
+const invalidNumberCorrection: typeof numberInput.$props = { modelValue: 42, spellCheck: false };
+// @ts-expect-error Numeric editors do not expose a formatted text length limit.
+const invalidNumberLimit: typeof numberInput.$props = { modelValue: 42, maxLength: 5 };
+void [invalidNumberCorrection, invalidNumberLimit];
 for (const status of ['empty', 'incomplete', 'invalid', 'out-of-range', 'valid'] as const satisfies ReadonlyArray<DrInputNumberStatus>) {
   numberInput.$emit('update:status', status);
 }
@@ -47,11 +75,13 @@ numberInput.$emit('update:modelValue', null);
 // @ts-expect-error Number models must not accept strings.
 numberInput.$emit('update:modelValue', '42');
 declare const timeInput: InstanceType<typeof DrInputTime>;
-const timeProps: typeof timeInput.$props = { modelValue: null, smallestUnit: 'nanosecond' };
+const timeProps: typeof timeInput.$props = { modelValue: null, smallestUnit: 'nanosecond', inputMode: 'text', enterKeyHint: 'next', autocomplete: 'off' };
+timeInput.$emit('focus', new FocusEvent('focus'));
 // @ts-expect-error Time models must not accept strings.
 timeInput.$emit('update:modelValue', '12:34');
 declare const date: Temporal.PlainDate | null;
-const dateProps: typeof dateInput.$props = { modelValue: date };
+const dateProps: typeof dateInput.$props = { modelValue: date, inputMode: 'numeric', enterKeyHint: 'done', autocomplete: 'bday' };
+dateInput.$emit('focus', new FocusEvent('focus'));
 
 for (const ariaInvalid of [true, false, undefined]) {
   const aria = { ariaInvalid };
@@ -73,8 +103,9 @@ const invalidDateProps: typeof dateInput.$props = { modelValue: 'invalid' };
 dateInput.$emit('update:modelValue', 'invalid');
 
 declare const textarea: InstanceType<typeof DrTextarea>;
-const textareaProps: typeof textarea.$props = { modelValue: 'text', maxLength: 50 };
+const textareaProps: typeof textarea.$props = { modelValue: 'text', maxLength: 50, inputMode: 'text', enterKeyHint: 'enter', spellCheck: 'false', autoCapitalize: 'none', autoCorrect: 'off' };
 
+textarea.$emit('focus', new FocusEvent('focus'));
 textarea.$emit('update:modelValue', 'next');
 textarea.$emit('limitExceeded', 50);
 textarea.focus();

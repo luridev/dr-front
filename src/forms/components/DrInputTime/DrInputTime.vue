@@ -72,6 +72,10 @@ function handlePeriodToggle() {
   togglePeriod();
 }
 
+function handleFocus(event: FocusEvent) {
+  emit('focus', event);
+}
+
 function handleBlur(event: FocusEvent) {
   emit('blur', event);
 }
@@ -90,8 +94,11 @@ function handleBlur(event: FocusEvent) {
     :state="props.state"
     :message="props.message"
     :autocomplete="props.autocomplete"
+    :input-mode="props.inputMode"
+    :enter-key-hint="props.enterKeyHint"
     :aria="props.aria"
     @update:model-value="updateInputValue"
+    @focus="handleFocus"
     @blur="handleBlur"
   >
     <template #label>

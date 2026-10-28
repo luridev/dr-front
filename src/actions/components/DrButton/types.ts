@@ -1,3 +1,5 @@
+import type { ButtonHTMLAttributes } from 'vue';
+
 export type DrButtonState = 'normal' | 'warning' | 'danger';
 
 export type DrButtonVariant = 'solid' | 'outline' | 'ghost';
@@ -14,6 +16,7 @@ export type DrButtonAria = {
 
 export type DrButtonProps = {
   id?: string;
+  form?: ButtonHTMLAttributes['form'];
   type?: 'button' | 'submit' | 'reset';
   state?: DrButtonState;
   variant?: DrButtonVariant;

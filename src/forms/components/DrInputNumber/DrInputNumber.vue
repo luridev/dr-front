@@ -20,6 +20,7 @@ defineOptions({
 });
 
 const props = withDefaults(defineProps<DrInputNumberProps>(), {
+  autocomplete: 'off',
   clearable: false,
   disabled: false,
   readonly: false,
@@ -93,6 +94,10 @@ provideDrInputMask(computed(() => ({
 const isSignToggleDisabled = computed(() =>
   props.disabled || props.readonly || !isBoundsValid.value || !canToggleSign.value,
 );
+
+function handleFocus(event: FocusEvent) {
+  emit('focus', event);
+}
 
 function handleBlur(event: FocusEvent) {
   if (!props.readonly) {
@@ -186,9 +191,12 @@ function handleWheel(event: WheelEvent) {
     :readonly="props.readonly"
     :state="props.state"
     :message="props.message"
-    autocomplete="off"
+    :autocomplete="props.autocomplete"
+    :input-mode="props.inputMode"
+    :enter-key-hint="props.enterKeyHint"
     :aria="aria"
     @update:model-value="updateInputValue"
+    @focus="handleFocus"
     @blur="handleBlur"
     @keydown="handleKeydown"
     @wheel="handleWheel"
