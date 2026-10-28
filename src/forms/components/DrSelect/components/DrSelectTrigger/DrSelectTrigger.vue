@@ -48,6 +48,8 @@ defineExpose<DrSelectTriggerExposed>({
     type="button"
     role="combobox"
     :disabled="props.disabled"
+    :aria-label="props.labelledBy == null ? props.accessibleLabel : undefined"
+    :aria-labelledby="props.labelledBy"
     :aria-expanded="props.aria.expanded"
     :aria-controls="props.aria.controls"
     :aria-haspopup="props.aria.hasPopup"

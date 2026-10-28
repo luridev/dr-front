@@ -11,8 +11,10 @@ export type DrInputAria = {
   clearButtonAriaLabel?: string;
 };
 
+export type DrInputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
+
 export type DrInputProps = DrControlFieldProps & {
-  type?: string;
+  type?: DrInputType;
   clearable?: boolean;
   readonly?: boolean;
   placeholder?: string;

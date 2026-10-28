@@ -54,7 +54,7 @@ provide(floatingScopeKey, {
           :id="titleId"
           class="DrDialog__title"
         >
-          {{ props.title }}
+          <slot name="title">{{ props.title }}</slot>
         </h2>
 
         <DrIconButton

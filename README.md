@@ -56,6 +56,10 @@ Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. S
 - **TypeScript:** 6.0+, with published declarations validated using `moduleResolution: "Bundler"`.
 - **Temporal:** `DrInputDate` and `DrInputTime` require a global `Temporal` implementation (native or polyfilled). The package references TypeScript's Temporal declarations but does not install a runtime polyfill.
 
+## Forms
+
+Controls use Vue `v-model` and application-managed validation (`state`/`message`), without universal `FormData` support. Use `novalidate` on HTML forms to disable native validation when needed (e.g. with `type="email"`).
+
 ## Masked inputs
 
 `DrMaskedInput` uses [IMask](https://imask.js.org/guide.html) and accepts a pattern string or an IMask options object.

@@ -5,7 +5,7 @@ import type {
   DrMaskedInputLifecycleProps,
   DrMaskedInputReplacementOptions,
 } from '@/forms/components/DrMaskedInput/DrMaskedInputLifecycle/types.support';
-import type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
+import type { DrMask } from '@/forms/components/DrMaskedInput/types';
 
 defineOptions({ inheritAttrs: false });
 
@@ -18,7 +18,6 @@ const props = withDefaults(defineProps<DrMaskedInputLifecycleProps>(), {
 
 const value = ref('');
 const updates = ref<Array<string>>([]);
-const statuses = ref<Array<DrMaskedInputStatus>>([]);
 const renders = ref(0);
 const reactiveMask = reactive({ mask: 'num', blocks: { num: { mask: '00-00' } } });
 
@@ -66,10 +65,6 @@ function optionsForRender(): DrMask {
 function handleUpdate(next: string) {
   updates.value.push(next);
   value.value = next;
-}
-
-function handleStatus(next: DrMaskedInputStatus) {
-  statuses.value.push(next);
 }
 
 function rerender() {
@@ -128,7 +123,6 @@ function replaceOptionsAndValue() {
       :readonly="props.readonly"
       :disabled="props.disabled"
       @update:model-value="handleUpdate"
-      @update:status="handleStatus"
     />
 
     <button
@@ -200,8 +194,6 @@ function replaceOptionsAndValue() {
     <p data-testid="model">{{ value }}</p>
 
     <p data-testid="updates">{{ JSON.stringify(updates) }}</p>
-
-    <p data-testid="statuses">{{ JSON.stringify(statuses) }}</p>
 
     <p data-testid="prepare-calls">{{ prepareCalls }}</p>
   </div>

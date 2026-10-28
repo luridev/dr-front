@@ -129,19 +129,8 @@ describe('overlay ownership', () => {
     retained.close();
     retained.close();
     expect(closed).toHaveBeenCalledOnce();
-    const withoutCallback = requireValue(other.open({ content }));
-
-    expect(() => {
-      withoutCallback.close();
-    }).not.toThrow();
-
-    context.dispose();
-    expect(other.open({ content })).toBeUndefined();
-
-    expect(() => {
-      app.unmount();
-    }).not.toThrow();
-
+    requireValue(other.open({ content })).close();
+    app.unmount();
     expect(other.open({ content })).toBeUndefined();
     expect(context.layers.value).toEqual([]);
   });

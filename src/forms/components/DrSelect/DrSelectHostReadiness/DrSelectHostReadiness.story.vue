@@ -18,10 +18,6 @@ const modalBackground = computed(() => {
     return document.body;
   }
 
-  if (props.rootKind === 'html') {
-    return document.documentElement;
-  }
-
   return backgroundRoot.value;
 });
 

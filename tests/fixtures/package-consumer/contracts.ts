@@ -1,6 +1,7 @@
 import { DrFrontProvider, DrConfigProvider, DrButton, DrInput, DrMaskedInput, DrInputDate, DrInputNumber, DrInputTime, DrTextarea, useDrToast, useControlsState } from '@protoapps/dr-front';
 import type { DrFrontProviderProps, DrConfigProviderProps, DrLanguage, DrLocale, DrMessageKey, DrTranslationRequest, DrTranslateOverride, DrMask, DrMaskedInputStatus, DrInputNumberStatus, DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
+import type { DrInputType } from '@protoapps/dr-front';
 
 declare const button: InstanceType<typeof DrButton>;
 const buttonProps: typeof button.$props = { variant: 'outline', size: 'small', state: 'warning', form: 'parameters', type: 'submit' };
@@ -15,6 +16,17 @@ button.$emit('click', 'invalid');
 declare const dateInput: InstanceType<typeof DrInputDate>;
 declare const textInput: InstanceType<typeof DrInput>;
 const textProps: typeof textInput.$props = { modelValue: 'text', maxLength: 100, inputMode: 'url', enterKeyHint: 'go', spellCheck: false, autoCapitalize: 'none', autoCorrect: 'off' };
+for (const type of ['text', 'email', 'password', 'search', 'tel', 'url'] as const satisfies ReadonlyArray<DrInputType>) {
+  const props: typeof textInput.$props = { modelValue: '', type };
+  void props;
+}
+// @ts-expect-error Checked state is not a text input model.
+const checkboxInput: typeof textInput.$props = { modelValue: '', type: 'checkbox' };
+// @ts-expect-error File selection is not a text input model.
+const fileInput: typeof textInput.$props = { modelValue: '', type: 'file' };
+// @ts-expect-error Numeric editing has a dedicated component.
+const nativeNumberInput: typeof textInput.$props = { modelValue: '', type: 'number' };
+void [checkboxInput, fileInput, nativeNumberInput];
 for (const autocomplete of ['on', 'off', 'email', 'one-time-code', 'username webauthn', 'section-checkout shipping street-address']) {
   const props: typeof textInput.$props = { modelValue: '', autocomplete };
   void props;

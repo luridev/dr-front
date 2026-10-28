@@ -4,6 +4,18 @@ import type { DrTextareaPlaygroundProps } from '@/forms/components/DrTextarea/Dr
 
 const compositionStoryId = 'forms/components/DrTextarea/DrTextareaPlayground/DrTextareaPlayground';
 
+test('a native textarea retains its name and feedback with kind group', async ({ mount }) => {
+  const component = await mount(compositionStoryId, { mode: 'textarea', kind: 'group', state: 'error', message: 'Check this value' });
+  const textarea = component.getByRole('textbox');
+
+  await expect(textarea).toHaveAccessibleName('Source');
+  await expect(textarea).toHaveAccessibleDescription('Check this value');
+  await expect(textarea).toHaveAttribute('aria-invalid', 'true');
+  await component.update({ mode: 'textarea', kind: 'group' });
+  await expect(textarea).not.toHaveAttribute('aria-invalid');
+  await expect(textarea).toHaveAccessibleDescription('');
+});
+
 test('textarea forwards typing hints and focus from its native editor', async ({ mount }) => {
   const props: DrTextareaPlaygroundProps = {
     inputMode: 'url',

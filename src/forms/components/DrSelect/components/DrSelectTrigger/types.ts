@@ -12,6 +12,8 @@ export type DrSelectTriggerProps = {
   disabled: boolean;
   isPlaceholder: boolean;
   aria: DrSelectTriggerAria;
+  accessibleLabel: string;
+  labelledBy?: string;
   invalid: boolean;
   describedBy?: string;
 };

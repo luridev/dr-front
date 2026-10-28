@@ -2,8 +2,14 @@
 import { ref } from 'vue';
 import { galleryCities, galleryEmptyItems } from '@/forms/components/DrSelect/config.support';
 import { DrButton, DrSelect } from '@/index';
+import type { DrSelectGalleryProps } from '@/forms/components/DrSelect/types.support';
 
 defineOptions({ inheritAttrs: false });
+
+const props = withDefaults(defineProps<DrSelectGalleryProps>(), {
+  label: 'City',
+  placeholder: 'Choose a city',
+});
 
 const city = ref<string>();
 const disabledCity = ref('Tokyo');
@@ -20,10 +26,20 @@ function handleReset(): void {
     <div class="GalleryExample__grid">
       <DrSelect
         v-model="city"
-        label="City"
+        :label="props.label"
         :items="galleryCities"
-        placeholder="Choose a city"
+        :placeholder="props.placeholder"
       >
+        <template
+          v-if="props.slotLabel != null"
+          #label
+        >
+          <span
+            id="gallery-city-label"
+            data-testid="city-label"
+          >{{ props.slotLabel }}<span aria-hidden="true"> *</span></span>
+        </template>
+
         <template #item="{ item }">{{ item }}</template>
       </DrSelect>
 
@@ -36,12 +52,13 @@ function handleReset(): void {
 
       <DrSelect
         v-model="errorCity"
-        label="Error"
         :items="galleryCities"
         placeholder="Choose a city"
         state="error"
         message="Choose a delivery city."
-      />
+      >
+        <template #label>Error</template>
+      </DrSelect>
 
       <DrSelect
         v-model="emptyCity"

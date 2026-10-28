@@ -12,3 +12,7 @@ export type DrSelectMobileDialogProps<T> = Omit<DrSelectListProps<T>, 'tabindex'
 export type DrSelectMobileDialogEmits<T> = {
   select: [item: T];
 };
+
+export type DrSelectMobileDialogExposed = {
+  readonly labelTarget: HTMLElement | null;
+};

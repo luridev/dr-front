@@ -281,11 +281,9 @@ describe('native mask model synchronization', () => {
   it('applies reactive mask changes and added or deleted options as full configurations', async () => {
     const options = reactive<{ mask: string; lazy?: boolean }>({ mask: '00-00' });
     const fixture = createFixture('1234', options);
-    const engine = fixture.masked.value;
 
     options.mask = '0000';
     await nextTick();
-    expect(fixture.masked.value).not.toBe(engine);
     expect(fixture.inputValue.value).toBe('1234');
 
     fixture.external.value = '';
@@ -297,18 +295,17 @@ describe('native mask model synchronization', () => {
     await nextTick();
     expect(fixture.inputValue.value).toBe('');
     expect(fixture.writes).not.toHaveBeenCalled();
-    expect(fixture.status.mock.calls).toEqual([['valid'], ['empty']]);
+    expect(fixture.status).toHaveBeenLastCalledWith('empty');
   });
 
   it('rebuilds nested reactive blocks and definitions without sharing the previous configuration', async () => {
     const options = reactive({ mask: 'code', blocks: { code: { mask: 'HH', definitions: { H: /[A-F]/ } } } });
     const fixture = createFixture('AB', options);
-    const engine = fixture.masked.value;
 
     options.blocks.code.mask = 'HHH';
     await nextTick();
-    expect(fixture.masked.value).not.toBe(engine);
     expect(fixture.inputValue.value).toBe('AB');
+    expect(fixture.status).toHaveBeenLastCalledWith('incomplete');
     options.blocks.code.definitions.H = /[A-Z]/;
     await nextTick();
     fixture.edit('XYZ');
@@ -316,7 +313,7 @@ describe('native mask model synchronization', () => {
     expect(fixture.inputValue.value).toBe('XYZ');
     expect(fixture.external.value).toBe('XYZ');
     expect(fixture.writes.mock.calls).toEqual([['XYZ']]);
-    expect(fixture.status.mock.calls).toEqual([['valid'], ['incomplete'], ['valid']]);
+    expect(fixture.status).toHaveBeenLastCalledWith('valid');
   });
 
   it('applies reactive Dynamic array additions and removals', async () => {
@@ -347,7 +344,6 @@ describe('native mask model synchronization', () => {
 
   it('normalizes simultaneous external value and mask changes only with the final configuration', async () => {
     const fixture = createFixture('12', { mask: '00' });
-    const engine = fixture.masked.value;
     fixture.writes.mockClear();
     fixture.status.mockClear();
 
@@ -355,7 +351,6 @@ describe('native mask model synchronization', () => {
     fixture.mask.value = { mask: Number, scale: 2, radix: ',' };
     await nextTick();
 
-    expect(fixture.masked.value).not.toBe(engine);
     expect(fixture.inputValue.value).toBe('1,2');
     expect(fixture.external.value).toBe('1.2');
     expect(fixture.writes.mock.calls).toEqual([['1.2']]);

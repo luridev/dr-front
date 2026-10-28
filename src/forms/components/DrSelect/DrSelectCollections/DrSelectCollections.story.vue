@@ -28,10 +28,6 @@ watch(() => props.operation, (operation) => {
       items.value.reverse();
       break;
 
-    case 'sort':
-      items.value.sort((first, second) => first.id - second.id);
-      break;
-
     case 'splice':
       items.value.splice(0, 2, createItem(41), createItem(42));
       break;
@@ -42,10 +38,6 @@ watch(() => props.operation, (operation) => {
 
     case 'add':
       items.value.unshift(createItem(43));
-      break;
-
-    case 'remove':
-      items.value.splice(0, 1);
   }
 });
 </script>
@@ -56,9 +48,7 @@ watch(() => props.operation, (operation) => {
     label="Collection"
     :items="items"
   >
-    <template #item="{ item, active }">
-      <span :data-active="active || undefined">{{ item.label }}</span>
-    </template>
+    <template #item="{ item }">{{ item.label }}</template>
   </DrSelect>
 
   <p data-testid="selection">{{ selected.label }}</p>

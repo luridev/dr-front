@@ -46,6 +46,7 @@ const model = computed({
 const textarea = useTemplateRef<DrTextareaBaseExposed>('textarea');
 
 const maxLength = computed(() => normalizeMaxLength(props.maxLength));
+const controlKind = computed(() => (props.mode === 'textarea' ? 'field' : props.kind));
 
 const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
@@ -95,7 +96,7 @@ defineExpose({
 <template>
   <DrControl
     :class="$attrs.class"
-    :kind="props.kind"
+    :kind="controlKind"
     :label-position="props.labelPosition"
     :disabled="props.disabled"
     :state="props.state"

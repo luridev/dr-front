@@ -10,6 +10,7 @@ test('mobile Select at 560px focuses its listbox and returns the keyboard select
   const listbox = dialog.getByRole('listbox');
   await trigger.press('Enter');
   await expect(listbox).toBeFocused();
+  await expect(listbox).toHaveAccessibleName('City');
   await dialog.getByRole('heading', { name: 'City', exact: true }).click();
   await page.locator('.DrOverlayLayer_top').click({ position: { x: 5, y: 5 } });
   await expect(dialog).toBeVisible();
@@ -90,3 +91,42 @@ test('desktop Select keeps focus at 561px and follows external model changes', a
   await expect(error).toHaveAttribute('aria-invalid', 'true');
   await expect(error).toHaveAccessibleDescription('Choose a delivery city.');
 });
+
+for (const width of [560, 561]) {
+  test(`Select shares slot and fallback names across its trigger and popup at ${width}px`, async ({ mount, page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const component = await mount(selectStoryId, { label: 'Ignored prop label', slotLabel: 'Delivery city' });
+    const trigger = component.getByRole('combobox', { name: 'Delivery city', exact: true });
+    await trigger.press('Enter');
+
+    for (const label of ['Delivery city', 'Updated delivery city']) {
+      await component.update({ label: 'Ignored prop label', slotLabel: label });
+      const listbox = page.getByRole('listbox', { name: label, exact: true });
+      await expect(listbox).toBeVisible();
+
+      if (width === 560) {
+        const dialog = page.getByRole('dialog', { name: label, exact: true });
+        await expect(dialog.getByTestId('city-label')).toBeVisible();
+      }
+    }
+
+    await expect(page.getByTestId('city-label')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(component.getByRole('combobox', { name: 'Updated delivery city', exact: true })).toBeFocused();
+
+    for (const placeholder of ['Choose a city', '']) {
+      await component.update({ label: '', placeholder });
+      const fallback = placeholder !== '' ? placeholder : 'Select an option';
+      const fallbackTrigger = component.getByRole('combobox', { name: fallback, exact: true });
+      await fallbackTrigger.press('Enter');
+      await expect(page.getByRole('listbox', { name: fallback, exact: true })).toBeVisible();
+
+      if (width === 560) {
+        await expect(page.getByRole('dialog', { name: fallback, exact: true })).toBeVisible();
+      }
+
+      await page.keyboard.press('Escape');
+      await expect(fallbackTrigger).toBeFocused();
+    }
+  });
+}

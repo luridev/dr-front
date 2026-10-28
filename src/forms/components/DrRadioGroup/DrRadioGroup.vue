@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T">
-import { computed, useId } from 'vue';
+import { useId } from 'vue';
 import { useCollectionKeys } from '@/collections/composables/useCollectionKeys/useCollectionKeys';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import type { DrRadioGroupDirection, DrRadioGroupProps } from '@/forms/components/DrRadioGroup/types';
@@ -24,8 +24,6 @@ const directionClasses = {
 const getItemKey = useCollectionKeys(() => props.items);
 
 const groupId = useId();
-
-const groupName = computed(() => props.name ?? groupId);
 
 function getItemId(item: T) {
   return `${groupId}-${getItemKey(item)}`;
@@ -72,7 +70,7 @@ function isChecked(item: T) {
             v-model="model"
             class="DrRadioGroup__input"
             type="radio"
-            :name="groupName"
+            :name="groupId"
             :value="item"
             :disabled="slot.disabled"
           />

@@ -11,7 +11,7 @@ export const publicTypeExports = [
   'DrToastService', 'DrToastOptions', 'DrToastVariantOptions', 'DrToastVariant',
   'DrButtonVariant', 'DrButtonAria', 'DrAlertData', 'DrErrorAlertData', 'DrInputDateStatus', 'DrInputNumberStatus',
   'DrInputTimeSmallestUnit', 'DrInputTimeStatus', 'DrTextareaProps', 'DrTextareaEmits', 'DrTextareaExposed',
-  'ControlStateDescriptor', 'DrMask', 'DrMaskedInputStatus',
+  'ControlStateDescriptor', 'DrMask', 'DrMaskedInputStatus', 'DrInputType',
 ];
 
 export const publicIconExports = [

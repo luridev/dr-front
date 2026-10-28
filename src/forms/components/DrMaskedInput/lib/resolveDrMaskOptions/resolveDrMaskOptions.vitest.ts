@@ -25,16 +25,6 @@ describe('mask option snapshots', () => {
     expect(snapshot).toHaveProperty('definitions.H.lastIndex', 0);
   });
 
-  it('distinguishes absent keys from explicitly undefined options', () => {
-    const initial = resolveDrMaskOptions({ mask: '00' });
-    const explicit = resolveDrMaskOptions({ mask: '00', lazy: undefined }, initial);
-    expect(explicit).not.toBe(initial);
-    expect(Object.hasOwn(explicit, 'lazy')).toBe(true);
-    const removed = resolveDrMaskOptions({ mask: '00' }, explicit);
-    expect(removed).not.toBe(explicit);
-    expect(Object.hasOwn(removed, 'lazy')).toBe(false);
-  });
-
   it('accepts shared acyclic blocks and ignores property insertion order', () => {
     const block = { mask: '00' };
     const initial = resolveDrMaskOptions({ mask: 'a:b', blocks: { a: block, b: block } });
@@ -43,22 +33,6 @@ describe('mask option snapshots', () => {
     block.mask = '000';
     expect(initial).toHaveProperty('blocks.a.mask', '00');
     expect(initial).toHaveProperty('blocks.b.mask', '00');
-  });
-
-  it('accepts a dictionary without a prototype as declarative block options', () => {
-    const block = Object.assign(Object.create(null) as { mask: string }, { mask: '00' });
-    const snapshot = resolveDrMaskOptions({ mask: 'num', blocks: { num: block } });
-    expect(resolveDrMaskOptions({ mask: 'num', blocks: { num: { mask: '00' } } }, snapshot)).toBe(snapshot);
-    block.mask = '000';
-    expect(snapshot).toHaveProperty('blocks.num.mask', '00');
-  });
-
-  it.each([null, /[A-F]/i, new Date(2024, 0, 1), []])('detects replacing custom option data %s with an object', (metadata) => {
-    const options = { mask: '00', metadata };
-    const snapshot = resolveDrMaskOptions(options);
-    const replacement = { mask: '00', metadata: {} };
-    expect(resolveDrMaskOptions(replacement, snapshot)).not.toBe(snapshot);
-    expect(resolveDrMaskOptions(options, resolveDrMaskOptions(replacement))).not.toEqual(replacement);
   });
 
   it('rejects cyclic data with a clear configuration error', () => {

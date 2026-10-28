@@ -12,6 +12,7 @@ import { useDrSelectTriggerKeyboard } from '@/forms/components/DrSelect/composab
 import { useOverlay } from '@/overlays/composables/useOverlay/useOverlay';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
 import type { DrSelectListExposed } from '@/forms/components/DrSelect/components/DrSelectList/types';
+import type { DrSelectMobileDialogExposed } from '@/forms/components/DrSelect/components/DrSelectMobileDialog/types';
 import type { DrSelectTriggerExposed } from '@/forms/components/DrSelect/components/DrSelectTrigger/types';
 import type { DrSelectInitialActiveItem } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/types';
 import type {
@@ -44,9 +45,12 @@ const rootElement = useTemplateRef<HTMLElement>('rootElement');
 const trigger = useTemplateRef<DrSelectTriggerExposed>('trigger');
 const popupElement = useTemplateRef<HTMLElement>('popupElement');
 const list = useTemplateRef<DrSelectListExposed>('list');
+const mobileDialog = useTemplateRef<DrSelectMobileDialogExposed>('mobileDialog');
+const mobileLabelTarget = computed(() => mobileDialog.value?.labelTarget ?? undefined);
 const reference = computed(() => trigger.value?.element ?? null);
 
 const selectId = useId();
+const labelId = `${selectId}-label`;
 const desktopListboxId = `${selectId}-listbox`;
 const mobileListboxId = `${selectId}-dialog-listbox`;
 
@@ -87,6 +91,10 @@ const selectedIndex = computed(() => {
 const effectiveDisabled = computed(() => props.disabled || props.items.length === 0);
 const placeholderText = computed(() => (props.items.length === 0 ? props.emptyText ?? t('select.empty') : props.placeholder));
 const isPlaceholderVisible = computed(() => !hasSelection.value);
+
+function getLabelledBy() {
+  return slots.label != null || isNonBlankString(props.label) ? labelId : undefined;
+}
 
 const accessibleLabel = computed(() => {
   if (isNonBlankString(props.label)) {
@@ -260,9 +268,16 @@ defineExpose<DrSelectExposed>({
     bordered
   >
     <template #label>
-      <slot name="label">
-        {{ props.label }}
-      </slot>
+      <!-- Keep one label subtree, including consumer IDs, outside the inert background while the dialog is open. -->
+      <Teleport
+        v-if="getLabelledBy() != null"
+        :to="mobileLabelTarget"
+        :disabled="mobileLabelTarget == null"
+      >
+        <span :id="labelId">
+          <slot name="label">{{ props.label }}</slot>
+        </span>
+      </Teleport>
     </template>
 
     <template #default="slotProps">
@@ -277,6 +292,8 @@ defineExpose<DrSelectExposed>({
           :disabled="slotProps.disabled"
           :is-placeholder="isPlaceholderVisible"
           :aria="triggerAria"
+          :accessible-label="accessibleLabel"
+          :labelled-by="getLabelledBy()"
           :invalid="slotProps.state === 'error'"
           :described-by="slotProps.describedBy"
           @click="handleTriggerClick"
@@ -317,6 +334,7 @@ defineExpose<DrSelectExposed>({
               :has-selection="hasSelection"
               :active-index="navigation.activeIndex.value"
               :accessible-label="accessibleLabel"
+              :labelled-by="getLabelledBy()"
               @activate="navigation.activateItem"
               @select="selectDesktopItem"
             >
@@ -338,6 +356,7 @@ defineExpose<DrSelectExposed>({
         v-if="mobileLayer != null && overlay.portalTarget.value != null"
         :id="mobileListboxId"
         :key="mobileLayer.uid"
+        ref="mobileDialog"
         :dialog-id="itemsDialogId"
         :layer="mobileLayer"
         :portal-target="overlay.portalTarget.value"
@@ -348,6 +367,7 @@ defineExpose<DrSelectExposed>({
         :has-selection="hasSelection"
         :active-index="dialogInitialActiveIndex"
         :accessible-label="accessibleLabel"
+        :labelled-by="getLabelledBy()"
         @select="selectDialogItem"
       >
         <template

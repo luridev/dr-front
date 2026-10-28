@@ -7,6 +7,7 @@ export type DrSelectListProps<T> = {
   hasSelection: boolean;
   activeIndex?: number;
   accessibleLabel: string;
+  labelledBy?: string;
   tabindex?: -1 | 0;
 };
 

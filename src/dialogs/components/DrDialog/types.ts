@@ -6,5 +6,6 @@ export type DrDialogProps = {
 
 export type DrDialogSlots = {
   default: () => unknown;
+  title?: () => unknown;
   footer?: () => unknown;
 };

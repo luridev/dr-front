@@ -4,6 +4,8 @@ import { DrTextarea } from '@/index';
 import type { DrTextareaPlaygroundProps } from '@/forms/components/DrTextarea/DrTextareaPlayground/types.support';
 import type { DrTextareaMode } from '@/forms/components/DrTextarea/types';
 
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<DrTextareaPlaygroundProps>(), {
   spellCheck: undefined,
 });
@@ -13,12 +15,13 @@ const exceededLimit = ref<number>();
 const limitExceededCount = ref(0);
 const focusCount = ref(0);
 const hasNativeFocusTarget = ref(false);
-const mode = ref<DrTextareaMode>('content');
-const kind = computed(() => (mode.value === 'content' ? 'group' : 'field'));
+const editorMode = ref<DrTextareaMode>('content');
+const effectiveMode = computed(() => props.mode ?? editorMode.value);
+const kind = computed(() => props.kind ?? (effectiveMode.value === 'content' ? 'group' : 'field'));
 
 function updateText(value: string): void {
   text.value = value;
-  mode.value = 'textarea';
+  editorMode.value = 'textarea';
 }
 
 function handleLimitExceeded(maxLength: number): void {
@@ -37,7 +40,7 @@ function handleFocus(event: FocusEvent): void {
 <template>
   <DrTextarea
     :model-value="text"
-    :mode="mode"
+    :mode="effectiveMode"
     :kind="kind"
     label="Source"
     :disabled="props.disabled"
@@ -60,7 +63,7 @@ function handleFocus(event: FocusEvent): void {
         role="group"
         :aria-labelledby="slot.labelId"
         :aria-describedby="slot.describedBy"
-        :aria-invalid="slot.state === 'error' ? true : undefined"
+        :aria-invalid="slot.state === 'error' || undefined"
         :aria-disabled="slot.disabled || undefined"
       >
         Custom content

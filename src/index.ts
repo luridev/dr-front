@@ -33,6 +33,7 @@ export type { DrButtonVariant, DrButtonAria } from '@/actions/components/DrButto
 export type { DrAlertData, DrErrorAlertData } from '@/feedback/types';
 export type { DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@/feedback/toasts/types';
 export type { DrInputDateStatus } from '@/forms/components/DrInputDate/types';
+export type { DrInputType } from '@/forms/components/DrInput/types';
 export type { DrInputNumberStatus } from '@/forms/components/DrInputNumber/types';
 export type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 export type { DrInputTimeSmallestUnit, DrInputTimeStatus } from '@/forms/components/DrInputTime/types';

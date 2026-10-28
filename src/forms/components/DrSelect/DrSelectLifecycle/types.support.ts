@@ -7,7 +7,6 @@ export type LifecycleItem = {
 
 export type LifecycleContext = {
   value: Readonly<Ref<string>>;
-  unmounted: Ref<number>;
 };
 
 export type DrSelectLifecycleProps = {

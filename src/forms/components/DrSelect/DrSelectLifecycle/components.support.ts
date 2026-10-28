@@ -1,4 +1,4 @@
-import { defineComponent, h, inject, onDeactivated, onUnmounted, provide, ref, toRef, watch } from 'vue';
+import { defineComponent, h, inject, onDeactivated, provide, ref, toRef, watch } from 'vue';
 import DrSelect from '@/forms/components/DrSelect/DrSelect.vue';
 import { keepAliveItems, lifecycleContextKey } from '@/forms/components/DrSelect/DrSelectLifecycle/config.support';
 import type { PropType } from 'vue';
@@ -9,14 +9,9 @@ export const LocalProvider = defineComponent({
   inheritAttrs: false,
   props: { value: { type: String, required: true } },
   setup(props, { slots }) {
-    const unmounted = ref(0);
+    provide(lifecycleContextKey, { value: toRef(props, 'value') });
 
-    provide(lifecycleContextKey, { value: toRef(props, 'value'), unmounted });
-
-    return () => [
-      slots.default?.(),
-      h('p', { 'data-testid': 'unmounted' }, unmounted.value),
-    ];
+    return () => slots.default?.();
   },
 });
 
@@ -33,12 +28,6 @@ export const SlotContent = defineComponent({
 
     watch(() => props.suffix, () => {
       localChanges.value += 1;
-    });
-
-    onUnmounted(() => {
-      if (context != null) {
-        context.unmounted.value += 1;
-      }
     });
 
     return () => h('span', {
