@@ -1,10 +1,11 @@
 import { createMask } from 'imask';
 import { computed, onMounted, ref, shallowRef, triggerRef, watch } from 'vue';
+import { resolveDrMaskOptions } from '@/forms/components/DrMaskedInput/lib/resolveDrMaskOptions/resolveDrMaskOptions';
 import type { UseDrMaskedInputModelParams } from '@/forms/components/DrMaskedInput/composables/useDrMaskedInputModel/types';
-import type { DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
+import type { DrMask, DrMaskedInputStatus } from '@/forms/components/DrMaskedInput/types';
 
 export function useDrMaskedInputModel({ model, mask, onStatusUpdate }: UseDrMaskedInputModelParams) {
-  const options = computed(() => typeof mask.value === 'string' ? { mask: mask.value } : mask.value);
+  const options = computed<Exclude<DrMask, string>>((previous) => resolveDrMaskOptions(mask.value, previous));
   const masked = shallowRef(createMask(options.value));
   const inputValue = ref('');
   const status = ref<DrMaskedInputStatus>('empty');

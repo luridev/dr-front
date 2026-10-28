@@ -56,15 +56,17 @@ Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. S
 
 ## Masked inputs
 
-`DrMaskedInput` supports Pattern masks and arbitrary-precision integer input.
+`DrMaskedInput` uses [IMask](https://imask.js.org/guide.html) and accepts a pattern string or an IMask options object.
 
 ```vue
 <DrMaskedInput v-model="code" mask="000-000" />
-<DrMaskedInput v-model="serial" :mask="{ pattern: 'HH-0000', definitions: { H: /[A-F0-9]/ } }" />
-<DrMaskedInput v-model="timestamp" :mask="{ type: 'integer' }" />
+<DrMaskedInput v-model="serial" :mask="{ mask: 'HH-0000', definitions: { H: /[A-F0-9]/ } }" />
+<DrMaskedInput v-model="digits" :mask="{ mask: /^\d*$/ }" />
 ```
 
-`v-model` stores a canonical string without decorative separators. Pattern preserves leading zeros; Integer normalizes leading zeros and negative zero.
+`v-model` stores IMask's `unmaskedValue` as a string; its format depends on the mask. Configuration changes are reactive and reset editing history when the effective options change.
+
+Number masks follow JavaScript number precision limits. With `expose`, only the exposed value is stored, so other blocks cannot be restored from `v-model` after remounting or changing the mask.
 
 ## Component gallery
 

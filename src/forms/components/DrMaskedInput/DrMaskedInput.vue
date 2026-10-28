@@ -22,7 +22,7 @@ const model = defineModel<string>({ required: true });
 defineSlots<DrMaskedInputSlots>();
 const input = useTemplateRef<DrInputExposed>('input');
 
-const { options: maskOptions, masked, inputValue, accept, updateInputValue } = useDrMaskedInputModel({
+const { masked, inputValue, accept, updateInputValue } = useDrMaskedInputModel({
   model,
   mask: toRef(props, 'mask'),
   onStatusUpdate: (status) => { emit('update:status', status); },
@@ -31,7 +31,6 @@ const { options: maskOptions, masked, inputValue, accept, updateInputValue } = u
 provideDrInputEditor(({ input: inputElement, readonly }) => useDrMaskedInputEditor({
   input: inputElement,
   readonly,
-  options: maskOptions,
   masked,
   inputValue,
   accept,

@@ -4,7 +4,7 @@ import type { FactoryOpts, InputMask } from 'imask';
 import type { UseDrMaskedInputEditorParams } from '@/forms/components/DrMaskedInput/composables/useDrMaskedInputEditor/types';
 
 export function useDrMaskedInputEditor({
-  input, inputValue, readonly, options, masked, accept,
+  input, inputValue, readonly, masked, accept,
 }: UseDrMaskedInputEditorParams) {
   let control: InputMask<FactoryOpts> | undefined;
   let selection: Pick<HTMLInputElement, 'selectionStart' | 'selectionEnd' | 'selectionDirection'> | undefined;
@@ -21,10 +21,10 @@ export function useDrMaskedInputEditor({
         };
   });
 
-  watch([input, options, masked, readonly], (_, previous) => {
+  watch([input, masked, readonly], (_, previous) => {
     const element = input.value;
 
-    if (element !== previous[0] || options.value !== previous[1] || readonly()) {
+    if (element !== previous[0] || control?.masked !== masked.value || readonly()) {
       control?.destroy();
       control = undefined;
     }
@@ -33,17 +33,16 @@ export function useDrMaskedInputEditor({
       return;
     }
 
-    if (!readonly()) {
-      if (control === undefined) {
-        element.value = '';
-        control = IMask(element, options.value);
-        control.masked = masked.value;
-        control.updateControl();
-        control.on('accept', accept);
-      } else {
-        control.updateControl();
-      }
-    } else {
+    let created = false;
+
+    if (!readonly() && control === undefined) {
+      control = IMask(element, { mask: /.*/ });
+      control.masked = masked.value;
+      control.history.clear();
+      created = true;
+    }
+
+    if (element.value !== inputValue.value) {
       element.value = inputValue.value;
     }
 
@@ -56,6 +55,11 @@ export function useDrMaskedInputEditor({
     }
 
     selection = undefined;
+    control?.updateControl();
+
+    if (created) {
+      control?.on('accept', accept);
+    }
   }, { flush: 'post' });
 
   watch(inputValue, () => {
@@ -68,5 +72,6 @@ export function useDrMaskedInputEditor({
 
   return {
     inputMode: 'text' as const,
+    getInputValue: () => input.value?.value ?? inputValue.value,
   };
 }

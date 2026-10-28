@@ -41,7 +41,7 @@ const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
 );
 
-const { handleInput, inputMode } = useDrInputEditor({
+const { handleInput, inputMode, getInputValue } = useDrInputEditor({
   input: inputElement,
   model,
   readonly: () => props.readonly || props.disabled,
@@ -131,7 +131,7 @@ defineExpose({
       <input
         :id="slot.id"
         ref="inputElement"
-        :value="model"
+        :value="getInputValue?.() ?? model"
         class="DrInput"
         :class="{ DrInput_clearable: isClearButtonVisible }"
         :type="props.type"
