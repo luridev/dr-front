@@ -77,17 +77,18 @@ test('popup escapes the panel without scrolling it and preserves modal Tab and E
   await expect(dialog).toHaveCount(0);
 });
 
-test('nested mobile Select keeps Tab navigation within the topmost dialog', async ({ mount, page }) => {
+test('nested mobile Select preserves backdrop policy, modal focus and independent closing', async ({ mount, page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
   const component = await mount(selectDialogStoryId);
-  const outerDialog = page.getByRole('dialog', { name: 'Select dialog', exact: true });
-  const trigger = outerDialog.getByRole('combobox', { name: 'Dialog select', exact: true });
+  const opener = component.getByRole('button', { name: 'Open dialog', exact: true });
+  const outerDialog = page.getByRole('dialog', { name: 'Select dialog', exact: true, includeHidden: true });
+  const trigger = outerDialog.getByRole('combobox', { name: 'Dialog select', exact: true, includeHidden: true });
   const innerDialog = page.getByRole('dialog', { name: 'Dialog select', exact: true });
   const listbox = innerDialog.getByRole('listbox');
   const innerClose = innerDialog.getByRole('button', { name: 'Close', exact: true });
 
-  await component.getByRole('button', { name: 'Open dialog', exact: true }).click();
+  await opener.press('Enter');
   await trigger.focus();
   await page.keyboard.press('Enter');
   await expect(listbox).toBeFocused();
@@ -97,11 +98,21 @@ test('nested mobile Select keeps Tab navigation within the topmost dialog', asyn
   await page.keyboard.press('Shift+Tab');
   await expect(listbox).toBeFocused();
 
+  await innerDialog.getByRole('heading', { name: 'Dialog select', exact: true }).click();
+  await page.locator('.DrOverlayLayer_top').click({ position: { x: 5, y: 5 } });
+  await expect(innerDialog).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+
   await page.keyboard.press('Escape');
   await expect(innerDialog).toHaveCount(0);
   await expect(outerDialog).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(trigger).toBeFocused();
+  await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
 
   await page.keyboard.press('Escape');
   await expect(outerDialog).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  await expect(opener).toBeFocused();
 });

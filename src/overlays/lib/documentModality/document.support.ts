@@ -15,8 +15,18 @@ export function createDocumentFixture() {
     const attributes = new Map<string, string>();
     const values = new Map<string, string>();
     const priorities = new Map<string, string>();
+    const children = new Set<HTMLElement>();
 
     return {
+      isConnected: true,
+      contains(target: Node | null): boolean {
+        return target === this as unknown as HTMLElement || [...children].some((child) => child.contains(target));
+      },
+      appendChild(child: HTMLElement) {
+        children.add(child);
+
+        return child;
+      },
       getAttribute: (key: string) => attributes.get(key) ?? null,
       setAttribute: (key: string, value: unknown) => attributes.set(key, String(value)),
       removeAttribute: (key: string) => attributes.delete(key),
@@ -41,6 +51,9 @@ export function createDocumentFixture() {
     activeElement: null,
     defaultView: { HTMLElement: FocusTarget },
   }) as unknown as Document;
+
+  Object.assign(document.body, { ownerDocument: document });
+  Object.assign(document.documentElement, { ownerDocument: document });
 
   const addListener = vi.spyOn(document, 'addEventListener');
   const removeListener = vi.spyOn(document, 'removeEventListener');

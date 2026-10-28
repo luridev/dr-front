@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import { computed, onMounted, onScopeDispose, provide, ref, useTemplateRef, watch } from 'vue';
 import DrOverlayLayer from '@/overlays/components/DrOverlayLayer/DrOverlayLayer.vue';
+import { useOverlayLifecycle } from '@/overlays/composables/useOverlayLifecycle/useOverlayLifecycle';
 import { drOverlayKey } from '@/overlays/keys';
 import { createOverlayContext } from '@/overlays/lib/overlayContext/overlayContext';
 import type { RenderedOverlayLayer, DrModalHostProps } from '@/overlays/components/DrModalHost/types';
@@ -12,11 +13,20 @@ defineOptions({
 const props = defineProps<DrModalHostProps>();
 const isMounted = ref(false);
 const context = createOverlayContext();
+const portalTarget = useTemplateRef<HTMLElement>('portalTarget');
+
+const isActive = useOverlayLifecycle(() => {
+  context.closeAll(false);
+});
+
+const portalContainer = computed(() =>
+  isMounted.value ? props.backgroundRoot?.ownerDocument.body ?? document.body : null,
+);
 
 provide(drOverlayKey, context);
 
 const renderedLayers = computed<ReadonlyArray<RenderedOverlayLayer>>(() =>
-  context.layers.value.map((layer) => ({
+  context.layers.value.filter((layer) => layer.content != null).map((layer) => ({
     layer,
     isTopLayer: context.isTop(layer.token),
     order: context.order(layer.token),
@@ -24,28 +34,33 @@ const renderedLayers = computed<ReadonlyArray<RenderedOverlayLayer>>(() =>
 );
 
 watch(
-  () => (isMounted.value ? props.backgroundRoot : null),
-  (root) => { context.setBackgroundRoot(root); },
+  () => (isMounted.value && isActive.value ? props.backgroundRoot : null),
+  (root) => { context.setBackgroundRoot(root, isActive.value); },
   { flush: 'sync' },
 );
+
+watch([portalTarget, portalContainer], ([target]) => {
+  context.setPortalTarget(target);
+}, { flush: 'post' });
 
 onMounted(() => {
   isMounted.value = true;
 });
 
-onBeforeUnmount(() => {
-  context.dispose();
-});
+onScopeDispose(context.dispose);
 </script>
 
 <template>
   <slot></slot>
 
   <Teleport
-    v-if="isMounted && props.backgroundRoot"
-    :to="props.backgroundRoot.ownerDocument.body"
+    v-if="portalContainer != null"
+    :to="portalContainer"
   >
-    <div class="DrModalHost">
+    <div
+      ref="portalTarget"
+      class="DrModalHost"
+    >
       <DrOverlayLayer
         v-for="renderedLayer in renderedLayers"
         :key="renderedLayer.layer.uid"

@@ -16,7 +16,7 @@ const props = defineProps<DrOverlayLayerProps>();
 const floatingTarget = useTemplateRef<HTMLElement>('floatingTarget');
 
 // eslint-disable-next-line vue/no-setup-props-reactivity-loss -- The keyed layer token is immutable.
-provide(dialogReturnFocusKey, getDocumentModality(document).focusReturnFor(props.layer.token));
+provide(dialogReturnFocusKey, getDocumentModality(props.layer.document).focusReturnFor(props.layer.token));
 
 provide(floatingScopeKey, {
   target: floatingTarget,
@@ -30,10 +30,10 @@ function handleBackdropPointerdown(event: PointerEvent) {
   }
 }
 
-// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- The keyed layer snapshot is immutable.
-provide(drToastKey, props.layer.context.toast);
-// eslint-disable-next-line vue/no-setup-props-reactivity-loss -- Retain the caller's reactive configuration context.
-provide(drConfigKey, props.layer.context.config);
+if (props.layer.content != null) {
+  provide(drToastKey, props.layer.context.toast);
+  provide(drConfigKey, props.layer.context.config);
+}
 
 const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }));
 </script>
@@ -49,7 +49,12 @@ const layerStyle = computed(() => ({ '--dr-overlay-layer-order': props.order }))
   >
     <div class="DrOverlayLayer__content">
       <div class="DrOverlayLayer__contentValue">
-        <DrComponent :definition="props.layer.content" />
+        <slot>
+          <DrComponent
+            v-if="props.layer.content != null"
+            :definition="props.layer.content"
+          />
+        </slot>
       </div>
     </div>
 

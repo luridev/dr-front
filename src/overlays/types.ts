@@ -8,12 +8,13 @@ export type OverlayContextSnapshot = {
 };
 
 export type OverlayHandle = {
-  close: () => void;
+  layer: DrOverlayLayer;
+  close: (restoreFocus?: boolean) => void;
 };
 
 export type OverlayOptions = {
   opener?: HTMLElement | null;
-  content: DrComponentDefinition;
+  content?: DrComponentDefinition;
   closeOnBackdrop?: boolean;
   onClose?: () => void;
 };
@@ -21,8 +22,9 @@ export type OverlayOptions = {
 export type DrOverlayLayer = {
   uid: number;
   token: symbol;
+  document: Document;
   context: OverlayContextSnapshot;
-  content: DrComponentDefinition;
+  content?: DrComponentDefinition;
   closeOnBackdrop: boolean;
-  close: () => void;
+  close: (restoreFocus?: boolean) => void;
 };

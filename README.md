@@ -39,6 +39,8 @@ import '@protoapps/dr-front/styles.css';
 
 Pass `background-root` to enable modal dialogs. `DrConfigProvider`, `DrToastHost` and `DrModalHost` can also be used independently. Ordinary UI components require no provider.
 
+`background-root` must be connected and cannot be `body`, `html`, or an element containing the modal portal. Without a valid root, `DrSelect` falls back to a popup. Existing dialogs close if the root becomes unavailable or changes to another document.
+
 Built-in messages can be overridden with a typed callback:
 
 ```ts

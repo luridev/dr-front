@@ -1,20 +1,17 @@
 <script setup lang="ts" generic="T">
-import { computed, nextTick, onMounted, ref, toRef, useId, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, shallowRef, useId, useTemplateRef, watch } from 'vue';
 import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
-import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
 import DrSelectList from '@/forms/components/DrSelect/components/DrSelectList/DrSelectList.vue';
+import DrSelectMobileDialog from '@/forms/components/DrSelect/components/DrSelectMobileDialog/DrSelectMobileDialog.vue';
 import DrSelectTrigger from '@/forms/components/DrSelect/components/DrSelectTrigger/DrSelectTrigger.vue';
 import { useDrSelectAria } from '@/forms/components/DrSelect/composables/useDrSelectAria/useDrSelectAria';
 import { useDrSelectDesktopPopup } from '@/forms/components/DrSelect/composables/useDrSelectDesktopPopup/useDrSelectDesktopPopup';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
 import { useDrSelectTriggerKeyboard } from '@/forms/components/DrSelect/composables/useDrSelectTriggerKeyboard/useDrSelectTriggerKeyboard';
+import { useOverlay } from '@/overlays/composables/useOverlay/useOverlay';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
-import type {
-  DrSelectListEmits,
-  DrSelectListExposed,
-  DrSelectListProps,
-} from '@/forms/components/DrSelect/components/DrSelectList/types';
+import type { DrSelectListExposed } from '@/forms/components/DrSelect/components/DrSelectList/types';
 import type { DrSelectTriggerExposed } from '@/forms/components/DrSelect/components/DrSelectTrigger/types';
 import type { DrSelectInitialActiveItem } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/types';
 import type {
@@ -24,6 +21,7 @@ import type {
   DrSelectProps,
   DrSelectSlots,
 } from '@/forms/components/DrSelect/types';
+import type { OverlayHandle } from '@/overlays/types';
 
 defineOptions({
   inheritAttrs: false,
@@ -51,8 +49,6 @@ const reference = computed(() => trigger.value?.element ?? null);
 const selectId = useId();
 const desktopListboxId = `${selectId}-listbox`;
 const mobileListboxId = `${selectId}-dialog-listbox`;
-
-const items = toRef(props, 'items');
 
 const navigation = useDrSelectNavigation({
   getItems: () => props.items,
@@ -119,26 +115,36 @@ const selectedItemSlotProps = computed<DrSelectItemSlotProps<T> | undefined>(() 
   };
 });
 
-const {
-  id: itemsDialogId,
-  canOpenModal,
-  isOpen: isItemsDialogOpen,
-  open: openItemsDialog,
-  close: closeItemsDialog,
-} = useDialog<DrSelectListProps<T>, DrSelectListEmits<T>>({
-  title: accessibleLabel,
-  component: DrSelectList,
-  props: {
-    id: mobileListboxId,
-    tabindex: 0,
-    items,
-    selectedItem: model,
-    hasSelection,
-    activeIndex: dialogInitialActiveIndex,
-    accessibleLabel,
-  },
-  slots: slots.item == null ? undefined : { item: slots.item },
-});
+const overlay = useOverlay();
+const itemsDialogId = useId();
+const itemsDialogHandle = shallowRef<OverlayHandle>();
+const isItemsDialogOpen = computed(() => itemsDialogHandle.value != null);
+const mobileLayer = computed(() => itemsDialogHandle.value?.layer);
+const mobileLayerIsTop = computed(() => mobileLayer.value != null && overlay.isTop(mobileLayer.value.token));
+const mobileLayerOrder = computed(() => mobileLayer.value == null ? 0 : overlay.order(mobileLayer.value.token));
+
+watch(overlay.isActive, (active) => {
+  if (!active) {
+    desktopPopup.close();
+  }
+}, { flush: 'sync' });
+
+function openItemsDialog() {
+  const handle = overlay.open({
+    opener: reference.value,
+    onClose: () => {
+      if (itemsDialogHandle.value === handle) {
+        itemsDialogHandle.value = undefined;
+      }
+    },
+  });
+
+  itemsDialogHandle.value = handle;
+}
+
+function closeItemsDialog() {
+  itemsDialogHandle.value?.close();
+}
 
 const { triggerAria } = useDrSelectAria({
   presentation,
@@ -151,11 +157,11 @@ const { triggerAria } = useDrSelectAria({
 });
 
 function updatePresentation() {
-  presentation.value = canOpenModal.value && window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
+  presentation.value = overlay.canOpenModal.value && window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
 }
 
 function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') {
-  if (effectiveDisabled.value || desktopPopup.isOpen.value || isItemsDialogOpen.value) {
+  if (!overlay.isActive.value || effectiveDisabled.value || desktopPopup.isOpen.value || isItemsDialogOpen.value) {
     return;
   }
 
@@ -170,9 +176,7 @@ function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') 
   if (presentation.value === 'dialog') {
     dialogInitialActiveIndex.value = navigation.activeIndex.value;
 
-    openItemsDialog({
-      select: selectDialogItem,
-    }, { opener: reference.value });
+    openItemsDialog();
 
     return;
   }
@@ -329,6 +333,33 @@ defineExpose<DrSelectExposed>({
           </div>
         </Teleport>
       </div>
+
+      <DrSelectMobileDialog
+        v-if="mobileLayer != null && overlay.portalTarget.value != null"
+        :id="mobileListboxId"
+        :key="mobileLayer.uid"
+        :dialog-id="itemsDialogId"
+        :layer="mobileLayer"
+        :portal-target="overlay.portalTarget.value"
+        :is-top-layer="mobileLayerIsTop"
+        :order="mobileLayerOrder"
+        :items="props.items"
+        :selected-item="selectedItem"
+        :has-selection="hasSelection"
+        :active-index="dialogInitialActiveIndex"
+        :accessible-label="accessibleLabel"
+        @select="selectDialogItem"
+      >
+        <template
+          v-if="slots.item != null"
+          #item="itemSlotProps"
+        >
+          <slot
+            name="item"
+            v-bind="itemSlotProps"
+          ></slot>
+        </template>
+      </DrSelectMobileDialog>
     </template>
   </DrControl>
 </template>

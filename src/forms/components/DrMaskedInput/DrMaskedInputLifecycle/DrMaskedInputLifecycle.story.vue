@@ -42,7 +42,6 @@ function prepareChar(input: string): string {
   return input.replace(/[a-y]/g, (char) => String.fromCharCode(char.charCodeAt(0) + 1));
 }
 
-// Called during every parent render, like an inline object in a consumer template.
 function optionsForRender(): DrMask {
   switch (props.variant) {
     case 'nested':

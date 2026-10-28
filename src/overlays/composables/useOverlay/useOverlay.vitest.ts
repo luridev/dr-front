@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createSSRApp, defineComponent, effectScope, h, inject, provide } from 'vue';
 import { renderToString } from 'vue/server-renderer';
-import { defaultConfig } from '@/configuration/config';
 import { useDialog } from '@/dialogs/composables/useDialog/useDialog';
 import { drToastKey } from '@/feedback/toasts/keys';
 import { createToastState } from '@/feedback/toasts/lib/toastState/toastState';
 import DrModalHost from '@/overlays/components/DrModalHost/DrModalHost.vue';
 import { useOverlay } from '@/overlays/composables/useOverlay/useOverlay';
 import { drOverlayKey } from '@/overlays/keys';
-import { createDocumentFixture } from '@/overlays/lib/documentModality/document.support';
+import { createDocumentFixture, FocusTarget } from '@/overlays/lib/documentModality/document.support';
+import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';
 import { createOverlayContext } from '@/overlays/lib/overlayContext/overlayContext';
 import { mountSetup, requireValue } from '~/tests/vitest/setup.support';
 import type { UseOverlay } from '@/overlays/composables/useOverlay/types';
@@ -55,6 +55,8 @@ describe('overlay ownership', () => {
 
     contexts[0].setBackgroundRoot(fixture.background());
     contexts[1].setBackgroundRoot(fixture.background());
+    contexts[0].setPortalTarget(fixture.background());
+    contexts[1].setPortalTarget(fixture.background());
 
     for (const dialog of dialogs) {
       expect(dialog.canOpenModal.value).toBe(true);
@@ -75,31 +77,6 @@ describe('overlay ownership', () => {
     dialogs[0].open();
     expect(dialogs[0].isOpen.value).toBe(false);
     expect(contexts[0].layers.value).toEqual([]);
-  });
-
-  it('keeps independent stacks, closes in reverse order and prevents opens after Host disposal', () => {
-    const a = createOverlayContext();
-    const b = createOverlayContext();
-    const closed: Array<number> = [];
-    const snapshot = { toast: undefined, config: defaultConfig };
-    const fixture = createDocumentFixture();
-
-    a.setBackgroundRoot(fixture.background());
-    b.setBackgroundRoot(fixture.background());
-
-    const first = requireValue(a.open({ content, onClose: () => closed.push(1) }, snapshot));
-
-    a.open({ content, onClose: () => closed.push(2) }, snapshot);
-    b.open({ content }, snapshot);
-    expect(a.layers.value).toHaveLength(2);
-    expect(b.layers.value).toHaveLength(1);
-    a.dispose();
-    first.close();
-    expect(closed).toEqual([2, 1]);
-    expect(a.layers.value).toEqual([]);
-    expect(b.layers.value).toHaveLength(1);
-    expect(a.open({ content }, snapshot)).toBeUndefined();
-    b.dispose();
   });
 
   it('captures only known dependencies and disposes an owner without closing another owner', () => {
@@ -123,25 +100,48 @@ describe('overlay ownership', () => {
     });
 
     expect(owner.canOpenModal.value).toBe(false);
-    context.setBackgroundRoot(createDocumentFixture().background());
+    const fixture = createDocumentFixture();
+
+    context.setBackgroundRoot(fixture.background());
+    context.setPortalTarget(fixture.background());
     expect(owner.canOpenModal.value).toBe(true);
-    owner.open({ content, onClose: () => order.push(1) });
-    owner.open({ content, onClose: () => order.push(2) });
     const retained = requireValue(other.open({ content, closeOnBackdrop: true, onClose: closed }));
 
+    const owned = requireValue(owner.open({
+      content,
+      opener: new FocusTarget() as unknown as HTMLElement,
+      onClose: () => order.push(1),
+    }));
+
+    owner.open({ content, onClose: () => order.push(2) });
+    const returnOwnedFocus = getDocumentModality(fixture.document).focusReturnFor(owned.layer.token);
+
     expect(context.layers.value[0].context.toast).toBe(toast);
-    expect(context.layers.value[0].closeOnBackdrop).toBe(false);
-    expect(context.layers.value[2].closeOnBackdrop).toBe(true);
+    expect(context.layers.value[1].closeOnBackdrop).toBe(false);
+    expect(context.layers.value[0].closeOnBackdrop).toBe(true);
     scope.stop();
     expect(owner.canOpenModal.value).toBe(false);
     expect(other.canOpenModal.value).toBe(true);
     expect(order).toEqual([2, 1]);
+    expect(returnOwnedFocus()).toBe(false);
     expect(context.layers.value).toHaveLength(1);
     expect(owner.open({ content })).toBeUndefined();
     retained.close();
     retained.close();
     expect(closed).toHaveBeenCalledOnce();
-    app.unmount();
+    const withoutCallback = requireValue(other.open({ content }));
+
+    expect(() => {
+      withoutCallback.close();
+    }).not.toThrow();
+
+    context.dispose();
+    expect(other.open({ content })).toBeUndefined();
+
+    expect(() => {
+      app.unmount();
+    }).not.toThrow();
+
     expect(other.open({ content })).toBeUndefined();
     expect(context.layers.value).toEqual([]);
   });

@@ -23,7 +23,6 @@ defineSlots<DrSelectListSlots<T>>();
 
 const listElement = useTemplateRef<HTMLElement>('listElement');
 let resizeObserver: ResizeObserver | undefined;
-const optionElements = useTemplateRef<Array<HTMLButtonElement>>('optionElements');
 const getItemKey = useCollectionKeys(() => props.items);
 
 const navigation = useDrSelectNavigation({
@@ -127,7 +126,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 watch(
-  navigation.activeIndex,
+  options,
   async () => {
     await nextTick();
     ensureActiveVisible();
@@ -157,7 +156,8 @@ watch(() => props.selectedItem, () => {
 
 function ensureActiveVisible() {
   const scroller = listElement.value;
-  const option = optionElements.value?.[navigation.activeIndex.value];
+  const activeId = activeDescendant.value;
+  const option = activeId == null ? undefined : scroller?.querySelector<HTMLElement>(`#${CSS.escape(activeId)}`);
 
   if (scroller == null || option == null || scroller.clientHeight === 0) {
     return;
@@ -205,7 +205,6 @@ defineExpose<DrSelectListExposed>({ ensureActiveVisible });
       v-for="option in options"
       :id="option.id"
       :key="option.key"
-      ref="optionElements"
       class="DrSelectList__option"
       :class="option.classes"
       type="button"

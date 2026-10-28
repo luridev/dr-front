@@ -78,3 +78,52 @@ test('losing the background root closes the modal, releases resources and allows
   await expect(page.locator('body')).toHaveCSS('overflow', 'clip');
   await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden');
 });
+
+for (const rootKind of ['body', 'html'] as const) {
+  test(`${rootKind} cannot make its own dialog inert, including after a valid modal opening`, async ({ mount, page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const component = await mount(story, { ready: true, rootKind });
+    const trigger = component.getByRole('combobox', { name: 'Ready select' });
+    const background = component.getByTestId('background');
+    const dialog = page.getByRole('dialog', { name: 'Ready select' });
+
+    await page.locator('body').evaluate((body) => {
+      body.style.setProperty('overflow', 'clip', 'important');
+    });
+
+    await trigger.click();
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+    await expect(page.locator('body')).not.toHaveAttribute('inert');
+    await expect(page.locator('html')).not.toHaveAttribute('inert');
+    await expect(page.locator('body')).toHaveCSS('overflow', 'clip');
+    await page.getByRole('option', { name: 'Option 2 with a longer label', exact: true }).click();
+    await expect(trigger).toHaveText('Option 2 with a longer label');
+
+    await component.update({ ready: true });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(background).toHaveAttribute('inert');
+    await component.update({ ready: true, rootKind });
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(trigger).toBeFocused();
+    await expect(background).not.toHaveAttribute('inert');
+    await expect(page.locator('body')).not.toHaveAttribute('inert');
+    await expect(page.locator('html')).not.toHaveAttribute('inert');
+    await expect(page.locator('body')).toHaveCSS('overflow', 'clip');
+    expect(await page.locator('body').evaluate((body) => body.style.getPropertyPriority('overflow'))).toBe('important');
+
+    await trigger.click();
+    await expect(dialog).toHaveCount(0);
+    await page.getByRole('option', { name: 'Option 3 with a longer label', exact: true }).click();
+    await expect(trigger).toHaveText('Option 3 with a longer label');
+    await component.update({ ready: true });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+}

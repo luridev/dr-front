@@ -10,6 +10,11 @@ test('mobile Select at 560px focuses its listbox and returns the keyboard select
   const listbox = dialog.getByRole('listbox');
   await trigger.press('Enter');
   await expect(listbox).toBeFocused();
+  await dialog.getByRole('heading', { name: 'City', exact: true }).click();
+  await page.locator('.DrOverlayLayer_top').click({ position: { x: 5, y: 5 } });
+  await expect(dialog).toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await listbox.focus();
   await page.keyboard.press('Shift+Tab');
   await expect(dialog.getByRole('button', { name: 'Close', exact: true })).toBeFocused();
   await page.keyboard.press('Tab');
@@ -23,9 +28,11 @@ test('mobile Select at 560px focuses its listbox and returns the keyboard select
 
   await page.keyboard.press('Space');
   await expect(dialog).toHaveCount(0);
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(trigger).toBeFocused();
   await expect(trigger).toHaveText('Paris');
   await expect(component.getByText('Selected city: Paris', { exact: true })).toBeVisible();
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
 });
 
 test('desktop Select keeps focus at 561px and follows external model changes', async ({ mount, page }) => {

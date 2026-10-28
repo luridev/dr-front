@@ -17,6 +17,7 @@ const crossBrowserTests = [
 export default defineConfig({
   testDir: '.',
   testMatch: ['src/**/*.pwtest.ts', 'gallery/**/*.pwtest.ts'],
+  testIgnore: ['**/.stryker-tmp/**'],
   workers: 1,
   fullyParallel: false,
   use: {
