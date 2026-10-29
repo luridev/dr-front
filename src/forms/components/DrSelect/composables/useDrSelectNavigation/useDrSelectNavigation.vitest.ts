@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nextTick, ref } from 'vue';
+import { nextTick, readonly, ref } from 'vue';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
 import { createTestEffectScopeCollector } from '~/tests/vitest/lib/createTestEffectScopeCollector/createTestEffectScopeCollector';
 
@@ -22,6 +22,23 @@ function setupNavigation(initialItems: Array<string> = ['alpha', 'beta', 'gamma'
 }
 
 describe('useDrSelectNavigation', () => {
+  it('initializes and navigates from the raw item represented by a readonly reactive model', () => {
+    const items = [{ id: 1 }, { id: 1 }, { id: 3 }];
+    const selected = readonly(ref(items[1]).value);
+
+    const navigation = scopes.run(() => useDrSelectNavigation({
+      getItems: () => items,
+      getSelectedItem: () => selected,
+    }));
+
+    navigation.moveActiveItem(1);
+    expect(navigation.activeIndex.value).toBe(2);
+    navigation.activateInitialItem();
+    expect(navigation.activeIndex.value).toBe(1);
+    navigation.activateInitialItem('previous');
+    expect(navigation.activeIndex.value).toBe(0);
+  });
+
   it('leaves options inactive until explicit initialization, then activates the selected option', () => {
     const { navigation, getActiveItem } = setupNavigation(undefined, 'beta');
 

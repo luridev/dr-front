@@ -60,6 +60,8 @@ Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. S
 
 Controls use Vue `v-model` and application-managed validation (`state`/`message`), without universal `FormData` support. Use `novalidate` on HTML forms to disable native validation when needed (e.g. with `type="email"`).
 
+`DrRadioGroup` and `DrSelect` compare primitives with `===` and objects or arrays by their underlying identity: an object and its Vue reactive/readonly proxies match, but equal copies do not. Collection items must be unique under this comparison.
+
 ## Masked inputs
 
 `DrMaskedInput` uses [IMask](https://imask.js.org/guide.html) and accepts a pattern string or an IMask options object.

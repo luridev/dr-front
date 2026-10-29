@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onBeforeUnmount, useTemplateRef, watch } from 'vue';
 import { useCollectionKeys } from '@/collections/composables/useCollectionKeys/useCollectionKeys';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
+import { isSameValue } from '@/forms/lib/isSameValue/isSameValue';
 import DrCheckIcon from '@/icons/components/DrCheckIcon/DrCheckIcon.generated.vue';
 import type {
   DrSelectListEmits,
@@ -32,7 +33,7 @@ const navigation = useDrSelectNavigation({
 
 const options = computed(() =>
   props.items.map((item, index) => {
-    const selected = props.hasSelection && props.selectedItem === item;
+    const selected = props.hasSelection && isSameValue(props.selectedItem, item);
     const active = navigation.activeIndex.value === index;
 
     return {

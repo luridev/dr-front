@@ -1,7 +1,8 @@
 <script setup lang="ts" generic="T">
-import { useId } from 'vue';
+import { nextTick, useId, useTemplateRef } from 'vue';
 import { useCollectionKeys } from '@/collections/composables/useCollectionKeys/useCollectionKeys';
 import DrControl from '@/forms/components/DrControl/DrControl.vue';
+import { isSameValue } from '@/forms/lib/isSameValue/isSameValue';
 import type { DrRadioGroupDirection, DrRadioGroupProps } from '@/forms/components/DrRadioGroup/types';
 
 defineOptions({
@@ -24,13 +25,26 @@ const directionClasses = {
 const getItemKey = useCollectionKeys(() => props.items);
 
 const groupId = useId();
+const inputs = useTemplateRef<Array<HTMLInputElement>>('inputs');
 
 function getItemId(item: T) {
   return `${groupId}-${getItemKey(item)}`;
 }
 
 function isChecked(item: T) {
-  return model.value === item;
+  return isSameValue(model.value, item);
+}
+
+async function handleChange(item: T) {
+  model.value = item;
+
+  await nextTick();
+
+  inputs.value?.forEach((input) => {
+    if (input.checked !== input.defaultChecked) {
+      input.checked = input.defaultChecked;
+    }
+  });
 }
 </script>
 
@@ -67,12 +81,14 @@ function isChecked(item: T) {
         >
           <input
             :id="getItemId(item)"
-            v-model="model"
+            ref="inputs"
             class="DrRadioGroup__input"
             type="radio"
             :name="groupId"
             :value="item"
+            :checked="isChecked(item)"
             :disabled="slot.disabled"
+            @change="() => handleChange(item)"
           />
 
           <span class="DrRadioGroup__label">

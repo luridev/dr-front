@@ -9,6 +9,7 @@ import { useDrSelectAria } from '@/forms/components/DrSelect/composables/useDrSe
 import { useDrSelectDesktopPopup } from '@/forms/components/DrSelect/composables/useDrSelectDesktopPopup/useDrSelectDesktopPopup';
 import { useDrSelectNavigation } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/useDrSelectNavigation';
 import { useDrSelectTriggerKeyboard } from '@/forms/components/DrSelect/composables/useDrSelectTriggerKeyboard/useDrSelectTriggerKeyboard';
+import { isSameValue } from '@/forms/lib/isSameValue/isSameValue';
 import { useOverlay } from '@/overlays/composables/useOverlay/useOverlay';
 import { isNonBlankString } from '@/strings/lib/isNonBlankString/isNonBlankString';
 import type { DrSelectListExposed } from '@/forms/components/DrSelect/components/DrSelectList/types';
@@ -85,7 +86,7 @@ const selectedItem = computed(() => model.value);
 const selectedIndex = computed(() => {
   const item = selectedItem.value;
 
-  return item === undefined ? -1 : props.items.findIndex((candidate) => candidate === item);
+  return item === undefined ? -1 : props.items.findIndex((candidate) => isSameValue(candidate, item));
 });
 
 const effectiveDisabled = computed(() => props.disabled || props.items.length === 0);

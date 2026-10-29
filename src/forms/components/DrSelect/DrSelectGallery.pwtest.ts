@@ -1,6 +1,90 @@
 import { expect, test } from '~/tests/playwright/fixtures';
+import type { Locator } from '@playwright/test';
 
 const selectStoryId = 'forms/components/DrSelect/DrSelectGallery';
+
+async function expectValueSelection(trigger: Locator, list: Locator, index: number) {
+  const expected = [index === 0, index === 1];
+
+  await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-index', String(index));
+
+  await expect.poll(async () => ({
+    options: await list.getByRole('option').evaluateAll((options) => options.map((option) => option.getAttribute('aria-selected') === 'true')),
+    slots: await list.getByTestId('value-slot').evaluateAll((slots) => slots.map((slot) => slot.getAttribute('data-selected') === 'true')),
+  })).toEqual({ options: expected, slots: expected });
+}
+
+async function expectValueActive(list: Locator, focus: Locator, index: number) {
+  await expect(focus).toHaveAttribute('aria-activedescendant', await list.getByRole('option').nth(index).getAttribute('id') ?? '');
+  await expect(list.getByTestId('value-slot').nth(index)).toHaveAttribute('data-active', 'true');
+}
+
+for (const [mode, width] of [['desktop', 561], ['mobile', 560]] as const) {
+  test(`${mode} Select matches a ref model to raw objects across selection and external updates`, async ({ mount, page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const component = await mount(selectStoryId, { values: 'objects' });
+    const trigger = component.getByRole('combobox', { name: 'Values', exact: true, includeHidden: true });
+    const list = page.getByRole('listbox', { name: 'Values', exact: true });
+    const focus = mode === 'mobile' ? list : trigger;
+    const model = component.getByTestId('value-model');
+
+    await trigger.press('Enter');
+    await expect(focus).toBeFocused();
+    await expectValueSelection(trigger, list, 0);
+    await expectValueActive(list, focus, 0);
+    await list.getByRole('option').nth(1).click();
+    await expect(list).toHaveCount(0);
+    await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-index', '1');
+    await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-selected', 'true');
+    await expect(model).toHaveAttribute('data-selected-index', '1');
+    await expect(model).toHaveAttribute('data-received-index', '1');
+    await expect(model).toHaveAttribute('data-updates', '1');
+
+    await trigger.press('Enter');
+    await expectValueSelection(trigger, list, 1);
+    await expectValueActive(list, focus, 1);
+    await page.keyboard.press('ArrowUp');
+    await expectValueActive(list, focus, 0);
+    await expectValueSelection(trigger, list, 1);
+    await page.keyboard.press('Enter');
+    await expect(list).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-index', '0');
+    await expect(model).toHaveAttribute('data-received-index', '0');
+    await expect(model).toHaveAttribute('data-updates', '2');
+
+    await trigger.press('Enter');
+    await component.update({ values: 'objects', operation: 'select-last' });
+    await expectValueSelection(trigger, list, 1);
+    await expectValueActive(list, focus, 1);
+    await component.update({ values: 'objects', operation: 'clone-model' });
+    await expectValueSelection(trigger, list, -1);
+    await component.update({ values: 'objects', operation: 'select-first' });
+    await expectValueSelection(trigger, list, 0);
+    await component.update({ values: 'objects', operation: 'replace-items' });
+    await expectValueSelection(trigger, list, -1);
+    await expect(model).toHaveAttribute('data-updates', '2');
+    await list.getByRole('option').nth(1).click();
+    await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-index', '1');
+    await expect(model).toHaveAttribute('data-selected-index', '1');
+    await expect(model).toHaveAttribute('data-received-index', '1');
+    await expect(model).toHaveAttribute('data-updates', '3');
+  });
+}
+
+test('Select keeps numeric and string values distinct', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 900, height: 844 });
+  const component = await mount(selectStoryId, { values: 'mixed' });
+  const trigger = component.getByRole('combobox', { name: 'Values', exact: true });
+  const list = page.getByRole('listbox', { name: 'Values', exact: true });
+
+  await trigger.press('Enter');
+  await expectValueSelection(trigger, list, 0);
+  await list.getByRole('option').nth(1).click();
+  await trigger.press('Enter');
+  await expectValueSelection(trigger, list, 1);
+  await expect(component.getByTestId('value-model')).toHaveAttribute('data-received-index', '1');
+});
 
 test('mobile Select at 560px focuses its listbox and returns the keyboard selection', async ({ mount, page }) => {
   await page.setViewportSize({ width: 560, height: 844 });

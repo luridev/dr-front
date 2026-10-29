@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref, shallowRef, toRaw, watch } from 'vue';
 import { galleryCities, galleryEmptyItems } from '@/forms/components/DrSelect/config.support';
 import { DrButton, DrSelect } from '@/index';
-import type { DrSelectGalleryProps } from '@/forms/components/DrSelect/types.support';
+import type { DrSelectGalleryProps, SelectGalleryItem } from '@/forms/components/DrSelect/types.support';
 
 defineOptions({ inheritAttrs: false });
 
@@ -15,6 +15,45 @@ const city = ref<string>();
 const disabledCity = ref('Tokyo');
 const emptyCity = ref<string>();
 const errorCity = ref<string>();
+
+const items = shallowRef<Array<SelectGalleryItem>>([]);
+const selected = ref<SelectGalleryItem>(1);
+const selectedIndex = computed(() => items.value.findIndex((item) => toRaw(item) === toRaw(selected.value)));
+const updates = ref(0);
+const receivedIndex = ref(-1);
+
+watch(() => props.values, (values) => {
+  items.value = values === 'mixed' ? [1, '1'] : [{ id: 1 }, { id: 1 }];
+  selected.value = items.value[0];
+}, { immediate: true });
+
+watch(() => props.operation, (operation) => {
+  switch (operation) {
+    case 'select-first':
+      selected.value = items.value[0];
+      break;
+    case 'select-last':
+      selected.value = items.value[items.value.length - 1];
+      break;
+    case 'clone-model':
+      if (typeof selected.value === 'object') {
+        selected.value = { ...selected.value };
+      }
+
+      break;
+    case 'replace-items':
+      items.value = items.value.map((item) => typeof item === 'object' ? { ...item } : item);
+      break;
+    case undefined:
+      break;
+  }
+});
+
+function handleSelection(item: SelectGalleryItem) {
+  updates.value += 1;
+  receivedIndex.value = items.value.findIndex((candidate) => candidate === item);
+  selected.value = item;
+}
 
 function handleReset(): void {
   city.value = undefined;
@@ -78,6 +117,32 @@ function handleReset(): void {
     <p class="GalleryExample__output">Selected city: {{ city ?? 'none' }}</p>
 
     <p class="DrSelectGallery__note">Mobile dialog mode requires DrModalHost.</p>
+
+    <template v-if="props.values != null">
+      <DrSelect
+        :model-value="selected"
+        label="Values"
+        :items="items"
+        @update:model-value="handleSelection"
+      >
+        <template #item="{ item, index, selected: isSelected, active }">
+          <span
+            data-testid="value-slot"
+            :data-index="index"
+            :data-selected="isSelected"
+            :data-active="active"
+          >{{ index }}: {{ item }}</span>
+        </template>
+      </DrSelect>
+
+      <output
+        data-testid="value-model"
+        aria-label="Selected value"
+        :data-selected-index="selectedIndex"
+        :data-received-index="receivedIndex"
+        :data-updates="updates"
+      >{{ selected }}</output>
+    </template>
   </div>
 </template>
 

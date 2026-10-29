@@ -1,4 +1,5 @@
 import { readonly, ref, watch } from 'vue';
+import { isSameValue } from '@/forms/lib/isSameValue/isSameValue';
 import type { DrSelectInitialActiveItem } from '@/forms/components/DrSelect/composables/useDrSelectNavigation/types';
 
 type UseDrSelectNavigationOptions<T> = {
@@ -12,7 +13,7 @@ export function useDrSelectNavigation<T>(options: UseDrSelectNavigationOptions<T
   function getSelectedIndex() {
     const selectedItem = options.getSelectedItem();
 
-    return selectedItem === undefined ? -1 : options.getItems().findIndex((item) => item === selectedItem);
+    return selectedItem === undefined ? -1 : options.getItems().findIndex((item) => isSameValue(item, selectedItem));
   }
 
   function getLoopedIndex(index: number) {
