@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import type { DrAlertProps } from '@/feedback/components/DrAlert/types';
 import type { DrAlertVariant } from '@/feedback/types';
 
@@ -11,10 +10,6 @@ defineOptions({
 const props = withDefaults(defineProps<DrAlertProps>(), {
   variant: 'error',
 });
-
-const t = useDrTranslation();
-
-const title = computed(() => props.title ?? t('alert.error'));
 
 const variantClasses = {
   error: 'DrAlert_variant_error',
@@ -32,7 +27,7 @@ const role = computed(() => (props.variant === 'error' ? 'alert' : 'status'));
     :role="role"
   >
     <p class="DrAlert__title">
-      {{ title }}
+      {{ props.title }}
     </p>
 
     <p class="DrAlert__message">

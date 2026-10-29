@@ -1,7 +1,6 @@
 import type { DrMessages } from '@/configuration/types';
 
 export const ru = Object.freeze({
-  'alert.error': () => 'Что-то пошло не так',
   'dialog.close': () => 'Закрыть',
   'filePicker.choose': () => 'Выбрать файл',
   'input.clear': () => 'Очистить поле',

@@ -2,7 +2,7 @@ export type DrAlertVariant = 'error' | 'warning' | 'info';
 
 export type DrAlertData = Readonly<{
   variant: DrAlertVariant;
-  title?: string;
+  title: string;
   message: string;
   note?: string;
 }>;

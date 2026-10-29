@@ -1,49 +1,36 @@
 import { describe, expect, it } from 'vitest';
 import { createSSRApp, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
-import { en } from '@/configuration/messages/en';
 import DrAlert from '@/feedback/components/DrAlert/DrAlert.vue';
 import type { DrAlertData } from '@/feedback/types';
 
 describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (variant) => {
-  it('uses the current default when data has no title', async () => {
-    const data: DrAlertData = { variant, message: 'Подробности операции' };
+  it('renders consumer content with the variant style and announcement role', async () => {
+    const data: DrAlertData = {
+      variant,
+      title: 'Заголовок приложения',
+      message: 'Подробности операции',
+      note: 'Дополнительная информация',
+    };
+
     const html = await renderToString(createSSRApp(() => h(DrAlert, data)));
 
-    expect(html).toContain(en['alert.error']());
+    expect(html).toContain(data.title);
     expect(html).toContain(data.message);
-  });
-
-  it('preserves an explicit consumer title', async () => {
-    const title = 'Заголовок приложения';
-
-    const html = await renderToString(createSSRApp(() => h(DrAlert, {
-      variant,
-      title,
-      message: 'Подробности операции',
-    })));
-
-    expect(html).toContain(title);
-    expect(html).not.toContain(en['alert.error']());
-  });
-
-  it('does not replace an explicitly empty title with the default', async () => {
-    const html = await renderToString(createSSRApp(() => h(DrAlert, {
-      variant,
-      title: '',
-      message: 'Подробности операции',
-    })));
-
-    expect(html).not.toContain(en['alert.error']());
-    expect(html).toContain('Подробности операции');
+    expect(html).toContain(data.note);
+    expect(html).toContain(`DrAlert_variant_${variant}`);
+    expect(html).toContain(`role="${variant === 'error' ? 'alert' : 'status'}"`);
   });
 });
 
-it('DrAlert remains an error alert when variant and title are omitted', async () => {
+it('DrAlert defaults to an error alert when variant is omitted', async () => {
   const html = await renderToString(createSSRApp(() => h(DrAlert, {
+    title: 'Ошибка приложения',
     message: 'Подробности операции',
   })));
 
   expect(html).toContain('role="alert"');
-  expect(html).toContain(en['alert.error']());
+  expect(html).toContain('DrAlert_variant_error');
+  expect(html).toContain('Ошибка приложения');
+  expect(html).toContain('Подробности операции');
 });

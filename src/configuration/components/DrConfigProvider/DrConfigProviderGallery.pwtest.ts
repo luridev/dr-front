@@ -17,7 +17,7 @@ test('language updates built-in UI and aria without remounting or translating co
   await expect(configured.getByRole('button', { name: 'Choose file', exact: true })).toBeVisible();
   await expect(configured.getByRole('spinbutton')).toHaveAttribute('aria-valuetext', 'No value specified');
   await expect(configured.getByRole('combobox').last()).toHaveText('No options available');
-  await expect(configured.getByRole('alert')).toContainText('Something went wrong');
+  await expect(configured.getByRole('alert')).toContainText('Operation failed');
   await component.getByRole('combobox', { name: 'Language', exact: true }).selectOption('ru');
   await expect(email).toHaveAttribute('data-retained', 'yes');
   await expect(email).toHaveValue('Retained text');
@@ -28,7 +28,7 @@ test('language updates built-in UI and aria without remounting or translating co
   await expect(configured.getByRole('button', { name: 'Выбрать файл', exact: true })).toBeVisible();
   await expect(configured.getByRole('button', { name: 'Очистить поле «Notes»' })).toHaveText('Очистить');
   await expect(configured.getByRole('spinbutton')).toHaveAttribute('aria-valuetext', 'Значение не задано');
-  await expect(configured.getByRole('alert')).toContainText('Что-то пошло не так');
+  await expect(configured.getByRole('alert')).toContainText('Operation failed');
   await expect(configured.getByRole('alert')).toContainText('Application error details');
   await expect(component.getByTestId('providerless').getByRole('button', { name: 'Choose file' })).toBeVisible();
   await component.getByRole('combobox', { name: 'Locale', exact: true }).selectOption('en-GB');

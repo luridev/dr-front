@@ -1,5 +1,4 @@
 export const en = Object.freeze({
-  'alert.error': () => 'Something went wrong',
   'dialog.close': () => 'Close',
   'filePicker.choose': () => 'Choose file',
   'input.clear': () => 'Clear field',

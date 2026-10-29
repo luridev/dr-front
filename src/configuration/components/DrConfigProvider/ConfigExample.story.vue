@@ -89,7 +89,10 @@ function showExplicitToast() {
     :items="[]"
   />
 
-  <DrAlert message="Application error details" />
+  <DrAlert
+    title="Operation failed"
+    message="Application error details"
+  />
 
   <button @click="showAutomaticToast">Automatic toast</button>
 
