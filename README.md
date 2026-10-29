@@ -2,7 +2,7 @@
 
 > The web is terminally ill.
 
-Accessible Vue 3 UI components with sensible defaults and useful extras.
+UI components for Vue 3.
 
 ## Installation
 
@@ -10,72 +10,42 @@ Accessible Vue 3 UI components with sensible defaults and useful extras.
 npm install @protoapps/dr-front
 ```
 
+## Requirements
+
+- **Vue:** `^3.5.40` (peer dependency).
+- **TypeScript:** 6.0+, with published declarations validated using `moduleResolution: "Bundler"`.
+- **Browsers:** Baseline Widely Available as of 2026-09-25.
+- **Temporal:** `DrInputDate` and `DrInputTime` require a global `Temporal` implementation, either native or supplied by your application through a polyfill. Dr Front does not install a runtime polyfill automatically. Other components do not require Temporal.
+
 ## Usage
 
-```ts
-import {
-  DrFrontProvider,
-  DrButton,
-  DrInputDate,
-  useDrToast,
-  useControlsState,
-  type DrTranslateOverride,
-} from '@protoapps/dr-front';
+The stylesheet is required; import it once in your application entry point.
 
+```ts
+import { DrFrontProvider, DrButton, useDrToast } from '@protoapps/dr-front';
 import { DrCloseIcon } from '@protoapps/dr-front/icons';
 
 import '@protoapps/dr-front/styles.css';
 ```
 
+`DrInputNumber` works with JavaScript safe integers.
+
+`DrMaskedInput` uses [IMask](https://imask.js.org/guide.html) and accepts a pattern string or a native IMask options object. Its `v-model` contains IMask's `unmaskedValue` as a string.
+
 ## Configuration
 
-`DrFrontProvider` combines localization, notifications and modal dialogs in a renderless component. All props are optional.
+Ordinary UI components work without a provider. `DrFrontProvider` combines configuration, `DrToastHost` and `DrModalHost`; all of its props are optional.
 
 ```vue
-<DrFrontProvider language="ru" :translate="translate">
+<DrFrontProvider language="ru" locale="en-GB">
   <ApplicationContent />
 </DrFrontProvider>
 ```
 
-Pass `background-root` to enable modal dialogs. `DrConfigProvider`, `DrToastHost` and `DrModalHost` can also be used independently. Ordinary UI components require no provider.
+`useDrToast()` must be called synchronously during `setup()` in a descendant of `DrFrontProvider` or `DrToastHost`.
 
-`background-root` must be connected and cannot be `body`, `html`, or an element containing the modal portal. Without a valid root, `DrSelect` falls back to a popup. Existing dialogs close if the root becomes unavailable or changes to another document.
+To enable the modal mode of `DrSelect`, pass a mounted application container (`HTMLElement`) inside `body` as `background-root` to `DrFrontProvider` or `DrModalHost`. Without a valid root, `DrSelect` uses a popup.
 
-Built-in messages can be overridden with a typed callback:
+`DrConfigProvider`, `DrToastHost` and `DrModalHost` can also be used independently.
 
-```ts
-const translate: DrTranslateOverride = ({ language, key }) =>
-  language === 'en' && key === 'dialog.close' ? 'Dismiss' : undefined;
-```
-
-Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. Settings are inferred automatically, defaulting to `en` and `en-US`. The effective locale controls number, date and time input formatting and textarea counters. Set `language` and `locale` independently when the interface language and regional format differ.
-
-## Requirements
-
-- **Browsers:** Baseline Widely Available as of 2026-09-25. Changing this snapshot changes the library's browser support policy.
-- **TypeScript:** 6.0+, with published declarations validated using `moduleResolution: "Bundler"`.
-- **Temporal:** `DrInputDate` and `DrInputTime` require a global `Temporal` implementation (native or polyfilled). The package references TypeScript's Temporal declarations but does not install a runtime polyfill.
-
-## Forms
-
-Controls use Vue `v-model` and application-managed validation (`state`/`message`), without universal `FormData` support. Use `novalidate` on HTML forms to disable native validation when needed (e.g. with `type="email"`).
-
-`DrRadioGroup` and `DrSelect` compare primitives with `===` and objects or arrays by their underlying identity: an object and its Vue reactive/readonly proxies match, but equal copies do not. Collection items must be unique under this comparison.
-
-## Masked inputs
-
-`DrMaskedInput` uses [IMask](https://imask.js.org/guide.html) and accepts a pattern string or an IMask options object.
-
-```vue
-<DrMaskedInput v-model="code" mask="000-000" />
-<DrMaskedInput v-model="serial" :mask="{ mask: 'HH-0000', definitions: { H: /[A-F0-9]/ } }" />
-<DrMaskedInput v-model="digits" :mask="{ mask: /^\d*$/ }" />
-```
-
-`v-model` stores IMask's `unmaskedValue` as a string; its format depends on the mask. Configuration changes are reactive and reset editing history when the effective options change.
-
-Number masks follow JavaScript number precision limits. With `expose`, only the exposed value is stored, so other blocks cannot be restored from `v-model` after remounting or changing the mask.
-
-## Component gallery
-
-Run locally with `npm run dev`.
+Supported languages: `en`, `ru`. Supported locales: `en-US`, `en-GB`, `ru-RU`. The defaults are `en` and `en-US`. Set `language` and `locale` independently to choose UI messages and regional number, date and time formatting.
