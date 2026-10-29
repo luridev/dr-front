@@ -1,4 +1,6 @@
+import manifest from '~/package.json' with { type: 'json' };
 import { expect, openReadyHost, test } from '~/tests/playwright/fixtures';
+import { dispatchPaste } from '~/tests/playwright/lib/dispatchPaste/dispatchPaste';
 import type { HostWindow } from '~/gallery/types';
 
 const selectStoryId = 'forms/components/DrSelect/DrSelectGallery';
@@ -16,6 +18,7 @@ test('catalog, URL history, theme and canvas share an interactive example', asyn
   url.search = '?theme=light';
   await openReadyHost(page, url.href);
 
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(`Dr Front v${manifest.version}`);
   await expect(page.getByRole('link').filter({ hasText: 'DrInputMasking' })).toHaveCount(0);
   await page.getByRole('link', { name: /^DrSelect\b/ }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get('story')).toBe(selectStoryId);
@@ -34,13 +37,63 @@ test('catalog, URL history, theme and canvas share an interactive example', asyn
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
   await page.getByRole('link', { name: 'Canvas', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Dr Front', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveCount(0);
   await expect(page.getByRole('combobox', { name: 'City', exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'City', exact: true })).toBeVisible();
+});
+
+test('masked input history stays within narrow gallery viewports', async ({ baseURL, page }) => {
+  if (baseURL == null) {
+    throw new Error('Gallery test requires baseURL.');
+  }
+
+  const url = new URL(baseURL);
+
+  url.searchParams.delete('view');
+  url.searchParams.set('story', 'forms/components/DrMaskedInput/DrMaskedInputGallery');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openReadyHost(page, url.href);
+
+  const input = page.getByRole('textbox', { name: 'Code', exact: true });
+
+  await input.pressSequentially('123456');
+  await input.press('ControlOrMeta+Z');
+  await input.press('ControlOrMeta+Shift+Z');
+  await input.fill('987654');
+  await expect(page.getByTestId('updates')).toContainText('987654');
+
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+
+    await expect.poll(() => page.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+  }
+});
+
+test('textarea gallery clears stale limit feedback after editing and clearing', async ({ mount }) => {
+  const component = await mount('forms/components/DrTextarea/DrTextareaGallery');
+  const textarea = component.getByRole('textbox', { name: 'Note', exact: true });
+  const initialValue = await textarea.inputValue();
+
+  await expect(textarea).toHaveAccessibleDescription('120 characters max');
+  expect(await dispatchPaste(textarea, 'A long line '.repeat(15))).toBe(true);
+  await expect(textarea).toHaveValue(initialValue);
+  await expect(textarea).toHaveAccessibleDescription('120-character limit reached');
+
+  await textarea.press('End');
+  await textarea.pressSequentially(' More.');
+  await expect(textarea).toHaveValue(`${initialValue} More.`);
+  await expect(textarea).toHaveAccessibleDescription('120 characters max');
+
+  expect(await dispatchPaste(textarea, 'A long line '.repeat(15))).toBe(true);
+  await expect(textarea).toHaveAccessibleDescription('120-character limit reached');
+  await component.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect(textarea).toHaveValue('');
+  await expect(textarea).toHaveAccessibleDescription('120 characters max');
 });
 
 test('unknown story shows an error and allows returning to the catalog', async ({ baseURL, page }) => {

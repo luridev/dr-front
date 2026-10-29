@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
 import { DrButton, DrTextarea } from '@/index';
 import type { DrTextareaExposed } from '@/index';
 
@@ -10,8 +10,13 @@ const readonlyText = ref('This note is read-only.');
 const preview = ref('');
 const errorText = ref('');
 const disabledText = ref('This note is disabled.');
-const limitMessage = ref('120 characters max');
+const defaultLimitMessage = '120 characters max';
+const limitMessage = ref(defaultLimitMessage);
 const note = useTemplateRef<DrTextareaExposed>('note');
+
+watch(text, () => {
+  limitMessage.value = defaultLimitMessage;
+});
 
 function handleExample(): void {
   text.value = 'Meet at 10:00 to review the new components.';

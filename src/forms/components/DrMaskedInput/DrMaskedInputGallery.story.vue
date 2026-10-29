@@ -142,7 +142,10 @@ function focusAtEnd() {
 
     <DrButton @click="rerender">Rerender {{ renders }}</DrButton>
 
-    <span data-testid="updates">{{ JSON.stringify(updates) }}</span>
+    <span
+      class="GalleryExample__output"
+      data-testid="updates"
+    >{{ JSON.stringify(updates) }}</span>
 
     <span data-testid="event">{{ lastEvent }}</span>
   </div>

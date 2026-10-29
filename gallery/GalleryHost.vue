@@ -67,9 +67,11 @@ function handleCatalogClick(event: MouseEvent) {
     class="GalleryHost__header"
   >
     <div>
-      <p class="GalleryHost__eyebrow">Vue 3 · v{{ version }}</p>
+      <h1 class="GalleryHost__title">
+        Dr Front
 
-      <h1 class="GalleryHost__title">Dr Front</h1>
+        <span class="GalleryHost__version">v{{ version }}</span>
+      </h1>
 
       <p class="GalleryHost__intro">Component gallery</p>
     </div>
@@ -170,6 +172,7 @@ function handleCatalogClick(event: MouseEvent) {
 
   .GalleryHost__header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--dr-space-medium);
@@ -177,16 +180,21 @@ function handleCatalogClick(event: MouseEvent) {
     border-bottom: 1px solid var(--dr-color-border-base);
   }
 
-  .GalleryHost__eyebrow {
-    margin: 0;
-    color: var(--dr-color-text-secondary);
-    font-size: var(--dr-font-size-small);
-  }
-
   .GalleryHost__title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--dr-space-medium);
     margin-block: var(--dr-space-small);
     font-size: 2.5rem;
     letter-spacing: -0.04em;
+  }
+
+  .GalleryHost__version {
+    color: var(--dr-color-text-secondary);
+    font-size: var(--dr-font-size-small);
+    font-weight: normal;
+    letter-spacing: normal;
   }
 
   .GalleryHost__intro {
