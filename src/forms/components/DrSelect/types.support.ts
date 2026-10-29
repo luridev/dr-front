@@ -6,6 +6,7 @@ export type DrSelectGalleryProps = {
   placeholder?: string;
   values?: 'mixed' | 'objects';
   operation?: 'select-first' | 'select-last' | 'clone-model' | 'replace-items';
+  response?: 'reject' | 'clone';
 };
 
 export type SelectGalleryItem = number | string | { id: number };

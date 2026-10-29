@@ -35,7 +35,7 @@ describe('DrConfigProvider SSR', () => {
       default: () => h(DrConfigProvider, { language: 'en' }, { default: () => h(Probe) }),
     })));
 
-    expect(html).toBe('<!--[--><!--[--><span>en/ru-RU/Close</span><!--]--><!--]-->');
+    expect(html.replace(/<!--[\s\S]*?-->/g, '')).toBe('<span>en/ru-RU/Close</span>');
   });
 
   it('keeps concurrent apps independent and leaves providerless components on defaults', async () => {

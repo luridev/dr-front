@@ -35,7 +35,7 @@ test('a late background root preserves the mobile popup and selection until the 
 
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('option', { name: 'Option 20 with a longer label', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await expect(component.locator('.DrSelect__popup')).toHaveCount(0);
+  await expect(page.locator('.DrSelect__popup')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();

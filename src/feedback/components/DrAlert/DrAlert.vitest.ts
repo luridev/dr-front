@@ -8,9 +8,9 @@ describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (vari
   it('renders consumer content with the variant style and announcement role', async () => {
     const data: DrAlertData = {
       variant,
-      title: 'Заголовок приложения',
-      message: 'Подробности операции',
-      note: 'Дополнительная информация',
+      title: 'Application notice',
+      message: 'Operation details',
+      note: 'Additional information',
     };
 
     const html = await renderToString(createSSRApp(() => h(DrAlert, data)));
@@ -25,12 +25,12 @@ describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (vari
 
 it('DrAlert defaults to an error alert when variant is omitted', async () => {
   const html = await renderToString(createSSRApp(() => h(DrAlert, {
-    title: 'Ошибка приложения',
-    message: 'Подробности операции',
+    title: 'Application error',
+    message: 'Operation details',
   })));
 
   expect(html).toContain('role="alert"');
   expect(html).toContain('DrAlert_variant_error');
-  expect(html).toContain('Ошибка приложения');
-  expect(html).toContain('Подробности операции');
+  expect(html).toContain('Application error');
+  expect(html).toContain('Operation details');
 });

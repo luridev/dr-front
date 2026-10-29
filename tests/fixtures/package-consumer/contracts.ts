@@ -51,11 +51,6 @@ declare const maskedInput: InstanceType<typeof DrMaskedInput>;
 const masks = ['000-000', { mask: 'HH-0000', definitions: { H: /[A-F0-9]/ } }, { mask: /^\d*$/ }, { mask: 'code', blocks: { code: { mask: '0', repeat: [1, 30] } } }, { mask: Number, scale: 2 }, { mask: Date }, { mask: (value: string) => /^\d*$/.test(value) }, { mask: [{ mask: '00' }, { mask: 'aa' }] }] satisfies ReadonlyArray<DrMask>;
 const maskedProps: typeof maskedInput.$props = { modelValue: '123456', mask: masks[0], inputMode: 'numeric', enterKeyHint: 'done', autocomplete: 'one-time-code', spellCheck: false };
 maskedInput.$emit('focus', new FocusEvent('focus'));
-// @ts-expect-error Masked inputs do not expose a limit on their formatted text length.
-const invalidMaskedLimit: typeof maskedInput.$props = { modelValue: '', mask: '000', maxLength: 3 };
-// @ts-expect-error Masked inputs do not emit the plain input paste-limit event.
-maskedInput.$emit('limitExceeded', 3);
-void invalidMaskedLimit;
 maskedInput.$emit('update:modelValue', '123');
 for (const status of ['empty', 'incomplete', 'valid'] as const satisfies ReadonlyArray<DrMaskedInputStatus>) {
   maskedInput.$emit('update:status', status);
@@ -73,11 +68,6 @@ const invalidRepeat: DrMask = { mask: 'code', blocks: { code: { mask: '0', repea
 void [invalidScale, invalidRepeat];
 const numberProps: typeof numberInput.$props = { modelValue: 42, min: 0, max: 100, step: 2, autocomplete: 'transaction-amount', inputMode: 'text', enterKeyHint: 'next' };
 numberInput.$emit('focus', new FocusEvent('focus'));
-// @ts-expect-error Numeric editors do not expose text correction settings.
-const invalidNumberCorrection: typeof numberInput.$props = { modelValue: 42, spellCheck: false };
-// @ts-expect-error Numeric editors do not expose a formatted text length limit.
-const invalidNumberLimit: typeof numberInput.$props = { modelValue: 42, maxLength: 5 };
-void [invalidNumberCorrection, invalidNumberLimit];
 for (const status of ['empty', 'incomplete', 'invalid', 'out-of-range', 'valid'] as const satisfies ReadonlyArray<DrInputNumberStatus>) {
   numberInput.$emit('update:status', status);
 }

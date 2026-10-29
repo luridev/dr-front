@@ -14,7 +14,7 @@ async function expectSelection(component: Locator, index: number) {
   })).toEqual({ inputs: checked, slots: checked, modelIndex: String(index) });
 }
 
-test('independent radio groups retain native names, arrow boundaries and Tab navigation', async ({ mount, page }) => {
+test('independent radio groups retain native names, arrow selection and Tab navigation', async ({ mount, page }) => {
   const component = await mount(story);
   const row = component.getByRole('radiogroup', { name: 'Row', exact: true });
   const column = component.getByRole('radiogroup', { name: 'Column', exact: true });
@@ -28,20 +28,28 @@ test('independent radio groups retain native names, arrow boundaries and Tab nav
   expect(rowName).not.toBe(columnName);
 
   await rowRadios.first().focus();
-  await page.keyboard.press('ArrowLeft');
-  await expect(row.locator(':focus')).toHaveCount(1);
-  await rowRadios.last().focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(row.locator(':focus')).toHaveCount(1);
-  await rowRadios.first().focus();
   await page.keyboard.press('ArrowRight');
   await expect(rowRadios.nth(1)).toBeChecked();
+  await expect(rowRadios.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(rowRadios.first()).toBeChecked();
+  await expect(rowRadios.first()).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(rowRadios.nth(1)).toBeChecked();
+  await expect(rowRadios.nth(1)).toBeFocused();
   await expect(columnRadios.nth(1)).toBeChecked();
 
   await page.keyboard.press('Tab');
   await expect(columnRadios.nth(1)).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(columnRadios.last()).toBeChecked();
+  await expect(columnRadios.last()).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(columnRadios.nth(1)).toBeChecked();
+  await expect(columnRadios.nth(1)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(columnRadios.last()).toBeChecked();
+  await expect(columnRadios.last()).toBeFocused();
   await expect(rowRadios.nth(1)).toBeChecked();
   await page.keyboard.press('Shift+Tab');
   await expect(rowRadios.nth(1)).toBeFocused();

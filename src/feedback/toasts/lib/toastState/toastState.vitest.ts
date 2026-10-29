@@ -46,14 +46,14 @@ describe('Host-owned toast queue', () => {
     const state = createToastState();
     const auto = state.service.error({ message: 'Failed' });
     const automatic = requireValue(state.activeToast.value);
-    const explicit = state.service.error({ title: 'Ошибка', message: 'Failed' });
+    const explicit = state.service.error({ title: 'Application error', message: 'Failed' });
 
     expect(automatic.title).toBeUndefined();
     expect(getToastTitle(automatic, t)).toBe('Error');
     expect(explicit).not.toBe(auto);
     expect(state.service.error({ title: '   ', message: 'Failed' })).toBe(auto);
     state.dismissToast(auto);
-    expect(state.activeToast.value?.title).toBe('Ошибка');
+    expect(state.activeToast.value?.title).toBe('Application error');
     expect(state.activeToast.value?.key).not.toBe(automatic.key);
   });
 

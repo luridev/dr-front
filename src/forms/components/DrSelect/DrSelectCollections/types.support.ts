@@ -1,4 +1,4 @@
-export type SelectCollectionOperation = 'reverse' | 'splice' | 'replace' | 'add';
+export type SelectCollectionOperation = 'reverse' | 'splice' | 'replace' | 'add' | 'clear' | 'restore';
 
 export type SelectCollectionsProps = {
   operation?: SelectCollectionOperation;

@@ -1,14 +1,25 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { DrCheckbox } from '@/index';
+import type { DrCheckboxGalleryProps } from '@/forms/components/DrCheckbox/types.support';
 
 defineOptions({ inheritAttrs: false });
 
+const props = withDefaults(defineProps<DrCheckboxGalleryProps>(), {
+  externalConsent: undefined,
+});
+
 const notifications = ref(true);
 const consent = ref(false);
-const disabled = ref(true);
+const disabledValue = ref(true);
 const consentState = computed(() => (consent.value ? 'normal' : 'error'));
 const consentMessage = computed(() => (consent.value ? 'Accepted' : 'Required'));
+
+watch(() => props.externalConsent, (value) => {
+  if (value !== undefined) {
+    consent.value = value;
+  }
+}, { immediate: true });
 </script>
 
 <template>
@@ -23,12 +34,13 @@ const consentMessage = computed(() => (consent.value ? 'Accepted' : 'Required'))
         v-model="consent"
         :state="consentState"
         :message="consentMessage"
+        :disabled="props.disabled"
       >
         <template #label>Accept <strong>terms</strong></template>
       </DrCheckbox>
 
       <DrCheckbox
-        v-model="disabled"
+        v-model="disabledValue"
         label="Disabled"
         disabled
       />

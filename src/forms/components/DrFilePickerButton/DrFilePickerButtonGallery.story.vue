@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import { DrFilePickerButton } from '@/index';
+import type { DrFilePickerButtonGalleryProps } from '@/forms/components/DrFilePickerButton/types.support';
 
 defineOptions({ inheritAttrs: false });
 
+const props = defineProps<DrFilePickerButtonGalleryProps>();
 const selectedFile = shallowRef<File>();
+const selectionCount = ref(0);
+const isNativeFile = computed(() => selectedFile.value instanceof File);
 
 const fileDescription = computed(() => {
   const file = selectedFile.value;
@@ -14,6 +18,7 @@ const fileDescription = computed(() => {
 
 function handleSelect(file: File): void {
   selectedFile.value = file;
+  selectionCount.value += 1;
 }
 </script>
 
@@ -23,6 +28,8 @@ function handleSelect(file: File): void {
       <DrFilePickerButton
         label="Choose image"
         accept="image/*"
+        :disabled="props.disabled"
+        :loading="props.loading"
         @select="handleSelect"
       />
 
@@ -42,6 +49,12 @@ function handleSelect(file: File): void {
       />
     </div>
 
-    <p class="GalleryExample__output">{{ fileDescription }}</p>
+    <p
+      class="GalleryExample__output"
+      data-testid="selected-file"
+      :data-selections="selectionCount"
+      :data-native-file="isNativeFile"
+      :data-file-type="selectedFile?.type"
+    >{{ fileDescription }}</p>
   </div>
 </template>

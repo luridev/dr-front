@@ -20,6 +20,42 @@ async function expectValueActive(list: Locator, focus: Locator, index: number) {
 }
 
 for (const [mode, width] of [['desktop', 561], ['mobile', 560]] as const) {
+  test(`${mode} Select follows a rejected or transformed parent model when reopened`, async ({ mount, page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    const component = await mount(selectStoryId, { values: 'objects', response: 'reject' });
+    const trigger = component.getByRole('combobox', { name: 'Values', exact: true, includeHidden: true });
+    const list = page.getByRole('listbox', { name: 'Values', exact: true });
+    const focus = mode === 'mobile' ? list : trigger;
+    const model = component.getByTestId('value-model');
+
+    for (const [response, expectedIndex, updates] of [['reject', 0, '1'], ['clone', -1, '2']] as const) {
+      await component.update({ values: 'objects', response });
+      await trigger.press('Enter');
+      await expectValueSelection(trigger, list, 0);
+      await list.getByRole('option').nth(1).click();
+      await expect(list).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+      await expect(model).toHaveAttribute('data-received-index', '1');
+      await expect(model).toHaveAttribute('data-updates', updates);
+      await expect(model).toHaveAttribute('data-selected-index', String(expectedIndex));
+      await expect(trigger.getByTestId('value-slot')).toHaveAttribute('data-index', String(expectedIndex));
+
+      await trigger.press('Enter');
+      await expect(focus).toBeFocused();
+      await expectValueSelection(trigger, list, expectedIndex);
+      await expectValueActive(list, focus, 0);
+      await expect(model).toHaveAttribute('data-updates', updates);
+      await page.keyboard.press('Escape');
+      await expect(list).toHaveCount(0);
+    }
+
+    await component.update({ values: 'objects', operation: 'select-last' });
+    await trigger.press('Enter');
+    await expectValueSelection(trigger, list, 1);
+    await expectValueActive(list, focus, 1);
+    await expect(model).toHaveAttribute('data-updates', '2');
+  });
+
   test(`${mode} Select matches a ref model to raw objects across selection and external updates`, async ({ mount, page }) => {
     await page.setViewportSize({ width, height: 844 });
     const component = await mount(selectStoryId, { values: 'objects' });

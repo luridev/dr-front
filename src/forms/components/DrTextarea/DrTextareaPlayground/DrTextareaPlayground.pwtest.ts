@@ -128,10 +128,14 @@ test('invalid textarea limits leave native editing, paste and the counter unlimi
     await expect(textarea).not.toHaveAttribute('maxlength');
     await expect(component.locator('.DrTextareaPanel__counter')).toHaveCount(0);
     expect(await dispatchPaste(textarea, 'extra text')).toBe(false);
+    await textarea.press('End');
+    await textarea.pressSequentially(' extra');
+    await expect(textarea).toHaveValue(maxLength === -1 ? '1234567890 extra' : '1234567890 extra extra');
+    await expect(component.getByTestId('model-text')).toHaveText(await textarea.inputValue());
   }
 
   await expect(component.getByTestId('limit-exceeded-count')).toHaveText('0');
-  await expect(component.getByTestId('model-text')).toHaveText('1234567890');
+  await expect(component.getByTestId('model-text')).toHaveText('1234567890 extra extra');
 });
 
 test('generic textarea exposes slot contexts and regains focus after clearing empty content', async ({ mount }) => {

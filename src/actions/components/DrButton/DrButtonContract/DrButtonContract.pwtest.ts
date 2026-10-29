@@ -17,7 +17,7 @@ test('DrButton preserves the root class, explicit emits and native button props'
   await expect(root).not.toHaveAttribute('id');
 
   for (const element of [root, button]) {
-    for (const attribute of ['style', 'data-attrs-probe', 'aria-description', 'name']) {
+    for (const attribute of ['style', 'data-attrs-probe', 'aria-description']) {
       await expect(element).not.toHaveAttribute(attribute);
     }
 

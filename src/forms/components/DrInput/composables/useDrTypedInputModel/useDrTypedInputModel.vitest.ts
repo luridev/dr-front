@@ -242,7 +242,7 @@ describe('useDrTypedInputModel', () => {
     { source: 'pending', expectedModel: null, expectedStatus: 'incomplete' },
     { source: 'invalid', expectedModel: null, expectedStatus: 'invalid' },
     { source: 'out-of-range', expectedModel: null, expectedStatus: 'out-of-range' },
-  ] as const)('applies user input $source', ({ source, expectedModel, expectedStatus }) => {
+  ] as const)('applies user input $source and preserves it after the model watcher runs', async ({ source, expectedModel, expectedStatus }) => {
     const result = setupModel(7);
 
     result.updateInputValue(source);
@@ -250,21 +250,13 @@ describe('useDrTypedInputModel', () => {
     expect(result.inputValue.value).toBe(source);
     expect(result.model.value).toBe(expectedModel);
     expect(result.statuses.at(-1)).toBe(expectedStatus);
+
+    await nextTick();
+
+    expect(result.inputValue.value).toBe(source);
+    expect(result.model.value).toBe(expectedModel);
+    expect(result.statuses.at(-1)).toBe(expectedStatus);
   });
-
-  it.each(['pending', 'invalid', 'out-of-range'] as const)(
-    'preserves pending text $source after the model watcher runs',
-    async (source) => {
-      const result = setupModel(7);
-
-      result.updateInputValue(source);
-      await nextTick();
-
-      expect(result.model.value).toBeNull();
-      expect(result.inputValue.value).toBe(source);
-      expect(result.statuses.at(-1)).toBe(source === 'pending' ? 'incomplete' : source);
-    },
-  );
 
   it('does not reformat its own valid update after nextTick', async () => {
     const result = setupModel(1);

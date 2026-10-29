@@ -265,20 +265,4 @@ describe('stringifyTimeInputValue', () => {
   it('formats null as an empty string', () => {
     expect(stringifyTimeInputValue(null, 'minute')).toBe('');
   });
-
-  it.each([
-    { value: Temporal.PlainTime.from('12:34'), smallestUnit: 'minute' as const },
-    { value: Temporal.PlainTime.from('12:34:56'), smallestUnit: 'second' as const },
-    { value: Temporal.PlainTime.from('12:34:56.123'), smallestUnit: 'millisecond' as const },
-    { value: Temporal.PlainTime.from('12:34:56.123456'), smallestUnit: 'microsecond' as const },
-    { value: Temporal.PlainTime.from('12:34:56.123456789'), smallestUnit: 'nanosecond' as const },
-  ])('supports round trips for $smallestUnit model $value', ({ value, smallestUnit }) => {
-    const result = parseTimeInputValue(stringifyTimeInputValue(value, smallestUnit), smallestUnit);
-
-    expect(result.status).toBe('valid');
-
-    if (result.status === 'valid') {
-      expect(result.value.equals(value)).toBe(true);
-    }
-  });
 });

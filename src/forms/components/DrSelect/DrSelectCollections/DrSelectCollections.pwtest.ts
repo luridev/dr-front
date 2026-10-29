@@ -24,6 +24,51 @@ async function expectActiveVisible(list: Locator, focus: Locator, name: string) 
 }
 
 for (const [mode, width] of [['desktop', 900], ['mobile', 390]] as const) {
+  test(`${mode} empty collections disable and close the Select, release modality and reopen after refill`, async ({ mount, page }) => {
+    await page.setViewportSize({ width, height: 400 });
+    const root = await mount(story);
+    const trigger = root.getByRole('combobox', { name: 'Collection', includeHidden: true });
+    const list = page.getByRole('listbox', { name: 'Collection' });
+    const dialog = page.getByRole('dialog', { name: 'Collection' });
+    const focus = mode === 'mobile' ? list : trigger;
+
+    await trigger.press('Enter');
+    await expect(list).toBeVisible();
+    await expectActiveVisible(list, focus, 'Option 20');
+
+    if (mode === 'mobile') {
+      await expect(dialog).toBeVisible();
+      await expect(page.locator('[inert]')).not.toHaveCount(0);
+      await expect(page.locator('body')).toHaveCSS('overflow', 'hidden');
+    }
+
+    await root.update({ operation: 'clear' });
+    await expect(trigger).toBeDisabled();
+    await expect(list).toHaveCount(0);
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(trigger).not.toHaveAttribute('aria-controls');
+    await expect(trigger).not.toHaveAttribute('aria-activedescendant');
+    await expect(page.locator('[inert]')).toHaveCount(0);
+    await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+    await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden');
+    await expect(root.getByTestId('selection')).toHaveText('Option 20');
+
+    await root.update({ operation: 'restore' });
+    await expect(trigger).toBeEnabled();
+    await trigger.press('Enter');
+    await expect(list).toBeVisible();
+    const controlled = mode === 'mobile' ? dialog : list;
+    await expect(trigger).toHaveAttribute('aria-controls', await controlled.getAttribute('id') ?? '');
+    await expectActiveVisible(list, focus, 'Option 20');
+    await expect(list.getByRole('option', { selected: true })).toHaveText('Option 20');
+    await list.getByRole('option', { name: 'Option 21', exact: true }).click();
+    await expect(list).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(root.getByTestId('selection')).toHaveText('Option 21');
+    await expect(page.locator('[inert]')).toHaveCount(0);
+  });
+
   test(`${mode} collection mutations keep the active option visible and preserve selection by identity`, async ({ mount, page }) => {
     await page.setViewportSize({ width, height: 320 });
     const root = await mount(story);

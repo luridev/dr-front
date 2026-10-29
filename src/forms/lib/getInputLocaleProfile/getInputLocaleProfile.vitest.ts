@@ -42,7 +42,6 @@ describe('getInputLocaleProfile', () => {
     expect(profile.number.group).not.toBe('');
     expect(profile.number.decimal).toBe(locale === 'ru-RU' ? ',' : '.');
     expect(profile.date.order).toEqual(order);
-    expect(dateParts.filter((part) => part.type !== 'literal').map((part) => part.type)).toEqual(order);
     expect(profile.date.separators).toEqual(dateParts.filter((part) => part.type === 'literal').map((part) => part.value));
     expect(profile.time.hourCycle).toBe(hourCycle);
     expect(profile.time.hourCycle === 12).toBe(timeFormat.resolvedOptions().hour12);

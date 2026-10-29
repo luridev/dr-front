@@ -368,7 +368,7 @@ test('time accepts all supported precisions and preserves adjacent fields throug
   await expect(root.getByTestId('time-status')).toHaveText('empty');
 });
 
-test('period control preserves hidden precision, keyboard focus and form safety', async ({ mount, page }, testInfo) => {
+test('period control preserves hidden precision, keyboard focus and form safety', async ({ mount, page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   const root = await mount(timeStoryId);
   const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
@@ -390,10 +390,6 @@ test('period control preserves hidden precision, keyboard focus and form safety'
     expect(buttonBounds.x + buttonBounds.width).toBeLessThanOrEqual(360);
   }
 
-  const screenshotPath = testInfo.outputPath('time-360.png');
-
-  await page.screenshot({ path: screenshotPath, fullPage: true });
-  await testInfo.attach('Time controls at 360px', { path: screenshotPath, contentType: 'image/png' });
   await selectInputRange(input, 3, 5);
   await periodButton.click();
   await expect(input).toBeFocused();

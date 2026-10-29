@@ -7,6 +7,9 @@ const hostURL = `http://${host}:${port}/?view=canvas&theme=light`;
 const crossBrowserTests = [
   'src/actions/components/DrButton/DrButtonContract/DrButtonForm.pwtest.ts',
   'src/forms/components/DrInput/DrInputMaxLength/*.pwtest.ts',
+  'src/forms/components/DrInput/DrInputNativeAttributes/*.pwtest.ts',
+  'src/forms/components/DrInput/DrInputMasking/DrInputEditing.pwtest.ts',
+  'src/forms/components/DrMaskedInput/DrMaskedInputEditing.pwtest.ts',
   'src/forms/components/DrRadioGroup/*.pwtest.ts',
   'src/forms/components/DrSelect/**/*.pwtest.ts',
   'src/dialogs/**/*.pwtest.ts',
@@ -24,8 +27,10 @@ export default defineConfig({
   use: {
     baseURL: hostURL,
     colorScheme: 'light',
-    locale: 'ru-RU',
+    locale: 'en-US',
     serviceWorkers: 'block',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   projects: [
     { name: 'components', use: { browserName: 'chromium' } },

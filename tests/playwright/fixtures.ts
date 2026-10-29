@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { expect, test as base } from '@playwright/test';
 import type { ConsoleMessage, Page, Request } from '@playwright/test';
 import type { ComponentTest, HostWindow, MountParams, StoryProps } from '~/tests/playwright/types';
 
@@ -62,6 +62,19 @@ export async function openReadyHost(page: Page, baseURL: string): Promise<void> 
 }
 
 export const test = componentTest.extend({
+  page: async ({ page }, use) => {
+    const errors: Array<string> = [];
+    const recordError = (error: Error) => errors.push(error.stack ?? error.message);
+
+    page.on('pageerror', recordError);
+
+    try {
+      await use(page);
+    } finally {
+      page.off('pageerror', recordError);
+      expect(errors, 'Unexpected browser errors during the component scenario').toEqual([]);
+    }
+  },
   mount: async ({ baseURL, page }, use) => {
     const callMount = (params: MountParams) =>
       page.evaluate(async (mountParams) => {

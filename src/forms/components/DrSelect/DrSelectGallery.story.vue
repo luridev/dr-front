@@ -52,7 +52,10 @@ watch(() => props.operation, (operation) => {
 function handleSelection(item: SelectGalleryItem) {
   updates.value += 1;
   receivedIndex.value = items.value.findIndex((candidate) => candidate === item);
-  selected.value = item;
+
+  if (props.response !== 'reject') {
+    selected.value = props.response === 'clone' && typeof item === 'object' ? { ...item } : item;
+  }
 }
 
 function handleReset(): void {

@@ -38,6 +38,14 @@ watch(() => props.operation, (operation) => {
 
     case 'add':
       items.value.unshift(createItem(43));
+      break;
+
+    case 'clear':
+      items.value = [];
+      break;
+
+    case 'restore':
+      items.value = [...initialItems];
   }
 });
 </script>
