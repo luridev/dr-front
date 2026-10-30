@@ -1,6 +1,6 @@
 {
   "name": "@protoapps/dr-front",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "description": "Vue 3 UI components with sensible defaults and useful extras",
   "license": "MIT",
   "repository": "github:luridev/dr-front",
