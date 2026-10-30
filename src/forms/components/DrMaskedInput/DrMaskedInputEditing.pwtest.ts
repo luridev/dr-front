@@ -1,6 +1,7 @@
 import { selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { maskedInputStoryId as storyId } from '@/forms/components/DrMaskedInput/config.support';
 import { expect, test } from '~/tests/playwright/fixtures';
+import { diagnosticFill } from '~/tests/playwright/maskedInputDiagnostics.support';
 
 test('native overwrite replaces a middle character and keeps the caret', async ({ mount }) => {
   const root = await mount(storyId, { variant: 'overwrite', externalValue: '123456' });
@@ -15,7 +16,7 @@ test('native overwrite replaces a middle character and keeps the caret', async (
 test('external updates keep ordinary Pattern undo history with the same config', async ({ mount }) => {
   const root = await mount(storyId, { externalValue: '123456' });
   const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await input.fill('654321');
+  await diagnosticFill(input, '654321');
   await expect(input).toBeFocused();
   await root.update({ externalValue: '987654' });
   await expect(input).toBeFocused();

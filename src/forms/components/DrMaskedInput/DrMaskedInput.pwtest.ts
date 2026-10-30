@@ -1,6 +1,7 @@
 import { selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { maskedInputStoryId as storyId } from '@/forms/components/DrMaskedInput/config.support';
 import { expect, test } from '~/tests/playwright/fixtures';
+import { diagnosticFill } from '~/tests/playwright/maskedInputDiagnostics.support';
 
 test('base field props, slots, events and exposed methods work independently', async ({ mount }) => {
   const root = await mount(storyId, { externalValue: '123456' });
@@ -80,9 +81,9 @@ test('external changes and config replacement preserve models without emitting w
   await root.update({ variant: 'digits', externalValue: '001234567' });
   await expect(input).toHaveValue('001234567');
   await expect(root.getByTestId('updates')).toHaveText('[]');
-  await input.fill('42');
+  await diagnosticFill(input, '42');
   await root.update({ mask: '000-000', externalValue: '654321' });
-  await input.fill('987654');
+  await diagnosticFill(input, '987654');
   await expect(root.getByTestId('updates')).toHaveText('["42","987654"]');
 });
 
@@ -136,7 +137,7 @@ test('ordinary Pattern keeps selection, middle edits, paste and undo/redo', asyn
 test('readonly and disabled block history and editing but accept external values', async ({ mount }) => {
   const root = await mount(storyId);
   const input = root.getByRole('textbox', { name: 'Code', exact: true });
-  await input.fill('123456');
+  await diagnosticFill(input, '123456');
   await root.update({ readonly: true });
   await input.press('ControlOrMeta+Z');
   await input.pressSequentially('9');
@@ -147,7 +148,7 @@ test('readonly and disabled block history and editing but accept external values
   await expect(input).toBeDisabled();
   await expect(input).toHaveValue('123');
   await root.update({ disabled: false });
-  await input.fill('987654');
+  await diagnosticFill(input, '987654');
   await expect(root.getByTestId('model')).toHaveText('987654');
   await expect(root.getByTestId('updates')).toHaveText('["123456","987654"]');
 });
@@ -184,14 +185,14 @@ test('placeholders remain empty and Dynamic chooses a matching branch', async ({
   await expect(input).toHaveValue('+7 (___)');
   await expect(root.getByTestId('model')).toHaveText('7');
   await expect(root.getByTestId('status')).toHaveText('empty');
-  await input.fill('7123');
+  await diagnosticFill(input, '7123');
   await expect(root.getByTestId('status')).toHaveText('valid');
   await root.getByRole('button', { name: 'Clear Code', exact: true }).click();
   await expect(root.getByTestId('status')).toHaveText('empty');
   await root.update({ variant: 'dynamic' });
-  await input.fill('1234');
+  await diagnosticFill(input, '1234');
   await expect(input).toHaveValue('12-34');
-  await input.fill('AB123');
+  await diagnosticFill(input, 'AB123');
   await expect(input).toHaveValue('AB-123');
   await expect(root.getByTestId('model')).toHaveText('AB123');
 });

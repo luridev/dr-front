@@ -1,4 +1,5 @@
 import { expect, test as base } from '@playwright/test';
+import { compareNativeMask, installMaskDiagnostics, saveMaskDiagnostics, saveMaskRuntime } from '~/tests/playwright/maskedInputDiagnostics.support';
 import type { ConsoleMessage, Page, Request } from '@playwright/test';
 import type { ComponentTest, HostWindow, MountParams, StoryProps } from '~/tests/playwright/types';
 
@@ -62,15 +63,30 @@ export async function openReadyHost(page: Page, baseURL: string): Promise<void> 
 }
 
 export const test = componentTest.extend({
-  page: async ({ page }, use) => {
+  page: async ({ page, baseURL }, use, testInfo) => {
     const errors: Array<string> = [];
     const recordError = (error: Error) => errors.push(error.stack ?? error.message);
 
     page.on('pageerror', recordError);
 
+    const diagnoseMask = process.env.DR_MASK_DIAGNOSTICS === '1';
+
+    if (diagnoseMask) {
+      await installMaskDiagnostics(page);
+      await saveMaskRuntime(page, testInfo);
+    }
+
     try {
       await use(page);
     } finally {
+      if (diagnoseMask) {
+        await saveMaskDiagnostics(page, testInfo, 'component-events');
+
+        if (baseURL != null && testInfo.title === 'external updates keep ordinary Pattern undo history with the same config') {
+          await compareNativeMask(page, baseURL, testInfo);
+        }
+      }
+
       page.off('pageerror', recordError);
       expect(errors, 'Unexpected browser errors during the component scenario').toEqual([]);
     }
