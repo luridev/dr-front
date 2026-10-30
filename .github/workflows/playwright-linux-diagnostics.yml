@@ -57,25 +57,38 @@ jobs:
           NODE
           } | tee reports/linux-diagnostics/environment.log
 
-      - name: Diagnose the four MaskedInput scenarios with one worker
+      - name: Verify input layout and four MaskedInput scenarios with one worker
         shell: bash
         env:
           CI: 'true'
-          DR_MASK_DIAGNOSTICS: '1'
+          DR_MASK_DIAGNOSTICS: '0'
           DEBUG: pw:api,pw:browser
-          PLAYWRIGHT_HTML_OUTPUT_DIR: reports/linux-diagnostics/targeted-html
+          PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ runner.temp }}/playwright-targeted-html
           PLAYWRIGHT_HTML_OPEN: never
         run: |
           npx playwright test --project=components --workers=1 --trace=on \
-            --grep 'external changes and config replacement preserve models|readonly and disabled block history|placeholders remain empty|external updates keep ordinary Pattern undo history' \
+            --grep 'input layout|external changes and config replacement preserve models|readonly and disabled block history|placeholders remain empty|external updates keep ordinary Pattern undo history' \
             --reporter=line,html --output=reports/linux-diagnostics/targeted-results \
             2>&1 | tee reports/linux-diagnostics/targeted.log
+
+      - name: Install remaining browsers for release checks
+        run: npx playwright install --with-deps firefox webkit
+
+      - name: Run complete release checks after the targeted scenarios
+        shell: bash
+        env:
+          CI: 'true'
+          DR_MASK_DIAGNOSTICS: '0'
+        run: npm run check:release 2>&1 | tee reports/linux-diagnostics/check-release.log
 
       - name: Preserve logs, traces, screenshots and error contexts
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: playwright-linux-${{ matrix.os }}-${{ github.run_attempt }}
-          path: reports/linux-diagnostics/
+          path: |
+            reports/linux-diagnostics/
+            test-results/
+            ${{ runner.temp }}/playwright-targeted-html/
           if-no-files-found: warn
           retention-days: 14

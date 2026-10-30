@@ -109,6 +109,7 @@ defineExpose({
 
 <template>
   <DrControl
+    class="DrInput__root"
     :class="$attrs.class"
     :label-position="props.labelPosition"
     :disabled="props.disabled"
@@ -184,11 +185,25 @@ defineExpose({
 </template>
 
 <style scoped>
+  .DrInput__root :deep(> .DrControl__control) {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
+  :slotted(*) {
+    max-width: 100%;
+  }
+
   .DrInput {
+    --dr-input-padding-end: var(--dr-space-medium);
+
     flex: 1 1 0;
     width: auto;
-    min-width: 0;
+
+    /* Keep room for a glyph; oversized slots wrap instead of consuming the editor. */
+    min-width: min(100%, calc(1em + var(--dr-space-medium) + var(--dr-input-padding-end)));
     padding: var(--dr-space-small) var(--dr-space-medium);
+    padding-inline-end: var(--dr-input-padding-end);
     border: none;
     background: transparent;
     color: inherit;
@@ -196,7 +211,7 @@ defineExpose({
   }
 
   .DrInput_clearable {
-    padding-inline-end: 0;
+    --dr-input-padding-end: 0px;
   }
 
   .DrInput:disabled {
