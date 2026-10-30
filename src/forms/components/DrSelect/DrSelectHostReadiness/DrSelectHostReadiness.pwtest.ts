@@ -2,6 +2,63 @@ import { expect, test } from '~/tests/playwright/fixtures';
 
 const story = 'forms/components/DrSelect/DrSelectHostReadiness/DrSelectHostReadiness';
 
+test('a detached and reattached background selects the current presentation on the first opening', async ({ mount, page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  const component = await mount(story, { ready: true, teleportSelect: true });
+  const trigger = page.getByRole('combobox', { name: 'Ready select' });
+  const dialog = page.getByRole('dialog', { name: 'Ready select' });
+  const list = page.getByRole('listbox', { name: 'Ready select', exact: true });
+  const background = component.getByTestId('background');
+
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('option', { name: 'Option 2 with a longer label', exact: true }).click();
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toHaveText('Option 2 with a longer label');
+  await expect(trigger).toBeFocused();
+
+  const detached = await background.evaluateHandle((element) => {
+    const parent = element.parentNode;
+    const nextSibling = element.nextSibling;
+
+    element.remove();
+
+    return { element, parent, nextSibling };
+  });
+
+  await trigger.click();
+  await expect(list).toBeVisible();
+  await expect(dialog).toHaveCount(0);
+  await expect(list.getByRole('option', { name: 'Option 2 with a longer label', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  await list.getByRole('option', { name: 'Option 3 with a longer label', exact: true }).click();
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toHaveText('Option 3 with a longer label');
+  await expect(trigger).toBeFocused();
+
+  await detached.evaluate(({ element, parent, nextSibling }) => {
+    parent?.insertBefore(element, nextSibling);
+  });
+
+  await detached.dispose();
+
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await expect(list).toHaveCount(1);
+  await expect(dialog.getByRole('option', { name: 'Option 3 with a longer label', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(background).toHaveAttribute('inert');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(list).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(background).not.toHaveAttribute('inert');
+  await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden');
+  await component.unmount();
+  await expect(trigger).toHaveCount(0);
+});
+
 test('a late background root preserves the mobile popup and selection until the next opening', async ({ mount, page }) => {
   await page.setViewportSize({ width: 320, height: 480 });
 

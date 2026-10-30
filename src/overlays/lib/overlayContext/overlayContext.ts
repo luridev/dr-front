@@ -135,6 +135,7 @@ export function createOverlayContext() {
 
   return {
     canOpenModal,
+    isModalAvailable: () => !disposed.value && resolveBackgroundRoot() != null,
     portalTarget: computed(() => portalTarget.value),
     layers: computed(() => layers.value),
     open,

@@ -51,6 +51,7 @@ export function useOverlay(): UseOverlay {
   return {
     isActive,
     canOpenModal,
+    isModalAvailable: () => isActive.value && context?.isModalAvailable() === true,
     portalTarget,
     isTop: (token) => context?.isTop(token) ?? false,
     order: (token) => context?.order(token) ?? 0,

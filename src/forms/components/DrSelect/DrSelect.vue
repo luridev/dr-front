@@ -166,7 +166,7 @@ const { triggerAria } = useDrSelectAria({
 });
 
 function updatePresentation() {
-  presentation.value = overlay.canOpenModal.value && window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
+  presentation.value = overlay.isModalAvailable() && window.matchMedia(mobileMediaQuery).matches ? 'dialog' : 'listbox';
 }
 
 function openOptions(initialActiveItem: DrSelectInitialActiveItem = 'selected') {

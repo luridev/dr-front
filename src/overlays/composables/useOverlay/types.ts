@@ -4,6 +4,7 @@ import type { OverlayHandle, OverlayOptions } from '@/overlays/types';
 export type UseOverlay = {
   isActive: Readonly<Ref<boolean>>;
   canOpenModal: ComputedRef<boolean>;
+  isModalAvailable: () => boolean;
   portalTarget: ComputedRef<HTMLElement | null>;
   isTop: (token: symbol) => boolean;
   order: (token: symbol) => number;

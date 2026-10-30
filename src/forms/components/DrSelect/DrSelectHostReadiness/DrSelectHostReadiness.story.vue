@@ -31,11 +31,16 @@ const selected = ref(items[0]);
       ref="backgroundRoot"
       data-testid="background"
     >
-      <DrSelect
-        v-model="selected"
-        label="Ready select"
-        :items="items"
-      />
+      <Teleport
+        to="body"
+        :disabled="!props.teleportSelect"
+      >
+        <DrSelect
+          v-model="selected"
+          label="Ready select"
+          :items="items"
+        />
+      </Teleport>
     </div>
   </DrModalHost>
 </template>
