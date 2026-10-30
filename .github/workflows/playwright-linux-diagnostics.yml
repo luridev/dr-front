@@ -1,0 +1,89 @@
+name: Playwright Linux diagnostics
+
+on:
+  # A new workflow cannot be dispatched until it exists on the default branch.
+  push:
+    branches:
+      - diagnose-playwright-linux
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    if: github.repository == 'luridev/dr-front'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Record environment and browser versions
+        shell: bash
+        run: |
+          mkdir -p reports/linux-diagnostics
+          {
+            cat /etc/os-release
+            uname -a
+            node --version
+            npm --version
+            npx playwright --version
+            sha256sum package-lock.json
+            node --input-type=module <<'NODE'
+          import { chromium, firefox, webkit } from 'playwright';
+          for (const type of [chromium, firefox, webkit]) {
+            const browser = await type.launch();
+            console.log(type.name(), browser.version(), type.executablePath());
+            await browser.close();
+          }
+          NODE
+          } | tee reports/linux-diagnostics/environment.log
+
+      - name: Repeat the six failing scenarios with one worker
+        shell: bash
+        env:
+          DEBUG: pw:api
+          PLAYWRIGHT_HTML_OUTPUT_DIR: reports/linux-diagnostics/targeted-html
+          PLAYWRIGHT_HTML_OPEN: never
+        run: |
+          npx playwright test --workers=1 --repeat-each=3 --trace=on \
+            --grep 'external changes and config replacement preserve models|readonly and disabled block history|placeholders remain empty|external updates keep ordinary Pattern undo history|Tab with a teleported popup|popup Tab at either document boundary' \
+            --reporter=line,html --output=reports/linux-diagnostics/targeted-results \
+            2>&1 | tee reports/linux-diagnostics/targeted.log
+
+      - name: Run the full Playwright suite after targeted checks pass
+        shell: bash
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: reports/linux-diagnostics/full-html
+          PLAYWRIGHT_HTML_OPEN: never
+        run: |
+          npx playwright test --workers=1 --reporter=line,html \
+            --output=reports/linux-diagnostics/full-results \
+            2>&1 | tee reports/linux-diagnostics/full.log
+
+      - name: Preserve logs, traces, screenshots and error contexts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-linux-${{ matrix.os }}-${{ github.run_attempt }}
+          path: reports/linux-diagnostics/
+          if-no-files-found: warn
+          retention-days: 14
