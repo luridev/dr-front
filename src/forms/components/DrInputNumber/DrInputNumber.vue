@@ -273,6 +273,7 @@ function handleWheel(event: WheelEvent) {
     margin: 0;
     padding: 0;
     border: none;
+    border-radius: 0;
     background: transparent;
     color: var(--dr-color-text-secondary);
     font: inherit;

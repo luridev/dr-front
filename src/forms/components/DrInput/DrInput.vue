@@ -226,6 +226,7 @@ defineExpose({
     margin: 0;
     padding: var(--dr-space-small) var(--dr-space-small) var(--dr-space-small) var(--dr-space-xsmall);
     border: none;
+    border-radius: 0;
     background: transparent;
     color: var(--dr-color-text-secondary);
     cursor: pointer;

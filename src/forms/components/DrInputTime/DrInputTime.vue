@@ -142,6 +142,7 @@ function handleBlur(event: FocusEvent) {
     align-self: stretch;
     padding: 0 var(--dr-space-small);
     border-inline-start: 1px solid var(--dr-color-border-primary);
+    border-radius: 0;
     background: transparent;
     color: var(--dr-color-text-secondary);
     font-size: var(--dr-font-size-medium);
