@@ -1,7 +1,7 @@
 import type { Locator } from '@playwright/test';
 
 export function getInput(component: Locator, name: string): Locator {
-  return component.locator(`.DrInputMasking__${name} > .DrControl__control > input`);
+  return component.locator(`.DrInputMasking__${name} > [data-dr-focus-surface] input`).first();
 }
 
 export async function selectInputRange(input: Locator, from: number, to = from): Promise<void> {

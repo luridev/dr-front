@@ -9,6 +9,7 @@ const crossBrowserTests = [
   'src/forms/components/DrInput/DrInputMaxLength/*.pwtest.ts',
   'src/forms/components/DrInput/DrInputNativeAttributes/*.pwtest.ts',
   'src/forms/components/DrInput/DrInputMasking/DrInputEditing.pwtest.ts',
+  'src/forms/components/DrInput/DrInputLayout.pwtest.ts',
   'src/forms/components/DrMaskedInput/DrMaskedInputEditing.pwtest.ts',
   'src/forms/components/DrRadioGroup/*.pwtest.ts',
   'src/forms/components/DrSelect/**/*.pwtest.ts',

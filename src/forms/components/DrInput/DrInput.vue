@@ -123,71 +123,84 @@ defineExpose({
     </template>
 
     <template #default="slot">
-      <slot
-        name="start"
-        :input-id="slot.id"
-      ></slot>
+      <div class="DrInput__layout">
+        <slot
+          name="start"
+          :input-id="slot.id"
+        ></slot>
 
-      <input
-        :id="slot.id"
-        ref="inputElement"
-        :value="getInputValue?.() ?? model"
-        class="DrInput"
-        :class="{ DrInput_clearable: isClearButtonVisible }"
-        :type="props.type"
-        :inputmode="props.inputMode ?? inputMode"
-        :enterkeyhint="props.enterKeyHint"
-        :spellcheck="props.spellCheck"
-        :autocapitalize="props.autoCapitalize"
-        :autocorrect="props.autoCorrect"
-        :placeholder="props.placeholder"
-        :maxlength="maxLength"
-        :disabled="slot.disabled"
-        :readonly="props.readonly"
-        :autocomplete="props.autocomplete"
-        :role="props.aria?.role"
-        :aria-valuemin="props.aria?.ariaValueMin"
-        :aria-valuemax="props.aria?.ariaValueMax"
-        :aria-valuenow="props.aria?.ariaValueNow"
-        :aria-valuetext="props.aria?.ariaValueText"
-        :aria-invalid="resolveAriaInvalid(slot.state)"
-        :aria-describedby="slot.describedBy"
-        data-dr-focus-target
-        @input="handleInput"
-        @focus="handleFocus"
-        @blur="handleBlur"
-        @paste="handlePaste"
-        @keydown="handleKeydown"
-        @wheel="handleWheel"
-      />
+        <input
+          :id="slot.id"
+          ref="inputElement"
+          :value="getInputValue?.() ?? model"
+          class="DrInput"
+          :class="{ DrInput_clearable: isClearButtonVisible }"
+          :type="props.type"
+          :inputmode="props.inputMode ?? inputMode"
+          :enterkeyhint="props.enterKeyHint"
+          :spellcheck="props.spellCheck"
+          :autocapitalize="props.autoCapitalize"
+          :autocorrect="props.autoCorrect"
+          :placeholder="props.placeholder"
+          :maxlength="maxLength"
+          :disabled="slot.disabled"
+          :readonly="props.readonly"
+          :autocomplete="props.autocomplete"
+          :role="props.aria?.role"
+          :aria-valuemin="props.aria?.ariaValueMin"
+          :aria-valuemax="props.aria?.ariaValueMax"
+          :aria-valuenow="props.aria?.ariaValueNow"
+          :aria-valuetext="props.aria?.ariaValueText"
+          :aria-invalid="resolveAriaInvalid(slot.state)"
+          :aria-describedby="slot.describedBy"
+          data-dr-focus-target
+          @input="handleInput"
+          @focus="handleFocus"
+          @blur="handleBlur"
+          @paste="handlePaste"
+          @keydown="handleKeydown"
+          @wheel="handleWheel"
+        />
 
-      <DrIconButton
-        v-if="isClearButtonVisible"
-        class="DrInput__clearButton"
-        :aria="{
-          ariaLabel: clearButtonAriaLabel,
-          ariaControls: slot.id,
-        }"
-        data-dr-focus-inset
-        @pointerdown.prevent
-        @click="handleClear"
-      >
-        <DrCloseIcon :size="20" />
-      </DrIconButton>
+        <DrIconButton
+          v-if="isClearButtonVisible"
+          class="DrInput__clearButton"
+          :aria="{
+            ariaLabel: clearButtonAriaLabel,
+            ariaControls: slot.id,
+          }"
+          data-dr-focus-inset
+          @pointerdown.prevent
+          @click="handleClear"
+        >
+          <DrCloseIcon :size="20" />
+        </DrIconButton>
 
-      <slot
-        name="end"
-        :input-id="slot.id"
-      ></slot>
+        <slot
+          name="end"
+          :input-id="slot.id"
+        ></slot>
+      </div>
     </template>
   </DrControl>
 </template>
 
 <style scoped>
+  .DrInput__layout {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    min-width: 0;
+    align-items: center;
+    align-self: stretch;
+    overflow-wrap: anywhere;
+  }
+
   .DrInput {
+    box-sizing: content-box;
     flex: 1 1 0;
     width: auto;
-    min-width: 0;
+    min-width: 1em;
     padding: var(--dr-space-small) var(--dr-space-medium);
     border: none;
     background: transparent;

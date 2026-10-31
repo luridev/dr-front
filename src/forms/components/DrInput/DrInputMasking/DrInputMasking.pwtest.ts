@@ -10,7 +10,7 @@ for (const name of ['dateSlot', 'number', 'date', 'time', 'maskedSlot']) {
     const message = 'Input guidance';
     const root = await mount(storyId, { message });
     const input = getInput(root, name);
-    const control = input.locator('..');
+    const control = input.locator('xpath=ancestor::*[@data-dr-focus-surface][1]');
     const value = await input.inputValue();
     const description = await input.getAttribute('aria-describedby');
 

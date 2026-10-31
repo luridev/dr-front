@@ -111,6 +111,12 @@ test('external strings follow native filtering and publish the accepted model', 
 test('ordinary Pattern keeps selection, middle edits, paste and undo/redo', async ({ mount, page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   const root = await mount(storyId);
+
+  await root.locator('.DrMaskedInputGallery__main').evaluate((element) => {
+    element.style.width = '80px';
+    element.style.fontFamily = 'Liberation Sans';
+  });
+
   const input = root.getByRole('textbox', { name: 'Code', exact: true });
   await input.pressSequentially('123456');
   await selectInputRange(input, 1, 3);

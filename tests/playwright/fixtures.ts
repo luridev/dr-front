@@ -29,7 +29,7 @@ export async function openReadyHost(page: Page, baseURL: string): Promise<void> 
   try {
     const response = await page.goto(baseURL);
 
-    if (response?.ok() !== true) {
+    if (response == null || (!response.ok() && response.status() !== 304)) {
       throw new Error(`Component host returned an invalid HTTP response at ${baseURL}.`);
     }
 

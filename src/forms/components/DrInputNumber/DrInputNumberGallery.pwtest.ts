@@ -16,6 +16,7 @@ test('number range errors and explicit ARIA overrides preserve the model, status
   const bounds = { min: 1, max: 10 };
   const root = await mount(numberStoryId, { ...bounds, externalAmount: 5 });
   const input = root.getByRole('spinbutton', { name: 'Optional', exact: true });
+  const control = input.locator('xpath=ancestor::*[@data-dr-focus-surface][1]');
   const model = root.getByTestId('number-gallery-model');
   const status = root.getByTestId('number-gallery-status');
   const override = root.getByRole('combobox', { name: 'Optional ARIA invalid', exact: true });
@@ -31,7 +32,7 @@ test('number range errors and explicit ARIA overrides preserve the model, status
   await expect(input).toHaveAttribute('aria-valuenow', '100');
   await expect(input).toHaveAttribute('aria-valuemin', '1');
   await expect(input).toHaveAttribute('aria-valuemax', '10');
-  await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+  await expect(control).not.toHaveClass(/DrControl__control_error/);
   await expect(increase).toBeDisabled();
   await expect(decrease).toBeEnabled();
 
@@ -39,7 +40,7 @@ test('number range errors and explicit ARIA overrides preserve the model, status
   await expect(input).not.toHaveAttribute('aria-invalid', 'true');
   await root.update({ ...bounds, state: 'error' });
   await expect(input).not.toHaveAttribute('aria-invalid', 'true');
-  await expect(input.locator('..')).toHaveClass(/DrControl__control_error/);
+  await expect(control).toHaveClass(/DrControl__control_error/);
   await expect(input).toHaveAttribute('aria-valuenow', '100');
   await expect(increase).toBeDisabled();
   await expect(decrease).toBeEnabled();
@@ -53,7 +54,7 @@ test('number range errors and explicit ARIA overrides preserve the model, status
   await expect(input).not.toHaveAttribute('aria-invalid');
   await override.selectOption({ label: 'true' });
   await expect(input).toHaveAttribute('aria-invalid', 'true');
-  await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+  await expect(control).not.toHaveClass(/DrControl__control_error/);
   await override.selectOption({ label: 'Automatic' });
   await expect(input).not.toHaveAttribute('aria-invalid');
 

@@ -49,7 +49,7 @@ describe('Host providers during SSR', () => {
 
     app.config.warnHandler = () => undefined;
     await expect(renderToString(app)).rejects.toThrow('ancestor <DrToastHost>');
-    const html = await renderToString(createSSRApp(() => [h(DrButton, null, () => 'Button'), h(DrInput)]));
+    const html = await renderToString(createSSRApp(() => [h(DrButton, null, () => 'Button'), h(DrInput, { modelValue: '' })]));
 
     expect(html).toContain('Button');
     expect(html).toContain('<input');

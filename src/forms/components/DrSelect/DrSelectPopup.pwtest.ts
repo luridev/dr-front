@@ -278,17 +278,46 @@ for (const [mode, width, action] of [
 }
 
 test('Tab with a teleported popup follows the trigger in both directions', async ({ mount, page }) => {
-  const root = await mount(story);
-  const trigger = root.getByRole('combobox');
-
   for (const [key, name] of [['Tab', 'After select'], ['Shift+Tab', 'Before select']]) {
-    await trigger.click();
-    await expect(trigger).toBeFocused();
-    await page.keyboard.press('Home');
-    await page.keyboard.press(key);
-    await expect(page.getByRole('listbox')).toHaveCount(0);
-    await expect(root.getByRole('button', { name, exact: true })).toBeFocused();
-    await expect(root.getByTestId('selection')).toHaveText('39');
+    for (const opening of ['keyboard', 'pointer']) {
+      await page.goto('about:blank');
+      const closedRoot = await mount(story);
+      const closedTrigger = closedRoot.getByRole('combobox');
+
+      if (opening === 'pointer') {
+        await closedTrigger.click();
+        await page.keyboard.press('Escape');
+      } else {
+        await closedTrigger.focus();
+      }
+
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      await page.keyboard.press(key);
+      const nativeTarget = await page.evaluate(() => document.activeElement?.textContent.trim());
+
+      await page.goto('about:blank');
+      const root = await mount(story);
+      const trigger = root.getByRole('combobox');
+
+      if (opening === 'pointer') {
+        await trigger.click();
+      } else {
+        await trigger.press('Enter');
+      }
+
+      await expect(trigger).toBeFocused();
+      await expect(page.getByRole('listbox')).toBeVisible();
+      await page.keyboard.press('Home');
+      await page.keyboard.press(key);
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      expect(await page.evaluate(() => document.activeElement?.textContent.trim())).toBe(nativeTarget);
+
+      if (opening === 'keyboard') {
+        await expect(root.getByRole('button', { name, exact: true })).toBeFocused();
+      }
+
+      await expect(root.getByTestId('selection')).toHaveText('39');
+    }
   }
 });
 
@@ -319,30 +348,52 @@ test('disabling or unmounting an open Select removes the popup without taking ou
 });
 
 test('popup Tab at either document boundary preserves native navigation without wrapping', async ({ mount, page }) => {
-  const root = await mount(story);
-  const trigger = root.getByRole('combobox');
-
   for (const [key, props] of [
     ['Tab', { before: true, after: false }],
     ['Shift+Tab', { before: false, after: true }],
   ] as const) {
-    await root.update(props);
-    await trigger.focus();
-    await page.keyboard.press(key);
+    for (const opening of ['keyboard', 'pointer']) {
+      // Leaving the document changes WebKit's next Tab after reentry, so each
+      // measurement starts on a fresh document with the same focus history.
+      await page.goto('about:blank');
+      const closedRoot = await mount(story, props);
+      const closedTrigger = closedRoot.getByRole('combobox');
 
-    const nativeTarget = await page.evaluate(() => document.activeElement === document.body
-      ? 'body'
-      : document.activeElement?.textContent.trim());
+      if (opening === 'pointer') {
+        await closedTrigger.click();
+        await page.keyboard.press('Escape');
+      } else {
+        await closedTrigger.focus();
+      }
 
-    await trigger.click();
-    await expect(trigger).toBeFocused();
-    await page.keyboard.press(key);
-    await expect(page.getByRole('listbox')).toHaveCount(0);
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      await page.keyboard.press(key);
 
-    const popupTarget = await page.evaluate(() => document.activeElement === document.body
-      ? 'body'
-      : document.activeElement?.textContent.trim());
+      const nativeTarget = await page.evaluate(() => document.activeElement === document.body
+        ? 'body'
+        : document.activeElement?.textContent.trim());
 
-    expect(popupTarget).toBe(nativeTarget);
+      await page.goto('about:blank');
+      const root = await mount(story, props);
+      const trigger = root.getByRole('combobox');
+
+      if (opening === 'pointer') {
+        await trigger.click();
+      } else {
+        await trigger.press('Enter');
+      }
+
+      await expect(trigger).toBeFocused();
+      await expect(page.getByRole('listbox')).toBeVisible();
+      await page.keyboard.press(key);
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+
+      const popupTarget = await page.evaluate(() => document.activeElement === document.body
+        ? 'body'
+        : document.activeElement?.textContent.trim());
+
+      expect(popupTarget).toBe(nativeTarget);
+      await expect(root.getByTestId('selection')).toHaveText('39');
+    }
   }
 });

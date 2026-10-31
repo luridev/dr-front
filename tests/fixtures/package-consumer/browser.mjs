@@ -28,10 +28,10 @@ try {
 
   for (const input of [page.getByRole('textbox', { name: 'Text', exact: true }), date, page.getByRole('textbox', { name: 'Code', exact: true })]) {
     await expect(input).toHaveAttribute('aria-invalid', 'true');
-    await expect(input.locator('..')).not.toHaveClass(/DrControl__control_error/);
+    await expect(input.locator('xpath=ancestor::*[@data-dr-focus-surface][1]')).not.toHaveClass(/DrControl__control_error/);
   }
   await expect(time).not.toHaveAttribute('aria-invalid', 'true');
-  await expect(time.locator('..')).toHaveClass(/DrControl__control_error/);
+  await expect(time.locator('xpath=ancestor::*[@data-dr-focus-surface][1]')).toHaveClass(/DrControl__control_error/);
   await expect(number).not.toHaveAttribute('aria-invalid', 'true');
   await expect(number).toHaveAttribute('aria-valuenow', '1234567');
   await expect(number).toHaveAttribute('aria-valuemax', '10');
