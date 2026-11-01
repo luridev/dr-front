@@ -217,6 +217,7 @@ defineExpose({
   }
 
   .DrInput__clearButton {
+    position: relative;
     box-sizing: border-box;
     display: inline-flex;
     flex: 0 0 auto;
@@ -232,11 +233,32 @@ defineExpose({
     cursor: pointer;
   }
 
+  .DrInput__clearButton:focus-visible {
+    outline: none;
+  }
+
+  .DrInput__clearButton:focus-visible::after {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--dr-border-radius-control);
+    outline: var(--dr-focus-width) solid var(--dr-color-focus);
+    outline-offset: var(--dr-focus-offset);
+    content: '';
+    pointer-events: none;
+  }
+
   .DrInput__clearButton:hover {
     color: var(--dr-color-text-primary);
   }
 
   .DrInput__clearButton:active:not(:focus-visible) {
     opacity: var(--dr-opacity-65);
+  }
+
+  @media (forced-colors: active) {
+    .DrInput__clearButton:focus-visible::after {
+      outline-color: CanvasText;
+    }
   }
 </style>
