@@ -129,7 +129,7 @@ function handleClick(event: MouseEvent) {
 
   .DrButtonRoot_withMessage {
     width: 100%;
-    gap: var(--dr-space-xsmall);
+    gap: var(--dr-space-small);
   }
 
   .DrButtonRoot_state_normal {

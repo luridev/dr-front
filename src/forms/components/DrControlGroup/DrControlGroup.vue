@@ -38,18 +38,21 @@ const rootStyles = computed(() => ({
 
 <style scoped>
   .DrControlGroup_top {
+    --dr-control-group-label-extra-gap: var(--dr-space-xsmall);
     --dr-control-group-layout-columns: minmax(0, 1fr);
     --dr-control-group-layout-areas: 'label' 'control' 'message';
     --dr-control-group-layout-align-items: normal;
   }
 
   .DrControlGroup_left {
+    --dr-control-group-label-extra-gap: 0px;
     --dr-control-group-layout-columns: var(--dr-control-group-label-width, max-content) minmax(0, 1fr);
     --dr-control-group-layout-areas: 'label control' '. message';
     --dr-control-group-layout-align-items: first baseline;
   }
 
   .DrControlGroup_auto {
+    --dr-control-group-label-extra-gap: var(--dr-space-xsmall);
     --dr-control-group-layout-columns: minmax(0, 1fr);
     --dr-control-group-layout-areas: 'label' 'control' 'message';
     --dr-control-group-layout-align-items: normal;
@@ -57,6 +60,7 @@ const rootStyles = computed(() => ({
 
   @media (width >= 640px) {
     .DrControlGroup_auto {
+      --dr-control-group-label-extra-gap: 0px;
       --dr-control-group-layout-columns: var(--dr-control-group-label-width, max-content) minmax(0, 1fr);
       --dr-control-group-layout-areas: 'label control' '. message';
       --dr-control-group-layout-align-items: first baseline;

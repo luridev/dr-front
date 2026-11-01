@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { DrButton, DrCheckbox, DrControlGroup, DrInput, useControlsState } from '@/index';
+import type { DrControlGroupGalleryProps } from '@/forms/components/DrControlGroup/types.support';
 
 defineOptions({ inheritAttrs: false });
+
+const props = withDefaults(defineProps<DrControlGroupGalleryProps>(), {
+  labelPosition: 'auto',
+});
 
 const name = ref('');
 const email = ref('');
@@ -54,12 +59,13 @@ function handleReset(): void {
   >
     <DrControlGroup
       class="GalleryExample"
-      label-position="auto"
+      :label-position="props.labelPosition"
       label-width="9rem"
     >
       <DrInput
         v-model="name"
         label="Name"
+        :label-position="props.fieldLabelPosition"
         :disabled="controls.name.disabled"
         :state="controls.name.state"
         :message="controls.name.messages"
@@ -69,6 +75,7 @@ function handleReset(): void {
       <DrInput
         v-model="email"
         label="Email"
+        :label-position="props.fieldLabelPosition"
         :disabled="controls.email.disabled"
         :state="controls.email.state"
         :message="controls.email.messages"

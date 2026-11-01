@@ -33,6 +33,7 @@ const messageId = computed(() => (hasMessage.value ? `${controlId}-message` : un
 
 const rootClasses = computed(() => [
   {
+    DrControl_bordered: props.bordered,
     DrControl_disabled: props.disabled,
     DrControl_group: isGroup.value,
   },
@@ -106,6 +107,7 @@ const controlClasses = computed(() => ({
   .DrControl {
     --dr-control-label-width: var(--dr-control-group-label-width, max-content);
     --dr-control-label-align: var(--dr-control-group-label-align, left);
+    --dr-control-label-extra-gap: var(--dr-control-group-label-extra-gap, var(--dr-space-xsmall));
 
     --dr-control-layout-columns: var(--dr-control-group-layout-columns, minmax(0, 1fr));
     --dr-control-layout-areas: var(--dr-control-group-layout-areas, 'label' 'control' 'message');
@@ -120,18 +122,21 @@ const controlClasses = computed(() => ({
   }
 
   .DrControl_top {
+    --dr-control-label-extra-gap: var(--dr-space-xsmall);
     --dr-control-layout-columns: minmax(0, 1fr);
     --dr-control-layout-areas: 'label' 'control' 'message';
     --dr-control-layout-align-items: normal;
   }
 
   .DrControl_left {
+    --dr-control-label-extra-gap: 0px;
     --dr-control-layout-columns: minmax(0, var(--dr-control-label-width)) minmax(0, 1fr);
     --dr-control-layout-areas: 'label control' '. message';
     --dr-control-layout-align-items: first baseline;
   }
 
   .DrControl_right {
+    --dr-control-label-extra-gap: 0px;
     --dr-control-layout-columns: max-content minmax(0, 1fr);
     --dr-control-layout-areas: 'control label' '. message';
     --dr-control-layout-align-items: center;
@@ -197,5 +202,13 @@ const controlClasses = computed(() => ({
 
   .DrControl__message_error {
     color: var(--dr-color-text-danger);
+  }
+
+  .DrControl_bordered > .DrControl__label:not(:empty) {
+    margin-block-end: var(--dr-control-label-extra-gap);
+  }
+
+  .DrControl_bordered > .DrControl__message {
+    margin-block-start: var(--dr-space-xsmall);
   }
 </style>
