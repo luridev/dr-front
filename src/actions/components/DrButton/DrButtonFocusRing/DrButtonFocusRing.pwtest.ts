@@ -60,8 +60,9 @@ for (const theme of ['light', 'dark'] as const) {
       await page.emulateMedia({ forcedColors });
       const root = await mount(story);
 
-      await page.evaluate((value) => {
-        document.documentElement.dataset.theme = value;
+      await root.evaluate(async (element, value) => {
+        element.ownerDocument.documentElement.dataset.theme = value;
+        await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished));
       }, theme);
 
       await page.evaluate(() => document.fonts.ready);

@@ -41,7 +41,14 @@ test('invalid editor and clear action have separate indicators and preserve the 
 
   await page.keyboard.press('Tab');
   await expect(clear).toBeFocused();
-  await expect(clear).toHaveCSS('outline-style', 'solid');
-  await expect(clear).toHaveCSS('outline-offset', '-4px');
+  await expect(clear).toHaveCSS('outline-style', 'none');
+
+  expect(await clear.evaluate((element) => {
+    const indicator = getComputedStyle(element, '::after');
+
+    return { content: indicator.content, style: indicator.outlineStyle, width: indicator.outlineWidth };
+  })).toEqual({ content: '""', style: 'solid', width: '2px' });
+
   await expect(surface).toHaveCSS('outline-style', 'none');
+  await expect(surface).toHaveCSS('border-color', border);
 });
