@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { DrButton } from '@/index';
 import type { DrButtonContractProps } from '@/actions/components/DrButton/DrButtonContract/types.support';
 
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<DrButtonContractProps>(), {
   incomingClass: 'DrButtonContract__incoming',
   conditionalClass: true,
@@ -20,6 +22,7 @@ const unexpectedEvents = ref(0);
 const ignoredAttrs = {
   style: 'opacity: 0.25;',
   'data-attrs-probe': 'unexpected',
+  'data-dr-focus-inset': 'unexpected',
   'aria-description': 'Unexpected description',
   name: 'unexpected-name',
   onMousedown: handleUnexpectedMousedown,
@@ -45,6 +48,7 @@ function handleUnexpectedMousedown(): void {
     :class="consumerClasses"
     :disabled="props.disabled"
     :loading="props.loading"
+    :focus-ring="props.focusRing"
     @click="handleClick"
     @pointerdown="handlePointerdown"
   >

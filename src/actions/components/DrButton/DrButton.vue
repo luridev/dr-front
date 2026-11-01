@@ -18,6 +18,7 @@ const props = withDefaults(defineProps<DrButtonProps>(), {
   state: 'normal',
   variant: 'outline',
   size: 'medium',
+  focusRing: 'outside',
   disabled: false,
   loading: false,
 });
@@ -97,6 +98,7 @@ function handleClick(event: MouseEvent) {
       :aria-label="props.aria?.ariaLabel"
       :aria-describedby="describedBy"
       :aria-invalid="props.aria?.ariaInvalid || undefined"
+      :data-dr-focus-inset="props.focusRing === 'inside' ? '' : undefined"
       @pointerdown="handlePointerdown"
       @click="handleClick"
     >
@@ -181,6 +183,10 @@ function handleClick(event: MouseEvent) {
 
   .DrButton:disabled {
     cursor: var(--dr-disabled-cursor);
+  }
+
+  .DrButton[data-dr-focus-inset]:focus-visible {
+    outline-color: currentcolor;
   }
 
   .DrButton:disabled:not(.DrButton_loading) {

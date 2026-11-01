@@ -1,6 +1,6 @@
 import type { DrButtonProps } from '@/actions/components/DrButton/types';
 
-export type DrButtonContractProps = Pick<DrButtonProps, 'disabled' | 'loading'> & {
+export type DrButtonContractProps = Pick<DrButtonProps, 'disabled' | 'loading' | 'focusRing'> & {
   incomingClass?: string;
   conditionalClass?: boolean;
 };

@@ -1,5 +1,7 @@
 import type { ButtonHTMLAttributes } from 'vue';
 
+export type DrFocusRing = 'outside' | 'inside';
+
 export type DrButtonState = 'normal' | 'warning' | 'danger';
 
 export type DrButtonVariant = 'solid' | 'outline' | 'ghost';
@@ -21,6 +23,7 @@ export type DrButtonProps = {
   state?: DrButtonState;
   variant?: DrButtonVariant;
   size?: DrButtonSize;
+  focusRing?: DrFocusRing;
   disabled?: boolean;
   loading?: boolean;
   message?: DrButtonMessage;

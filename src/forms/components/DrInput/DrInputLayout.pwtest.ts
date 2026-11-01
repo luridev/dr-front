@@ -1,5 +1,63 @@
+import { readFieldLayout, readFocusRing } from '@/actions/components/DrButton/DrButtonFocusRing/focusRing.support';
 import { pasteInput, readSelection, selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { expect, test } from '~/tests/playwright/fixtures';
+
+test('slot examples leave room for their chosen focus rings', async ({ mount }) => {
+  const root = await mount('forms/components/DrInput/DrInputLayout');
+  const go = root.getByRole('button', { name: 'Go', exact: true });
+
+  for (const width of [80, 180, 320]) {
+    await root.getByTestId('layout').evaluate((element, value) => {
+      element.style.width = `${value}px`;
+    }, width);
+
+    const before = (await readFieldLayout(go)).map((bounds) => bounds.slice(2));
+    await go.press('Shift');
+    const ring = await readFocusRing(go);
+    expect(ring.style).toBe('solid');
+    expect(ring.offset + ring.width).toBeLessThanOrEqual(0);
+    expect(ring.clipClearance).toBeGreaterThanOrEqual(-0.5);
+    expect((await readFieldLayout(go)).map((bounds) => bounds.slice(2))).toEqual(before);
+  }
+
+  const nested = root.getByRole('textbox', { name: 'Nested', exact: true });
+  await nested.press('Shift');
+  const surface = nested.locator('xpath=ancestor::*[@data-dr-focus-surface][1]');
+  const ring = await readFocusRing(surface);
+  expect(ring.style).toBe('solid');
+  expect(ring.clipClearance).toBeGreaterThanOrEqual(-0.5);
+});
+
+test('nested slot examples reserve room for external field outlines', async ({ mount }) => {
+  for (const example of [
+    {
+      story: 'forms/components/DrMaskedInput/DrMaskedInputGallery',
+      layout: '.GalleryExample__grid',
+      names: ['Plain slot'],
+    },
+    {
+      story: 'forms/components/DrInput/DrInputMasking/DrInputMasking',
+      layout: '.DrInputMasking',
+      names: ['Plain date slot', 'Masked date slot', 'Nested time', 'Plain time slot'],
+    },
+  ]) {
+    const root = await mount(example.story);
+
+    await root.locator(example.layout).evaluate((element) => {
+      element.style.width = '320px';
+      element.style.gridTemplateColumns = 'minmax(0, 1fr)';
+    });
+
+    for (const name of example.names) {
+      const input = root.getByRole('textbox', { name, exact: true });
+      await input.press('Shift');
+      const ring = await readFocusRing(input.locator('xpath=ancestor::*[@data-dr-focus-surface][1]'));
+      expect(ring.style, name).toBe('solid');
+      expect(ring.offset, name).toBeGreaterThanOrEqual(0);
+      expect(ring.clipClearance, name).toBeGreaterThanOrEqual(-0.5);
+    }
+  }
+});
 
 test('input layout keeps editable text space with slots, narrow containers and different fonts', async ({ mount }, testInfo) => {
   const root = await mount('forms/components/DrInput/DrInputLayout');

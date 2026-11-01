@@ -10,6 +10,40 @@ function getInputActions(root: Locator): Locator {
   ].join(', '));
 }
 
+test('number actions, clear and AM/PM retain their distinct keyboard focus behavior', async ({ mount, page }) => {
+  const root = await mount('configuration/components/DrFrontProvider/FocusShowcase/FocusShowcase');
+  const number = root.getByRole('spinbutton', { name: 'Number', exact: true });
+  await number.press('Shift');
+
+  for (const name of ['Change sign of Number', 'Increase Number', 'Decrease Number']) {
+    const action = root.getByRole('button', { name, exact: true });
+    await expect(action).toHaveAttribute('tabindex', '-1');
+    await action.click();
+    await expect(number).toBeFocused();
+  }
+
+  await page.keyboard.press('Tab');
+  const clear = root.getByRole('button', { name: 'Clear Number', exact: true });
+  await expect(clear).toBeFocused();
+  await expect(clear).toHaveCSS('outline-offset', '-4px');
+  await page.keyboard.press('Tab');
+  await expect(root.getByRole('textbox', { name: 'Date', exact: true })).toBeFocused();
+  await clear.press('Enter');
+  await expect(number).toBeFocused();
+
+  await root.getByRole('textbox', { name: 'Time', exact: true }).press('Shift');
+  await page.keyboard.press('Tab');
+  await expect(root.getByRole('button', { name: 'Clear Time', exact: true })).toBeFocused();
+  await page.keyboard.press('Tab');
+  const period = root.getByRole('button', { name: 'Switch Time to PM', exact: true });
+  await expect(period).toBeFocused();
+  await expect(period).toHaveCSS('outline-offset', '-4px');
+  await page.keyboard.press('Enter');
+  await expect(root.getByRole('button', { name: 'Switch Time to AM', exact: true })).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(period).toBeFocused();
+});
+
 for (const kind of ['Number', 'Time'] as const) {
   test(`${kind} keeps nested actions square within the rounded field`, async ({ mount, page }, testInfo) => {
     const root = await mount(`forms/components/DrInput${kind}/DrInput${kind}Gallery`);

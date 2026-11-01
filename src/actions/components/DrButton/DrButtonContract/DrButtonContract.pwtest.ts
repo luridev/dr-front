@@ -15,13 +15,25 @@ test('DrButton preserves the root class, explicit emits and native button props'
   await expect(button).toHaveAttribute('type', 'button');
   await expect(button).toHaveAttribute('id', 'contract-button');
   await expect(root).not.toHaveAttribute('id');
+  await expect(button).not.toHaveAttribute('data-dr-focus-inset');
 
-  for (const element of [root, button]) {
-    for (const attribute of ['style', 'data-attrs-probe', 'aria-description']) {
-      await expect(element).not.toHaveAttribute(attribute);
+  for (const focusRing of ['outside', 'inside'] as const) {
+    await component.update({ focusRing });
+    await expect(root).not.toHaveAttribute('data-dr-focus-inset');
+
+    if (focusRing === 'inside') {
+      await expect(button).toHaveAttribute('data-dr-focus-inset', '');
+    } else {
+      await expect(button).not.toHaveAttribute('data-dr-focus-inset');
     }
 
-    await element.dispatchEvent('mousedown');
+    for (const element of [root, button]) {
+      for (const attribute of ['style', 'data-attrs-probe', 'aria-description', 'focusring', 'focus-ring']) {
+        await expect(element).not.toHaveAttribute(attribute);
+      }
+
+      await element.dispatchEvent('mousedown');
+    }
   }
 
   await root.dispatchEvent('click');

@@ -29,7 +29,7 @@ export { default as DrSection } from '@/layout/components/DrSection/DrSection.vu
 export { default as DrTabPanel } from '@/navigation/tabs/components/DrTabPanel/DrTabPanel.vue';
 export { default as DrTabSwitcher } from '@/navigation/tabs/components/DrTabSwitcher/DrTabSwitcher.vue';
 export { default as DrModalHost } from '@/overlays/components/DrModalHost/DrModalHost.vue';
-export type { DrButtonVariant, DrButtonAria } from '@/actions/components/DrButton/types';
+export type { DrButtonVariant, DrButtonAria, DrFocusRing } from '@/actions/components/DrButton/types';
 export type { DrAlertData, DrErrorAlertData } from '@/feedback/types';
 export type { DrToastService, DrToastOptions, DrToastVariantOptions, DrToastVariant } from '@/feedback/toasts/types';
 export type { DrInputDateStatus } from '@/forms/components/DrInputDate/types';

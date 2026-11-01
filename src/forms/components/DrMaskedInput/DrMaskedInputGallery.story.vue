@@ -83,6 +83,7 @@ function focusAtEnd() {
         <template #end>
           <DrInput
             v-model="plain"
+            class="DrMaskedInputGallery__plainSlot"
             label="Plain slot"
             :clearable="false"
           />
@@ -150,3 +151,9 @@ function focusAtEnd() {
     <span data-testid="event">{{ lastEvent }}</span>
   </div>
 </template>
+
+<style scoped>
+  .DrMaskedInputGallery__plainSlot {
+    margin: var(--dr-space-xsmall);
+  }
+</style>

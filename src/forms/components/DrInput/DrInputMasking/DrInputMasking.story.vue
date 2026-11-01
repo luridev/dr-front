@@ -10,6 +10,8 @@ import DrInputTime from '@/forms/components/DrInputTime/DrInputTime.vue';
 import DrMaskedInput from '@/forms/components/DrMaskedInput/DrMaskedInput.vue';
 import type { DrInputMaskingProps } from '@/forms/components/DrInput/DrInputMasking/types.support';
 
+defineOptions({ inheritAttrs: false });
+
 const props = withDefaults(defineProps<DrInputMaskingProps>(), {
   smallestUnit: 'minute',
   showTime: true,
@@ -173,5 +175,14 @@ watch(() => props.externalMasked, (value) => {
   .DrInputMasking__slots {
     display: grid;
     gap: var(--dr-space-medium);
+  }
+
+  .DrInputMasking__slots {
+    min-width: 0;
+    padding: var(--dr-space-xsmall);
+  }
+
+  .DrInputMasking__nestedTimeSlot {
+    margin: var(--dr-space-xsmall);
   }
 </style>

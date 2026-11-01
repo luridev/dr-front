@@ -47,6 +47,7 @@ function handleAction() {
       <template #end>
         <DrInput
           v-model="nested"
+          class="DrInputLayout__nested"
           label="Nested"
           :clearable="false"
         />
@@ -75,6 +76,7 @@ function handleAction() {
       <template #end>
         <DrButton
           size="small"
+          focus-ring="inside"
           @click="handleAction"
         >
           Go
@@ -93,5 +95,9 @@ function handleAction() {
     display: grid;
     gap: var(--dr-space-medium);
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .DrInputLayout__nested {
+    margin: var(--dr-space-xsmall);
   }
 </style>
