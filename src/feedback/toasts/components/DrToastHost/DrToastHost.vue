@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isFocusable } from 'tabbable';
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
 import { useDrTranslation } from '@/configuration/composables/useDrTranslation/useDrTranslation';
 import DrToast from '@/feedback/toasts/components/DrToast/DrToast.vue';
@@ -32,6 +33,34 @@ const closeButtonTabindex = computed(() => (modality.value?.hasModal.value === t
 let timeoutId: number | undefined;
 let remainingDuration = 0;
 let timerStartedAt = 0;
+let returnFocusTarget: HTMLElement | undefined;
+
+function handleFocusIn(event: FocusEvent) {
+  const target = event.relatedTarget;
+
+  if (target instanceof Node && event.currentTarget instanceof Node && event.currentTarget.contains(target)) {
+    return;
+  }
+
+  returnFocusTarget = target instanceof HTMLElement && target !== target.ownerDocument.body && isFocusable(target)
+    ? target
+    : undefined;
+}
+
+function handleBeforeLeave(element: Element) {
+  const target = returnFocusTarget;
+
+  returnFocusTarget = undefined;
+
+  if (
+    isMounted.value && element.contains(element.ownerDocument.activeElement) &&
+    target != null && target.isConnected && isFocusable(target)
+  ) {
+    target.focus({ preventScroll: true });
+  }
+
+  element.setAttribute('inert', '');
+}
 
 function clearTimer() {
   if (timeoutId == null) {
@@ -152,6 +181,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   isMounted.value = false;
+  returnFocusTarget = undefined;
 
   clearTimer();
   dispose();
@@ -166,7 +196,10 @@ onBeforeUnmount(() => {
     v-if="isMounted"
     to="body"
   >
-    <div class="DrToastHost">
+    <div
+      class="DrToastHost"
+      @focusin="handleFocusIn"
+    >
       <div
         class="DrToastHost__announcement"
         role="status"
@@ -179,6 +212,7 @@ onBeforeUnmount(() => {
       <Transition
         name="DrToastTransition"
         mode="out-in"
+        @before-leave="handleBeforeLeave"
       >
         <DrToast
           v-if="activeToast"

@@ -18,6 +18,7 @@ const crossBrowserTests = [
   'src/forms/components/DrMaskedInput/DrMaskedInputEditing.pwtest.ts',
   'src/forms/components/DrRadioGroup/*.pwtest.ts',
   'src/forms/components/DrSelect/**/*.pwtest.ts',
+  'src/feedback/toasts/components/DrToastHost/DrToastFocus.pwtest.ts',
   'src/dialogs/**/*.pwtest.ts',
   'src/overlays/**/*.pwtest.ts',
   'src/configuration/**/DrFrontProviderGallery.pwtest.ts',
