@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   publish:
-    if: github.repository == 'luridev/dr-front'
+    if: github.server_url == 'https://github.com' && github.repository == 'luridev/dr-front'
     runs-on: ubuntu-latest
 
     steps:
