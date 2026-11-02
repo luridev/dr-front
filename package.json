@@ -43,6 +43,7 @@
     "lint": "eslint \"**/*.{js,ts,vue}\" package.json --cache --cache-strategy metadata --concurrency auto && stylelint \"**/*.{css,vue}\" --cache --cache-strategy metadata",
     "lint:fix": "eslint \"**/*.{js,ts,vue}\" package.json --fix --cache --cache-strategy metadata --concurrency auto && stylelint \"**/*.{css,vue}\" --fix --cache --cache-strategy metadata",
     "prepublishOnly": "npm --dry-run=false run check:release",
+    "prerelease": "node --input-type=module -e \"import { checkGitStatus } from 'bumpp/cli'; await checkGitStatus()\"",
     "preview:gallery": "vite preview --config vite.gallery.config.ts",
     "release": "npm run check:release && bumpp",
     "test": "npm run test:unit && npm run test:e2e",
