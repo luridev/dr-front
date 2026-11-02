@@ -3,6 +3,7 @@ import { getInput, pasteInput, readSelection, replaceInput, selectInputRange } f
 import { expect, test } from '~/tests/playwright/fixtures';
 
 const timeStoryId = 'forms/components/DrInputTime/DrInputTimeGallery';
+const minutesPeriodButtonSelector = '.DrInputTimeGallery__minutes .DrInputTime__periodButton';
 
 for (const [locale, text] of [
   ['ru-RU', '23:45:56,123'], ['en-GB', '23:45:56.123'], ['en-US', '11:45:56.123'],
@@ -21,7 +22,7 @@ for (const [locale, text] of [
     await expect(input).toHaveValue(text);
 
     if (locale === 'en-US') {
-      const period = root.locator('.DrInputTime__periodButton').first();
+      const period = root.locator(minutesPeriodButtonSelector);
 
       await expect(period).toHaveText('PM');
       await period.click();
@@ -52,7 +53,7 @@ test('nanosecond locale changes and external updates keep exact models without e
     expect(await nativeInput.evaluate((element) => element.isConnected)).toBe(true);
 
     if (locale === 'en-US') {
-      await expect(root.locator('.DrInputTime__periodButton').first()).toHaveText('PM');
+      await expect(root.locator(minutesPeriodButtonSelector)).toHaveText('PM');
     }
   }
 
@@ -65,7 +66,7 @@ test('nanosecond locale changes and external updates keep exact models without e
   await expect(model).toHaveAttribute('data-updates', '0');
   await localeSelect.selectOption('en-US');
   await expect(input).toHaveValue('01:02:03.004005006');
-  await expect(root.locator('.DrInputTime__periodButton').first()).toHaveText('AM');
+  await expect(root.locator(minutesPeriodButtonSelector)).toHaveText('AM');
   await expect(model).toHaveAttribute('data-updates', '0');
 });
 
@@ -373,7 +374,7 @@ test('period control preserves hidden precision, keyboard focus and form safety'
   const root = await mount(timeStoryId);
   const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
   const model = root.getByTestId('time-gallery-model');
-  const periodButton = root.locator('.DrInputTime__periodButton').first();
+  const periodButton = root.locator(minutesPeriodButtonSelector);
 
   await expect(input).toHaveValue('11:45');
   await expect(periodButton).toHaveText('PM');
@@ -430,7 +431,7 @@ test('period changes leave drafts incomplete and editing, paste and history rema
   const root = await mount(timeStoryId);
   const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
   const model = root.getByTestId('time-gallery-model');
-  const periodButton = root.locator('.DrInputTime__periodButton').first();
+  const periodButton = root.locator(minutesPeriodButtonSelector);
 
   await input.fill('11:1');
   await expect(model).toHaveText('null');

@@ -325,10 +325,15 @@ test('disabling or unmounting an open Select removes the popup without taking ou
   const root = await mount(story);
   const trigger = root.getByRole('combobox');
   const list = page.getByRole('listbox');
+  const listInDom = page.getByRole('listbox', { includeHidden: true });
+  const popup = page.locator('.DrSelect__popup');
   await trigger.click();
+  await expect(list).toBeVisible();
+  await expect(popup).toBeVisible();
   await root.update({ disabled: true });
   await expect(trigger).toBeDisabled();
-  await expect(list).toHaveCount(0);
+  await expect(listInDom).toHaveCount(0);
+  await expect(popup).toHaveCount(0);
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(trigger).not.toHaveAttribute('aria-controls');
   await root.update({ disabled: false });
@@ -340,7 +345,8 @@ test('disabling or unmounting an open Select removes the popup without taking ou
   await trigger.click();
   await expect(list).toBeVisible();
   await root.unmount();
-  await expect(list).toHaveCount(0);
+  await expect(listInDom).toHaveCount(0);
+  await expect(popup).toHaveCount(0);
   await root.update();
   await trigger.press('Enter');
   await expect(list).toBeVisible();

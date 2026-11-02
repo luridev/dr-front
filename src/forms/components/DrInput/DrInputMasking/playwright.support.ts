@@ -1,7 +1,15 @@
 import type { Locator } from '@playwright/test';
 
 export function getInput(component: Locator, name: string): Locator {
-  return component.locator(`.DrInputMasking__${name} > [data-dr-focus-surface] input`).first();
+  const field = component.locator(`.DrInputMasking__${name}`);
+
+  if (name === 'date' || name === 'nestedTime') {
+    const label = name === 'date' ? 'Date input' : 'Nested time';
+
+    return field.getByRole('textbox', { name: label, exact: true });
+  }
+
+  return field.getByRole(name === 'number' ? 'spinbutton' : 'textbox');
 }
 
 export async function selectInputRange(input: Locator, from: number, to = from): Promise<void> {

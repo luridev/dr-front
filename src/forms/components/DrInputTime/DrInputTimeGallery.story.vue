@@ -63,6 +63,7 @@ function handleStatusUpdate(value: DrInputTimeStatus): void {
       <div class="GalleryExample__grid">
         <DrInputTime
           v-model="time"
+          class="DrInputTimeGallery__minutes"
           label="Minutes"
           :smallest-unit="props.smallestUnit"
           placeholder="HH:MM"
