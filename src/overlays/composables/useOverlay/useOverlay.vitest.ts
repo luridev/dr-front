@@ -17,6 +17,7 @@ const content = { component: { render: () => null } };
 
 describe('overlay ownership', () => {
   it('uses the nearest nested modal Host and updates dialog state through normal Host disposal', async () => {
+    expect.assertions(27);
     const contexts: Array<ReturnType<typeof createOverlayContext>> = [];
     const dialogs: Array<ReturnType<typeof useDialog>> = [];
 
@@ -76,7 +77,7 @@ describe('overlay ownership', () => {
     expect(dialogs[2].isOpen.value).toBe(false);
     dialogs[0].open();
     expect(dialogs[0].isOpen.value).toBe(false);
-    expect(contexts[0].layers.value).toEqual([]);
+    expect(contexts[0].layers.value).toStrictEqual([]);
   });
 
   it('captures only known dependencies and disposes an owner without closing another owner', () => {
@@ -122,7 +123,7 @@ describe('overlay ownership', () => {
     scope.stop();
     expect(owner.canOpenModal.value).toBe(false);
     expect(other.canOpenModal.value).toBe(true);
-    expect(order).toEqual([2, 1]);
+    expect(order).toStrictEqual([2, 1]);
     expect(returnOwnedFocus()).toBe(false);
     expect(context.layers.value).toHaveLength(1);
     expect(owner.open({ content })).toBeUndefined();
@@ -132,7 +133,7 @@ describe('overlay ownership', () => {
     requireValue(other.open({ content })).close();
     app.unmount();
     expect(other.open({ content })).toBeUndefined();
-    expect(context.layers.value).toEqual([]);
+    expect(context.layers.value).toStrictEqual([]);
   });
 
   it('requires a Host only when opening, and stays inactive after scope disposal', () => {

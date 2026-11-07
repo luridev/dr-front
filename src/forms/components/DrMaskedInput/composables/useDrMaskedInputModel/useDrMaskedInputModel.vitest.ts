@@ -8,13 +8,12 @@ import type { DrMask } from '@/forms/components/DrMaskedInput/types';
 
 const { mounted } = vi.hoisted(() => ({ mounted: new Array<() => void>() }));
 
-vi.mock('vue', async (original) => ({
+vi.mock(import('vue'), async (original) => ({
   ...await original<typeof Vue>(),
   onMounted: (callback: () => void) => mounted.push(callback),
 }));
 
 const scopes = createTestEffectScopeCollector();
-afterEach(() => mounted.splice(0));
 
 function createFixture(initial = '', initialMask: DrMask = '000-000', echo = true, mount = true) {
   const external = ref(initial);
@@ -48,26 +47,30 @@ function createFixture(initial = '', initialMask: DrMask = '000-000', echo = tru
   return { ...state, external, mask, writes, status, edit };
 }
 
-describe('native mask model synchronization', () => {
+describe('useDrMaskedInputModel', () => {
+  afterEach(() => mounted.splice(0));
+
   it('initializes external data without emitting a model write', () => {
     const fixture = createFixture('123456');
     expect(fixture.inputValue.value).toBe('123-456');
-    expect(fixture.status.mock.calls).toEqual([['valid']]);
+    expect(fixture.status.mock.calls).toStrictEqual([['valid']]);
     expect(fixture.writes).not.toHaveBeenCalled();
   });
 
   it('publishes partial strings, deduplicates status and preserves the live engine on echoes', async () => {
     const fixture = createFixture();
     const engine = fixture.masked.value;
+    const preserved: Array<boolean> = [];
 
     for (const value of ['1', '12', '123456', '123456']) {
       fixture.edit(value);
       await nextTick();
-      expect(fixture.masked.value).toBe(engine);
+      preserved.push(fixture.masked.value === engine);
     }
 
-    expect(fixture.writes.mock.calls).toEqual([['1'], ['12'], ['123456']]);
-    expect(fixture.status.mock.calls).toEqual([['empty'], ['incomplete'], ['valid']]);
+    expect(preserved).toStrictEqual([true, true, true, true]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['1'], ['12'], ['123456']]);
+    expect(fixture.status.mock.calls).toStrictEqual([['empty'], ['incomplete'], ['valid']]);
     fixture.updateInputValue('');
     await nextTick();
     expect(fixture.inputValue.value).toBe('');
@@ -80,7 +83,7 @@ describe('native mask model synchronization', () => {
     await nextTick();
     fixture.edit('a');
     await nextTick();
-    expect(fixture.writes.mock.calls).toEqual([['b']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['b']]);
     const engine = fixture.masked.value;
     fixture.external.value = 'b';
     await nextTick();
@@ -89,7 +92,7 @@ describe('native mask model synchronization', () => {
     fixture.external.value = 'c';
     await nextTick();
     expect(fixture.inputValue.value).toBe('d');
-    expect(fixture.writes.mock.calls).toEqual([['b'], ['d']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['b'], ['d']]);
     expect(fixture.masked.value).toBe(engine);
   });
 
@@ -104,14 +107,14 @@ describe('native mask model synchronization', () => {
     expect(fixture.inputValue.value).toBe(display);
     expect(fixture.external.value).toBe(expected);
     expect(fixture.status).toHaveBeenLastCalledWith(status);
-    expect(fixture.writes.mock.calls).toEqual([[expected]]);
+    expect(fixture.writes.mock.calls).toStrictEqual([[expected]]);
     expect(fixture.masked.value).toBe(engine);
     fixture.external.value = '9x8';
     await nextTick();
     expect(fixture.external.value).toBe('98');
     expect(fixture.inputValue.value).toBe('98');
     expect(fixture.masked.value).toBe(engine);
-    expect(fixture.writes.mock.calls).toEqual([[expected], ['98']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([[expected], ['98']]);
   });
 
   it('keeps placeholders out of the model but retains native included literals', async () => {
@@ -147,7 +150,7 @@ describe('native mask model synchronization', () => {
     expect(fixture.inputValue.value).toBe(display);
     expect(fixture.masked.value.unmaskedValue).toBe(unmasked);
     expect(fixture.external.value).toBe(unmasked);
-    expect(fixture.writes.mock.calls).toEqual(value === unmasked ? [] : [[unmasked]]);
+    expect(fixture.writes.mock.calls).toStrictEqual(value === unmasked ? [] : [[unmasked]]);
     expect(fixture.masked.value).toBe(engine);
   });
 
@@ -253,15 +256,14 @@ describe('native mask model synchronization', () => {
     expect(fixture.status).not.toHaveBeenCalled();
   });
 
-  it('treats equivalent strings, arrays, regular expressions and dates as unchanged options', async () => {
-    const cases = [
-      ['1234', '000-000', { mask: '000-000' }],
-      ['AB12', { mask: /^[a-z\d]*$/i }, { mask: /^[a-z\d]*$/i }],
-      ['1234', { mask: [{ mask: '00' }, { mask: '00-00' }] }, { mask: [{ mask: '00' }, { mask: '00-00' }] }],
-      ['01022024', { mask: Date, min: new Date(2020, 0, 1) }, { mask: Date, min: new Date(2020, 0, 1) }],
-    ] as const satisfies ReadonlyArray<readonly [string, DrMask, DrMask]>;
-
-    for (const [value, initialMask, equivalentMask] of cases) {
+  it.each([
+    ['1234', '000-000', { mask: '000-000' }],
+    ['AB12', { mask: /^[a-z\d]*$/i }, { mask: /^[a-z\d]*$/i }],
+    ['1234', { mask: [{ mask: '00' }, { mask: '00-00' }] }, { mask: [{ mask: '00' }, { mask: '00-00' }] }],
+    ['01022024', { mask: Date, min: new Date(2020, 0, 1) }, { mask: Date, min: new Date(2020, 0, 1) }],
+  ] as const satisfies ReadonlyArray<readonly [string, DrMask, DrMask]>)(
+    'treats equivalent mask options as unchanged for %s: %j',
+    async (value, initialMask, equivalentMask) => {
       const fixture = createFixture(value, initialMask);
       await nextTick();
       const engine = fixture.masked.value;
@@ -275,8 +277,8 @@ describe('native mask model synchronization', () => {
       expect(fixture.inputValue.value).toBe(display);
       expect(fixture.writes).not.toHaveBeenCalled();
       expect(fixture.status).not.toHaveBeenCalled();
-    }
-  });
+    },
+  );
 
   it('applies reactive mask changes and added or deleted options as full configurations', async () => {
     const options = reactive<{ mask: string; lazy?: boolean }>({ mask: '00-00' });
@@ -312,7 +314,7 @@ describe('native mask model synchronization', () => {
     await nextTick();
     expect(fixture.inputValue.value).toBe('XYZ');
     expect(fixture.external.value).toBe('XYZ');
-    expect(fixture.writes.mock.calls).toEqual([['XYZ']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['XYZ']]);
     expect(fixture.status).toHaveBeenLastCalledWith('valid');
   });
 
@@ -329,7 +331,7 @@ describe('native mask model synchronization', () => {
     await nextTick();
     expect(fixture.inputValue.value).toBe('12');
     expect(fixture.external.value).toBe('12');
-    expect(fixture.writes.mock.calls).toEqual([['123'], ['12']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['123'], ['12']]);
   });
 
   it('applies RegExp flag changes instead of treating their sources as the complete configuration', async () => {
@@ -353,65 +355,65 @@ describe('native mask model synchronization', () => {
 
     expect(fixture.inputValue.value).toBe('1,2');
     expect(fixture.external.value).toBe('1.2');
-    expect(fixture.writes.mock.calls).toEqual([['1.2']]);
+    expect(fixture.writes.mock.calls).toStrictEqual([['1.2']]);
     expect(fixture.status).not.toHaveBeenCalled();
   });
-});
 
-it('accepts a concrete ref/computed configuration and drops removed Number bounds', async () => {
-  const config = ref<{ mask: NumberConstructor; min?: number }>({ mask: Number, min: 5 });
-  const model = ref('1');
-  const status = vi.fn();
+  it('accepts a concrete ref/computed configuration and drops removed Number bounds', async () => {
+    const config = ref<{ mask: NumberConstructor; min?: number }>({ mask: Number, min: 5 });
+    const model = ref('1');
+    const status = vi.fn();
 
-  const state = scopes.run(() => {
-    const result = useDrMaskedInputModel({ model, mask: computed(() => config.value), onStatusUpdate: status });
-    mounted.shift()?.();
+    const state = scopes.run(() => {
+      const result = useDrMaskedInputModel({ model, mask: computed(() => config.value), onStatusUpdate: status });
+      mounted.shift()?.();
 
-    return result;
+      return result;
+    });
+
+    expect(state.inputValue.value).toBe('5');
+    expect(model.value).toBe('5');
+    config.value = { mask: Number };
+    await nextTick();
+    expect(state.inputValue.value).toBe('5');
+    model.value = '1';
+    await nextTick();
+    expect(state.inputValue.value).toBe('1');
+    expect(model.value).toBe('1');
+    expect(status.mock.calls).toStrictEqual([['valid']]);
   });
 
-  expect(state.inputValue.value).toBe('5');
-  expect(model.value).toBe('5');
-  config.value = { mask: Number };
-  await nextTick();
-  expect(state.inputValue.value).toBe('5');
-  model.value = '1';
-  await nextTick();
-  expect(state.inputValue.value).toBe('1');
-  expect(model.value).toBe('1');
-  expect(status.mock.calls).toEqual([['valid']]);
-});
+  it('renders normalized initial text without publishing before mount', async () => {
+    const fixture = createFixture('1', { mask: Number, min: 5 }, true, false);
+    expect(fixture.inputValue.value).toBe('5');
+    expect(fixture.external.value).toBe('1');
+    expect(fixture.writes).not.toHaveBeenCalled();
+    expect(fixture.status).not.toHaveBeenCalled();
+    scopes.run(() => mounted.shift()?.());
+    await nextTick();
+    expect(fixture.external.value).toBe('5');
+    expect(fixture.writes.mock.calls).toStrictEqual([['5']]);
+    expect(fixture.status.mock.calls).toStrictEqual([['valid']]);
+  });
 
-it('renders normalized initial text without publishing before mount', async () => {
-  const fixture = createFixture('1', { mask: Number, min: 5 }, true, false);
-  expect(fixture.inputValue.value).toBe('5');
-  expect(fixture.external.value).toBe('1');
-  expect(fixture.writes).not.toHaveBeenCalled();
-  expect(fixture.status).not.toHaveBeenCalled();
-  scopes.run(() => mounted.shift()?.());
-  await nextTick();
-  expect(fixture.external.value).toBe('5');
-  expect(fixture.writes.mock.calls).toEqual([['5']]);
-  expect(fixture.status.mock.calls).toEqual([['valid']]);
-});
+  it('publishes external changes hidden by displayChar and retains exposed context', async () => {
+    const fixture = createFixture('123456', nativeMasks.hidden);
+    const engine = fixture.masked.value;
+    fixture.external.value = '9876543';
+    await nextTick();
+    expect(fixture.inputValue.value).toBe('###-###');
+    expect(fixture.external.value).toBe('987654');
+    expect(fixture.writes.mock.calls).toStrictEqual([['987654']]);
+    expect(fixture.masked.value).toBe(engine);
 
-it('publishes external changes hidden by displayChar and retains exposed context', async () => {
-  const fixture = createFixture('123456', nativeMasks.hidden);
-  const engine = fixture.masked.value;
-  fixture.external.value = '9876543';
-  await nextTick();
-  expect(fixture.inputValue.value).toBe('###-###');
-  expect(fixture.external.value).toBe('987654');
-  expect(fixture.writes.mock.calls).toEqual([['987654']]);
-  expect(fixture.masked.value).toBe(engine);
-
-  const exposed = createFixture('', nativeMasks.exposed);
-  exposed.edit('1234');
-  await nextTick();
-  const exposedEngine = exposed.masked.value;
-  exposed.external.value = '567';
-  await nextTick();
-  expect(exposed.inputValue.value).toBe('12:56');
-  expect(exposed.external.value).toBe('56');
-  expect(exposed.masked.value).toBe(exposedEngine);
+    const exposed = createFixture('', nativeMasks.exposed);
+    exposed.edit('1234');
+    await nextTick();
+    const exposedEngine = exposed.masked.value;
+    exposed.external.value = '567';
+    await nextTick();
+    expect(exposed.inputValue.value).toBe('12:56');
+    expect(exposed.external.value).toBe('56');
+    expect(exposed.masked.value).toBe(exposedEngine);
+  });
 });

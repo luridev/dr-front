@@ -8,7 +8,7 @@ import type { ModelRef } from 'vue';
 import type { InputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/types';
 import type { TimeInputSmallestUnit, TimeInputStatus } from '@/forms/lib/inputFormats/time/types';
 
-vi.mock('vue', async (importOriginal) => ({
+vi.mock(import('vue'), async (importOriginal) => ({
   ...await importOriginal<typeof Vue>(),
   onMounted: (callback: () => void) => { callback(); },
 }));
@@ -68,7 +68,7 @@ describe('useDrInputTimeModel', () => {
     expect(String(result.source.value)).toBe(fullTime);
     expect(result.inputValue.value).toBe(display);
     expect(result.writes).toHaveLength(2);
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it.each(['11:11:5', '11:11:56.', 'invalid'])(
@@ -88,7 +88,7 @@ describe('useDrInputTimeModel', () => {
       expect(result.source.value).toBeNull();
       expect(result.period.value).toBe('am');
       expect(result.statuses.at(-1)).toBe(status);
-      expect(result.writes).toEqual([null]);
+      expect(result.writes).toStrictEqual([null]);
 
       result.updateInputValue('11:11:56');
       await nextTick();
@@ -118,7 +118,7 @@ describe('useDrInputTimeModel', () => {
 
     expect(result.inputValue.value).toBe('');
     expect(result.source.value).toBeNull();
-    expect(result.writes).toEqual([null]);
+    expect(result.writes).toStrictEqual([null]);
 
     result.updateInputValue('12:00');
     await nextTick();
@@ -135,7 +135,7 @@ describe('useDrInputTimeModel', () => {
     await nextTick();
     expect(result.period.value).toBe('am');
     expect(result.inputValue.value).toBe('01:02');
-    expect(result.writes).toEqual([]);
+    expect(result.writes).toStrictEqual([]);
 
     result.togglePeriod();
     await nextTick();
@@ -143,6 +143,7 @@ describe('useDrInputTimeModel', () => {
   });
 
   it('reformats from the same model through locales and precision without model writes', async () => {
+    expect.assertions(12);
     const result = setupTime();
     const original = result.source.value;
 
@@ -151,14 +152,14 @@ describe('useDrInputTimeModel', () => {
       await nextTick();
       expect(result.inputValue.value).toBe(display);
       expect(result.source.value).toBe(original);
-      expect(result.writes).toEqual([]);
+      expect(result.writes).toStrictEqual([]);
     }
 
     result.smallestUnit.value = 'nanosecond';
     await nextTick();
     expect(result.inputValue.value).toBe(fullTime);
     expect(result.source.value).toBe(original);
-    expect(result.writes).toEqual([]);
+    expect(result.writes).toStrictEqual([]);
   });
 
   it.each([
@@ -166,25 +167,31 @@ describe('useDrInputTimeModel', () => {
   ] as const)('changes the fractional separator at %s precision without writing or rounding the model', async (unit, fraction) => {
     const result = setupTime(fullTime, unit);
     const original = result.source.value;
+    const states = [];
 
-    for (const [locale, hour, separator] of [
-      ['ru-RU', '23', ','], ['en-US', '11', '.'], ['en-GB', '23', '.'], ['ru-RU', '23', ','],
-    ] as const) {
+    for (const locale of ['ru-RU', 'en-US', 'en-GB', 'ru-RU'] as const) {
       result.profile.value = getInputLocaleProfile(locale).time;
       await nextTick();
-      expect(result.inputValue.value).toBe(`${hour}:45:56${separator}${fraction}`);
-      expect(result.source.value).toBe(original);
-      expect(String(result.source.value)).toBe(fullTime);
-      expect(result.period.value).toBe('pm');
-      expect(result.writes).toEqual([]);
+
+      states.push({
+        text: result.inputValue.value,
+        sameModel: result.source.value === original,
+        modelText: String(result.source.value),
+        period: result.period.value,
+        writes: [...result.writes],
+      });
     }
+
+    expect(states).toStrictEqual([
+      `23:45:56,${fraction}`, `11:45:56.${fraction}`, `23:45:56.${fraction}`, `23:45:56,${fraction}`,
+    ].map((text) => ({ text, sameModel: true, modelText: fullTime, period: 'pm', writes: [] })));
 
     result.source.value = Temporal.PlainTime.from('01:02:03.004005006');
     result.smallestUnit.value = 'nanosecond';
     await nextTick();
     expect(result.inputValue.value).toBe('01:02:03,004005006');
     expect(result.period.value).toBe('am');
-    expect(result.writes).toEqual([]);
+    expect(result.writes).toStrictEqual([]);
   });
 
   it('keeps localized short fractions, resets unfinished drafts on separator changes and does not echo models', async () => {
@@ -232,7 +239,7 @@ describe('useDrInputTimeModel', () => {
     await nextTick();
     expect(result.inputValue.value).toBe('');
     expect(result.source.value).toBeNull();
-    expect(result.writes).toEqual([null]);
+    expect(result.writes).toStrictEqual([null]);
     expect(result.statuses.at(-1)).toBe('empty');
   });
 
@@ -241,7 +248,7 @@ describe('useDrInputTimeModel', () => {
     result.disabled.value = true;
     result.togglePeriod();
     expect(result.period.value).toBe('pm');
-    expect(result.writes).toEqual([]);
+    expect(result.writes).toStrictEqual([]);
 
     result.disabled.value = false;
     result.profile.value = { hourCycle: 12, dayPeriods: null, fractionalSecondSeparator: '.' };
@@ -249,7 +256,7 @@ describe('useDrInputTimeModel', () => {
     expect(result.hourCycle.value).toBe(24);
     expect(result.inputValue.value).toBe('23:45');
     result.togglePeriod();
-    expect(result.writes).toEqual([]);
+    expect(result.writes).toStrictEqual([]);
     result.updateInputValue('00:10');
     await nextTick();
     expect(String(result.source.value)).toBe('00:10:56.123456789');

@@ -6,6 +6,7 @@ import type { DrToastService } from '@/feedback/toasts/types';
 
 describe('Host providers during SSR', () => {
   it('renders default slots without a DOM wrapper or DOM access and isolates nested/sibling/request services', async () => {
+    expect.assertions(9);
     const services: Array<DrToastService> = [];
 
     const Child = defineComponent({

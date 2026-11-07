@@ -39,6 +39,7 @@ describe('modal background boundaries', () => {
   );
 
   it('requires a connected portal, releases it safely and permits reopening until disposed', () => {
+    expect.assertions(14);
     const fixture = createDocumentFixture();
     const context = createOverlayContext();
     const root = fixture.background();
@@ -77,7 +78,7 @@ describe('modal background boundaries', () => {
     expect(context.open({}, snapshot)).toBeUndefined();
   });
 
-  it.each(['set-background', 'open'] as const)('revalidates unchanged DOM references on %s', (operation) => {
+  it('revalidates unchanged DOM references when setting the background', () => {
     const fixture = createDocumentFixture();
     const context = createOverlayContext();
     const root = fixture.background();
@@ -87,11 +88,26 @@ describe('modal background boundaries', () => {
     context.open({}, snapshot);
     root.appendChild(portal);
 
-    if (operation === 'set-background') {
-      context.setBackgroundRoot(root);
-    } else {
-      expect(() => context.open({}, snapshot)).toThrow('contain the portal');
-    }
+    context.setBackgroundRoot(root);
+
+    expect(context.canOpenModal.value).toBe(false);
+    expect(context.layers.value).toHaveLength(0);
+    expect(root.getAttribute('inert')).toBeNull();
+    expect(fixture.document.body.style.getPropertyValue('overflow')).toBe('');
+    context.dispose();
+  });
+
+  it('revalidates unchanged DOM references when opening a modal', () => {
+    const fixture = createDocumentFixture();
+    const context = createOverlayContext();
+    const root = fixture.background();
+    const portal = fixture.background();
+    context.setBackgroundRoot(root);
+    context.setPortalTarget(portal);
+    context.open({}, snapshot);
+    root.appendChild(portal);
+
+    expect(() => context.open({}, snapshot)).toThrow('contain the portal');
 
     expect(context.canOpenModal.value).toBe(false);
     expect(context.layers.value).toHaveLength(0);
@@ -118,7 +134,7 @@ describe('modal background boundaries', () => {
     const returnFocus = getDocumentModality(fixture.document).focusReturnFor(other.layer.token);
     first.setBackgroundRoot(fixture.document.body);
     handle.close();
-    expect(closed).toEqual([2, 1]);
+    expect(closed).toStrictEqual([2, 1]);
     expect(first.canOpenModal.value).toBe(false);
     expect(second.isTop(other.layer.token)).toBe(true);
     expect(root.getAttribute('inert')).toBe('');
@@ -145,7 +161,7 @@ describe('modal background boundaries', () => {
 
     const returnFocus = getDocumentModality(fixture.document).focusReturnFor(handle.layer.token);
     context.setBackgroundRoot(null, restoreFocus);
-    expect(readyAtClose).toEqual([false]);
+    expect(readyAtClose).toStrictEqual([false]);
     expect(returnFocus()).toBe(restoreFocus === false ? false : opener);
     context.dispose();
   });

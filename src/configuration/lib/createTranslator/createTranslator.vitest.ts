@@ -9,7 +9,8 @@ import type { DrConfigProviderProps, DrTranslateOverride } from '@/configuration
 
 describe('translations', () => {
   it('has complete dictionaries of reusable functions', () => {
-    expect(Object.keys(ru).sort()).toEqual(Object.keys(en).sort());
+    expect.hasAssertions();
+    expect(Object.keys(ru).sort()).toStrictEqual(Object.keys(en).sort());
 
     for (const dictionary of Object.values(dictionaries)) {
       expect(Object.isFrozen(dictionary)).toBe(true);
@@ -69,14 +70,14 @@ describe('translations', () => {
     const t = createTranslator(context);
 
     expect(t('dialog.close')).toBe('Parent close');
-    expect(child).toHaveBeenCalledTimes(1);
-    expect(parent).toHaveBeenCalledTimes(1);
+    expect(child).toHaveBeenCalledOnce();
+    expect(parent).toHaveBeenCalledOnce();
     expect(grandparent).not.toHaveBeenCalled();
     expect(child.mock.invocationCallOrder[0]).toBeLessThan(parent.mock.invocationCallOrder[0]);
     expect(t('input.clearNamed', { label: 'Email' })).toBe('Outer Email');
     expect(child).toHaveBeenCalledTimes(2);
     expect(parent).toHaveBeenCalledTimes(2);
-    expect(grandparent).toHaveBeenCalledTimes(1);
+    expect(grandparent).toHaveBeenCalledOnce();
     expect(parent.mock.invocationCallOrder[1]).toBeLessThan(grandparent.mock.invocationCallOrder[0]);
     expect(t('filePicker.choose')).toBe('Choose file');
     expect(grandparent).toHaveBeenCalledTimes(2);
@@ -92,7 +93,7 @@ describe('translations', () => {
     const t = createTranslator(context);
 
     expect(t('dialog.close')).toBe('Close');
-    expect(translate).toHaveBeenCalledTimes(1);
+    expect(translate).toHaveBeenCalledOnce();
   });
 
   it('reacts to replacement and reset of child and ancestor callbacks', () => {

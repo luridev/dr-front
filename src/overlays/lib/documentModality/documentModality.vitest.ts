@@ -22,7 +22,7 @@ describe('document resource ownership', () => {
     modality.register(c, otherRoot, vi.fn());
     modality.register(c, otherRoot, vi.fn());
     expect(modality.hasModal.value).toBe(true);
-    expect(fixture.addListener).toHaveBeenCalledTimes(1);
+    expect(fixture.addListener).toHaveBeenCalledOnce();
     expect(modality.order(c)).toBe(2);
     expect(modality.isTop(b)).toBe(false);
     expect(modality.isTop(c)).toBe(true);
@@ -41,7 +41,7 @@ describe('document resource ownership', () => {
     expect(document.body.style.getPropertyPriority('overflow')).toBe('important');
     expect(document.documentElement.style.getPropertyValue('overflow')).toBe('');
     expect(otherRoot.getAttribute('inert')).toBeNull();
-    expect(fixture.removeListener).toHaveBeenCalledTimes(1);
+    expect(fixture.removeListener).toHaveBeenCalledOnce();
     expect(fixture.removeListener).toHaveBeenCalledWith('keydown', expect.any(Function));
   });
 

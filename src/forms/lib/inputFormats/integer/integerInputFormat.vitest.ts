@@ -38,24 +38,22 @@ describe('parseIntegerInputValue', () => {
   ])('parses integer $source as $expected', ({ source, expected }) => {
     const result = parseIntegerInputValue(source);
 
-    expect(result).toEqual({ status: 'valid', value: expected });
+    expect(result).toStrictEqual({ status: 'valid', value: expected });
   });
 
   it.each([['', 'empty'], ['-', 'incomplete']])('distinguishes %j as %s', (source, status) => {
-    expect(parseIntegerInputValue(source)).toEqual({ status });
+    expect(parseIntegerInputValue(source)).toStrictEqual({ status });
   });
 
   it.each(['+', '+1', '|1', ' 1', '1 ', '1 000', '1.0', '1,0', '1.5', '1e3', 'Infinity', 'NaN', '12a', 'a12'])(
     'rejects invalid input %j',
     (source) => {
-      expect(parseIntegerInputValue(source)).toEqual({ status: 'invalid' });
+      expect(parseIntegerInputValue(source)).toStrictEqual({ status: 'invalid' });
     },
   );
 
-  it('accepts safe integer boundaries', () => {
-    for (const value of [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER]) {
-      expect(parseIntegerInputValue(String(value))).toEqual({ status: 'valid', value });
-    }
+  it.each([Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER])('accepts the safe integer boundary %s', (value) => {
+    expect(parseIntegerInputValue(String(value))).toStrictEqual({ status: 'valid', value });
   });
 
   it.each([
@@ -65,7 +63,7 @@ describe('parseIntegerInputValue', () => {
     '1'.repeat(400),
     `-${'9'.repeat(400)}`,
   ])('rejects integers outside the safe range: %s', (source) => {
-    expect(parseIntegerInputValue(source)).toEqual({ status: 'out-of-range' });
+    expect(parseIntegerInputValue(source)).toStrictEqual({ status: 'out-of-range' });
   });
 });
 
@@ -95,7 +93,7 @@ describe('stringifyIntegerInputValue', () => {
   });
 
   it.each([0, 1, -1, 42, -42, 1234, -1234])('supports round trips for %s', (value) => {
-    expect(parseIntegerInputValue(stringifyIntegerInputValue(value))).toEqual({ status: 'valid', value });
+    expect(parseIntegerInputValue(stringifyIntegerInputValue(value))).toStrictEqual({ status: 'valid', value });
   });
 });
 
@@ -106,14 +104,14 @@ describe('regional integer separators', () => {
 
     expect(formatIntegerInputString('-1234567', group)).toBe(formatted);
     expect(stringifyIntegerInputValue(-1234567, group)).toBe(formatted);
-    expect(parseIntegerInputValue(formatted, group)).toEqual({ status: 'valid', value: -1234567 });
+    expect(parseIntegerInputValue(formatted, group)).toStrictEqual({ status: 'valid', value: -1234567 });
 
     expect(parseIntegerInputValue(['9', '007', '199', '254', '740', '991'].join(group), group))
-      .toEqual({ status: 'valid', value: Number.MAX_SAFE_INTEGER });
+      .toStrictEqual({ status: 'valid', value: Number.MAX_SAFE_INTEGER });
 
     expect(parseIntegerInputValue(['9', '007', '199', '254', '740', '993'].join(group), group))
-      .toEqual({ status: 'out-of-range' });
+      .toStrictEqual({ status: 'out-of-range' });
 
-    expect(parseIntegerInputValue('1.5', group)).toEqual({ status: 'invalid' });
+    expect(parseIntegerInputValue('1.5', group)).toStrictEqual({ status: 'invalid' });
   });
 });

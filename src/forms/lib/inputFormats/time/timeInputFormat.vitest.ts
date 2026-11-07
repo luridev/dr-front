@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { assert, describe, expect, it } from 'vitest';
 import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import {
   getTimeInputDayPeriod,
@@ -38,30 +38,24 @@ describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time fractions: %
     expect(stringifyTimeInputValue(value, unit, hourCycle, separator)).toBe(text);
     const result = parseTimeInputValue(text, unit, hourCycle, 'pm', separator);
 
-    expect(result.status).toBe('valid');
-
-    if (result.status === 'valid') {
-      expect(result.value.equals(value)).toBe(true);
-    }
+    assert(result.status === 'valid');
+    expect(result.value.equals(value)).toBe(true);
   });
 
   it.each(['millisecond', 'microsecond', 'nanosecond'] as const)('preserves optional units and draft statuses at %s precision', (unit) => {
+    expect.assertions(16);
     const parse = (text: string) => parseTimeInputValue(text, unit, hourCycle, 'pm', separator);
 
-    expect(parse('')).toEqual({ status: 'empty' });
-    expect(parse(`${hour}:45:56${separator}`)).toEqual({ status: 'incomplete' });
-    expect(parse(`${hour}:45:56.`)).toEqual({ status: 'incomplete' });
-    expect(parse(`${hour}:45:5${separator}12`)).toEqual({ status: 'incomplete' });
-    expect(parse(`${hour}:45:56${separator}1234567890`)).toEqual({ status: 'invalid' });
-    expect(parse(`${hour}:45:56${separator}1x`)).toEqual({ status: 'invalid' });
-    expect(parse(`${hour}:60:56${separator}12`)).toEqual({ status: 'invalid' });
+    expect(parse('')).toStrictEqual({ status: 'empty' });
+    expect(parse(`${hour}:45:56${separator}`)).toStrictEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:56.`)).toStrictEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:5${separator}12`)).toStrictEqual({ status: 'incomplete' });
+    expect(parse(`${hour}:45:56${separator}1234567890`)).toStrictEqual({ status: 'invalid' });
+    expect(parse(`${hour}:45:56${separator}1x`)).toStrictEqual({ status: 'invalid' });
+    expect(parse(`${hour}:60:56${separator}12`)).toStrictEqual({ status: 'invalid' });
 
     for (const fraction of ['x12', ',.12', '.,12', ',12.3', '.12,3']) {
-      expect(parse(`${hour}:45:56${fraction}`)).toEqual({ status: 'invalid' });
-    }
-
-    if (separator === '.') {
-      expect(parse(`${hour}:45:56,12`)).toEqual({ status: 'invalid' });
+      expect(parse(`${hour}:45:56${fraction}`)).toStrictEqual({ status: 'invalid' });
     }
 
     for (const [text, expected] of [
@@ -70,16 +64,22 @@ describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time fractions: %
     ]) {
       const result = parse(text);
 
-      expect(result.status).toBe('valid');
-
-      if (result.status === 'valid') {
-        expect(result.value.equals(Temporal.PlainTime.from(expected))).toBe(true);
-      }
+      assert(result.status === 'valid');
+      expect(result.value.equals(Temporal.PlainTime.from(expected))).toBe(true);
     }
   });
 });
 
 describe('parseTimeInputValue', () => {
+  it.each((['en-US', 'en-GB'] as const).flatMap((locale) =>
+    (['millisecond', 'microsecond', 'nanosecond'] as const).map((unit) => ({ locale, unit })),
+  ))('rejects a comma fraction for $locale at $unit precision', ({ locale, unit }) => {
+    const { hourCycle, fractionalSecondSeparator } = getInputLocaleProfile(locale).time;
+
+    expect(parseTimeInputValue('11:45:56,12', unit, hourCycle, 'pm', fractionalSecondSeparator))
+      .toStrictEqual({ status: 'invalid' });
+  });
+
   it.each([
     { source: '12:34', smallestUnit: 'minute' as const, expected: '12:34:00' },
     { source: '12:34:56', smallestUnit: 'second' as const, expected: '12:34:56' },
@@ -112,7 +112,7 @@ describe('parseTimeInputValue', () => {
     { source: '24:00:00.000000', smallestUnit: 'microsecond' as const },
     { source: '00:60:00.000000000', smallestUnit: 'nanosecond' as const },
   ])('rejects out-of-range time $source for $smallestUnit', ({ source, smallestUnit }) => {
-    expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, smallestUnit)).toStrictEqual({ status: 'invalid' });
   });
 
   it.each([
@@ -145,7 +145,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.1234567', smallestUnit: 'microsecond' as const },
     { source: '12:34:56.1234567890', smallestUnit: 'nanosecond' as const },
   ])('rejects fractions exceeding $smallestUnit precision', ({ source, smallestUnit }) => {
-    expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, smallestUnit)).toStrictEqual({ status: 'invalid' });
   });
 
   it.each([
@@ -160,7 +160,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.', smallestUnit: 'microsecond' as const, expected: 'incomplete' },
     { source: '12:34:56.', smallestUnit: 'nanosecond' as const, expected: 'incomplete' },
   ])('returns $expected for incomplete $smallestUnit input $source', ({ source, smallestUnit, expected }) => {
-    expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: expected });
+    expect(parseTimeInputValue(source, smallestUnit)).toStrictEqual({ status: expected });
   });
 
   it.each([
@@ -176,7 +176,7 @@ describe('parseTimeInputValue', () => {
     { source: '12:34:56.1a', smallestUnit: 'microsecond' as const },
     { source: '12:34:56.123:4', smallestUnit: 'nanosecond' as const },
   ])('rejects invalid syntax $source for $smallestUnit', ({ source, smallestUnit }) => {
-    expect(parseTimeInputValue(source, smallestUnit)).toEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, smallestUnit)).toStrictEqual({ status: 'invalid' });
   });
 });
 
@@ -191,13 +191,10 @@ describe('12-hour time input', () => {
   ] as const)('maps $source $period to model $expected and back', ({ source, period, expected }) => {
     const result = parseTimeInputValue(source, 'minute', 12, period);
 
-    expect(result.status).toBe('valid');
-
-    if (result.status === 'valid') {
-      expect(result.value.toString()).toBe(expected);
-      expect(getTimeInputDayPeriod(result.value)).toBe(period);
-      expect(stringifyTimeInputValue(result.value, 'minute', 12)).toBe(source);
-    }
+    assert(result.status === 'valid');
+    expect(result.value.toString()).toBe(expected);
+    expect(getTimeInputDayPeriod(result.value)).toBe(period);
+    expect(stringifyTimeInputValue(result.value, 'minute', 12)).toBe(source);
   });
 
   it.each([
@@ -211,17 +208,14 @@ describe('12-hour time input', () => {
     const result = parseTimeInputValue(source, unit, 12, 'pm');
 
     expect(stringifyTimeInputValue(model, unit, 12)).toBe(source);
-    expect(result.status).toBe('valid');
-
-    if (result.status === 'valid') {
-      expect(result.value.toString()).toBe(expected);
-      expect(retainTimeInputPrecision(result.value, model, unit).equals(model)).toBe(true);
-    }
+    assert(result.status === 'valid');
+    expect(result.value.toString()).toBe(expected);
+    expect(retainTimeInputPrecision(result.value, model, unit).equals(model)).toBe(true);
   });
 
   it.each(['00:00', '13:00', '23:59'])('rejects a 24-hour-only value %s in both periods', (source) => {
-    expect(parseTimeInputValue(source, 'minute', 12, 'am')).toEqual({ status: 'invalid' });
-    expect(parseTimeInputValue(source, 'minute', 12, 'pm')).toEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, 'minute', 12, 'am')).toStrictEqual({ status: 'invalid' });
+    expect(parseTimeInputValue(source, 'minute', 12, 'pm')).toStrictEqual({ status: 'invalid' });
   });
 
   it.each([
@@ -232,18 +226,15 @@ describe('12-hour time input', () => {
     { source: '11:60', unit: 'minute', status: 'invalid' },
     { source: '11:11 PM', unit: 'minute', status: 'invalid' },
   ] as const)('preserves $status status for $source regardless of the period', ({ source, unit, status }) => {
-    expect(parseTimeInputValue(source, unit, 12, 'am')).toEqual({ status });
-    expect(parseTimeInputValue(source, unit, 12, 'pm')).toEqual({ status });
+    expect(parseTimeInputValue(source, unit, 12, 'am')).toStrictEqual({ status });
+    expect(parseTimeInputValue(source, unit, 12, 'pm')).toStrictEqual({ status });
   });
 
   it('ignores the selected period in the 24-hour format and keeps empty models empty', () => {
     const result = parseTimeInputValue('23:45', 'minute', 24, 'am');
 
-    expect(result.status).toBe('valid');
-
-    if (result.status === 'valid') {
-      expect(stringifyTimeInputValue(result.value, 'minute', 24)).toBe('23:45');
-    }
+    assert(result.status === 'valid');
+    expect(stringifyTimeInputValue(result.value, 'minute', 24)).toBe('23:45');
 
     expect(stringifyTimeInputValue(null, 'minute', 12)).toBe('');
   });

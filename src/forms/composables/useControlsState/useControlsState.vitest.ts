@@ -85,7 +85,7 @@ describe('useControlsState', () => {
       },
     });
 
-    expect(controls).toEqual({
+    expect(controls).toStrictEqual({
       plain: { disabled: false, state: 'normal' },
       optional: { disabled: false, state: 'normal' },
       described: { disabled: false, state: 'normal', messages: ['first'] },
@@ -94,7 +94,7 @@ describe('useControlsState', () => {
     message.value = 'next';
     showValidationErrors();
 
-    expect(controls.described.messages).toEqual(['next']);
+    expect(controls.described.messages).toStrictEqual(['next']);
     expect(controls.plain.state).toBe('normal');
     expect(controls.optional.state).toBe('normal');
   });
@@ -113,29 +113,29 @@ describe('useControlsState', () => {
       },
     });
 
-    expect(controls.field).toEqual({ disabled: false, state: 'normal', messages: ['hint'] });
+    expect(controls.field).toStrictEqual({ disabled: false, state: 'normal', messages: ['hint'] });
     expect(hasVisibleValidationErrors.value).toBe(false);
 
     showValidationErrors();
 
-    expect(controls.field).toEqual({ disabled: false, state: 'error', messages: ['invalid'] });
+    expect(controls.field).toStrictEqual({ disabled: false, state: 'error', messages: ['invalid'] });
     expect(hasVisibleValidationErrors.value).toBe(true);
 
     errorMessage.value = 'updated';
     isValid.value = true;
 
-    expect(controls.field).toEqual({ disabled: false, state: 'error', messages: ['updated'] });
+    expect(controls.field).toStrictEqual({ disabled: false, state: 'error', messages: ['updated'] });
     expect(hasVisibleValidationErrors.value).toBe(false);
 
     isValid.value = false;
     resetControlsState();
 
-    expect(controls.field).toEqual({ disabled: false, state: 'normal', messages: ['hint'] });
+    expect(controls.field).toStrictEqual({ disabled: false, state: 'normal', messages: ['hint'] });
     expect(hasVisibleValidationErrors.value).toBe(false);
 
     showValidationErrors();
 
-    expect(controls.field.messages).toEqual(['updated']);
+    expect(controls.field.messages).toStrictEqual(['updated']);
     expect(hasVisibleValidationErrors.value).toBe(true);
   });
 
@@ -152,12 +152,12 @@ describe('useControlsState', () => {
 
     showValidationErrors();
 
-    expect(controls.field).toEqual({ disabled: true, state: 'error' });
+    expect(controls.field).toStrictEqual({ disabled: true, state: 'error' });
     expect(hasVisibleValidationErrors.value).toBe(true);
 
     invalid.value = false;
 
-    expect(controls.field).toEqual({ disabled: true, state: 'normal' });
+    expect(controls.field).toStrictEqual({ disabled: true, state: 'normal' });
     expect(hasVisibleValidationErrors.value).toBe(false);
   });
 });

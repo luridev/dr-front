@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { assert, afterEach, describe, expect, it, vi } from 'vitest';
 import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import type { DrLocale } from '@/configuration/types';
 import type { InputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/types';
 
-afterEach(() => vi.restoreAllMocks());
-
 describe('getInputLocaleProfile', () => {
+  afterEach(() => vi.restoreAllMocks());
+
   it.each<[DrLocale, InputLocaleProfile['date']['order'], 12 | 24]>([
     ['ru-RU', ['day', 'month', 'year'], 24],
     ['en-US', ['month', 'day', 'year'], 12],
@@ -34,33 +34,37 @@ describe('getInputLocaleProfile', () => {
     expect(profile.time.fractionalSecondSeparator).toBe(locale === 'ru-RU' ? ',' : '.');
     expect(profile.time.fractionalSecondSeparator).toBe(timeParts[fractionIndex - 1].value);
 
-    expect(profile.number).toEqual({
+    expect(profile.number).toStrictEqual({
       group: numberParts.find((part) => part.type === 'group')?.value,
       decimal: numberParts.find((part) => part.type === 'decimal')?.value,
     });
 
     expect(profile.number.group).not.toBe('');
     expect(profile.number.decimal).toBe(locale === 'ru-RU' ? ',' : '.');
-    expect(profile.date.order).toEqual(order);
-    expect(profile.date.separators).toEqual(dateParts.filter((part) => part.type === 'literal').map((part) => part.value));
+    expect(profile.date.order).toStrictEqual(order);
+    expect(profile.date.separators).toStrictEqual(dateParts.filter((part) => part.type === 'literal').map((part) => part.value));
     expect(profile.time.hourCycle).toBe(hourCycle);
     expect(profile.time.hourCycle === 12).toBe(timeFormat.resolvedOptions().hour12);
 
-    if (hourCycle === 12) {
-      expect(profile.time.dayPeriods).toEqual({
-        am: timeFormat.formatToParts(Date.UTC(2031, 6, 19, 8)).find((part) => part.type === 'dayPeriod')?.value,
-        pm: timeFormat.formatToParts(Date.UTC(2031, 6, 19, 20)).find((part) => part.type === 'dayPeriod')?.value,
-      });
+    expect(profile.time.dayPeriods).toStrictEqual(hourCycle === 12
+      ? {
+          am: timeFormat.formatToParts(Date.UTC(2031, 6, 19, 8)).find((part) => part.type === 'dayPeriod')?.value,
+          pm: timeFormat.formatToParts(Date.UTC(2031, 6, 19, 20)).find((part) => part.type === 'dayPeriod')?.value,
+        }
+      : null);
+  });
 
-      expect(profile.time.dayPeriods?.am).toBeTruthy();
-      expect(profile.time.dayPeriods?.pm).toBeTruthy();
-      expect(profile.time.dayPeriods?.am).not.toBe(profile.time.dayPeriods?.pm);
-    } else {
-      expect(profile.time.dayPeriods).toBeNull();
-    }
+  it('provides nonempty, distinct labels for a 12-hour locale', () => {
+    const { dayPeriods } = getInputLocaleProfile('en-US').time;
+
+    assert.isNotNull(dayPeriods);
+    expect(dayPeriods.am).toMatch(/./su);
+    expect(dayPeriods.pm).toMatch(/./su);
+    expect(dayPeriods.am).not.toBe(dayPeriods.pm);
   });
 
   it('caches deeply immutable profiles without mixing locales', () => {
+    expect.assertions(9);
     const profile = getInputLocaleProfile('en-US');
 
     expect(getInputLocaleProfile('en-US')).toBe(profile);
@@ -77,6 +81,7 @@ describe('getInputLocaleProfile', () => {
   });
 
   it('specifies locale, digits, calendar and UTC instead of depending on host defaults', async () => {
+    expect.hasAssertions();
     vi.resetModules();
     const NativeNumberFormat = Intl.NumberFormat;
     const NativeDateTimeFormat = Intl.DateTimeFormat;
@@ -126,9 +131,9 @@ describe('getInputLocaleProfile', () => {
     const { getInputLocaleProfile: getFreshProfile } = await import('@/forms/lib/getInputLocaleProfile/getInputLocaleProfile');
     const profile = getFreshProfile('en-US');
 
-    expect(profile.number).toEqual({ group: '\u202f', decimal: '·' });
-    expect(profile.date).toEqual({ order: ['month', 'day', 'year'], separators: [' / ', '\u202f·'] });
-    expect(profile.time).toEqual({ hourCycle: 12, dayPeriods: null, fractionalSecondSeparator: '.' });
+    expect(profile.number).toStrictEqual({ group: '\u202f', decimal: '·' });
+    expect(profile.date).toStrictEqual({ order: ['month', 'day', 'year'], separators: [' / ', '\u202f·'] });
+    expect(profile.time).toStrictEqual({ hourCycle: 12, dayPeriods: null, fractionalSecondSeparator: '.' });
   });
 
   it.each([

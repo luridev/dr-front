@@ -13,7 +13,7 @@ describe('mask option snapshots', () => {
     definition.lastIndex = 2;
     source.blocks.date.min = new Date(2026, 0, 1);
 
-    expect(snapshot).toEqual({
+    expect(snapshot).toStrictEqual({
       mask: 'date',
       blocks: { date: { mask: Date, min: new Date(2024, 0, 1) } },
       definitions: { H: /[A-F]/i },

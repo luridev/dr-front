@@ -10,13 +10,12 @@ import type { DrInputNumberStatus } from '@/forms/components/DrInputNumber/types
 
 const { mounted } = vi.hoisted(() => ({ mounted: new Array<() => void>() }));
 
-vi.mock('vue', async (original) => ({
+vi.mock(import('vue'), async (original) => ({
   ...await original<typeof Vue>(),
   onMounted: (callback: () => void) => mounted.push(callback),
 }));
 
 const scopes = createTestEffectScopeCollector();
-afterEach(() => mounted.splice(0));
 
 function createModel(value: number | null): ModelRef<number | null> {
   return ref(value) as ModelRef<number | null>;
@@ -44,6 +43,8 @@ function setupModel(value: number | null, initialLocale: DrLocale = 'en-US', mou
 }
 
 describe('useDrInputNumberModel', () => {
+  afterEach(() => mounted.splice(0));
+
   it.each([
     { value: null, inputValue: '', canToggleSign: true },
     { value: 0, inputValue: '0', canToggleSign: false },
@@ -55,7 +56,7 @@ describe('useDrInputNumberModel', () => {
 
     expect(result.inputValue.value).toBe(inputValue);
     expect(result.canToggleSign.value).toBe(canToggleSign);
-    expect(result.statuses).toEqual([value === null ? 'empty' : 'valid']);
+    expect(result.statuses).toStrictEqual([value === null ? 'empty' : 'valid']);
   });
 
   it.each([
@@ -94,13 +95,13 @@ describe('useDrInputNumberModel', () => {
     expect(result.model.value).toBeNull();
     expect(result.inputValue.value).toBe('-');
     expect(result.canToggleSign.value).toBe(true);
-    expect(result.statuses).toEqual(['valid', 'incomplete']);
+    expect(result.statuses).toStrictEqual(['valid', 'incomplete']);
 
     result.model.value = 5;
     await nextTick();
 
     expect(result.inputValue.value).toBe('5');
-    expect(result.statuses).toEqual(['valid', 'incomplete', 'valid']);
+    expect(result.statuses).toStrictEqual(['valid', 'incomplete', 'valid']);
   });
 
   it('canonicalizes only a pending minus sign and publishes empty on blur', async () => {
@@ -113,7 +114,7 @@ describe('useDrInputNumberModel', () => {
     expect(result.inputValue.value).toBe('');
     expect(result.canonicalizeInputValue()).toBe(false);
     await nextTick();
-    expect(result.statuses).toEqual(['empty', 'incomplete', 'empty']);
+    expect(result.statuses).toStrictEqual(['empty', 'incomplete', 'empty']);
 
     result.updateInputValue('12');
 
@@ -198,7 +199,7 @@ describe('useDrInputNumberModel', () => {
     result.model.value = null;
     await nextTick();
     expect(result.inputValue.value).toBe('');
-    expect(result.statuses).toEqual(['valid', 'empty']);
+    expect(result.statuses).toStrictEqual(['valid', 'empty']);
   });
 
   it.each(['ru-RU', 'en-US', 'en-GB'] as const)('formats and parses using the %s separator', async (locale) => {
@@ -225,6 +226,7 @@ describe('useDrInputNumberModel', () => {
     { chunks: ['9', '007', '199', '254', '740', '993'], value: null },
     { chunks: ['+1'], value: null },
   ])('preserves the draft and model across locale changes: $chunks', async ({ chunks, value }) => {
+    expect.assertions(13);
     const result = setupModel(null, 'ru-RU');
     result.updateInputValue(chunks.join(getInputLocaleProfile('ru-RU').number.group));
     await nextTick();
@@ -238,7 +240,7 @@ describe('useDrInputNumberModel', () => {
       expect(result.inputValue.value).toBe(chunks.join(getInputLocaleProfile(locale).number.group));
       expect(result.model.value).toBe(value);
       expect(result.status.value).toBe(statusBeforeLocaleChange);
-      expect(result.statuses).toEqual(statusesBeforeLocaleChange);
+      expect(result.statuses).toStrictEqual(statusesBeforeLocaleChange);
     }
 
     result.updateInputValue(['2', '345'].join(getInputLocaleProfile('ru-RU').number.group));
@@ -255,20 +257,20 @@ describe('useDrInputNumberModel', () => {
 
     expect(result.inputValue.value).toBe(['-7', '654', '321'].join(getInputLocaleProfile('en-US').number.group));
     expect(result.model.value).toBe(-7654321);
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it('publishes the latest status only after mount', async () => {
     const result = setupModel(null, 'en-US', false);
     result.updateInputValue('-');
     await nextTick();
-    expect(result.statuses).toEqual([]);
+    expect(result.statuses).toStrictEqual([]);
 
     scopes.run(() => mounted.shift()?.());
-    expect(result.statuses).toEqual(['incomplete']);
+    expect(result.statuses).toStrictEqual(['incomplete']);
     result.updateInputValue('');
     await nextTick();
-    expect(result.statuses).toEqual(['incomplete', 'empty']);
+    expect(result.statuses).toStrictEqual(['incomplete', 'empty']);
   });
 
   it('deduplicates statuses independently of model changes and reports clear from a null model', async () => {
@@ -279,7 +281,7 @@ describe('useDrInputNumberModel', () => {
       await nextTick();
     }
 
-    expect(result.statuses).toEqual(['empty', 'incomplete', 'invalid', 'out-of-range', 'empty', 'valid']);
+    expect(result.statuses).toStrictEqual(['empty', 'incomplete', 'invalid', 'out-of-range', 'empty', 'valid']);
     expect(result.model.value).toBe(2);
   });
 
@@ -292,14 +294,14 @@ describe('useDrInputNumberModel', () => {
     { value: Number.MIN_SAFE_INTEGER - 1, status: 'out-of-range' },
   ])('diagnoses unsupported external value $value without rewriting it', async ({ value, status }) => {
     const initial = setupModel(value);
-    expect(initial.statuses).toEqual([status]);
+    expect(initial.statuses).toStrictEqual([status]);
     expect(initial.model.value).toBe(value);
 
     const result = setupModel(12);
     result.model.value = value;
     await nextTick();
     expect(result.status.value).toBe(status);
-    expect(result.statuses).toEqual(['valid', status]);
+    expect(result.statuses).toStrictEqual(['valid', status]);
     expect(result.model.value).toBe(value);
 
     result.model.value = 34;

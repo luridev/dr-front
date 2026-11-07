@@ -4,33 +4,35 @@ import { renderToString } from 'vue/server-renderer';
 import DrAlert from '@/feedback/components/DrAlert/DrAlert.vue';
 import type { DrAlertData } from '@/feedback/types';
 
-describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (variant) => {
-  it('renders consumer content with the variant style and announcement role', async () => {
-    const data: DrAlertData = {
-      variant,
-      title: 'Application notice',
-      message: 'Operation details',
-      note: 'Additional information',
-    };
+describe('DrAlert', () => {
+  describe.each(['error', 'warning', 'info'] as const)('DrAlert variant=%s', (variant) => {
+    it('renders consumer content with the variant style and announcement role', async () => {
+      const data: DrAlertData = {
+        variant,
+        title: 'Application notice',
+        message: 'Operation details',
+        note: 'Additional information',
+      };
 
-    const html = await renderToString(createSSRApp(() => h(DrAlert, data)));
+      const html = await renderToString(createSSRApp(() => h(DrAlert, data)));
 
-    expect(html).toContain(data.title);
-    expect(html).toContain(data.message);
-    expect(html).toContain(data.note);
-    expect(html).toContain(`DrAlert_variant_${variant}`);
-    expect(html).toContain(`role="${variant === 'error' ? 'alert' : 'status'}"`);
+      expect(html).toContain(data.title);
+      expect(html).toContain(data.message);
+      expect(html).toContain(data.note);
+      expect(html).toContain(`DrAlert_variant_${variant}`);
+      expect(html).toContain(`role="${variant === 'error' ? 'alert' : 'status'}"`);
+    });
   });
-});
 
-it('DrAlert defaults to an error alert when variant is omitted', async () => {
-  const html = await renderToString(createSSRApp(() => h(DrAlert, {
-    title: 'Application error',
-    message: 'Operation details',
-  })));
+  it('DrAlert defaults to an error alert when variant is omitted', async () => {
+    const html = await renderToString(createSSRApp(() => h(DrAlert, {
+      title: 'Application error',
+      message: 'Operation details',
+    })));
 
-  expect(html).toContain('role="alert"');
-  expect(html).toContain('DrAlert_variant_error');
-  expect(html).toContain('Application error');
-  expect(html).toContain('Operation details');
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('DrAlert_variant_error');
+    expect(html).toContain('Application error');
+    expect(html).toContain('Operation details');
+  });
 });

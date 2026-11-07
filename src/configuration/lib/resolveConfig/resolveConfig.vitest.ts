@@ -63,7 +63,7 @@ describe('configuration resolution', () => {
 
     expect(first.explicitLocale).toBeUndefined();
     expect(resolveConfig({}, first).locale).toBe('ru-RU');
-    expect(defaultConfig.value).toEqual({ language: 'en', locale: 'en-US', translators: [] });
+    expect(defaultConfig.value).toStrictEqual({ language: 'en', locale: 'en-US', translators: [] });
     expect(Object.isFrozen(defaultConfig.value)).toBe(true);
     expect(Object.isFrozen(defaultConfig.value.translators)).toBe(true);
   });

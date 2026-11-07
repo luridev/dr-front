@@ -69,11 +69,11 @@ describe('useDrSelectTriggerKeyboard', () => {
   });
 
   it.each([
-    { key: 'ArrowDown', action: 'move', offset: 1 },
-    { key: 'ArrowUp', action: 'move', offset: -1 },
-    { key: 'Home', action: 'first' },
-    { key: 'End', action: 'last' },
-  ] as const)('performs navigation action $action on $key in an open select', ({ key, action, offset }) => {
+    { key: 'ArrowDown', moveCalls: [[1]], firstCalls: [], lastCalls: [] },
+    { key: 'ArrowUp', moveCalls: [[-1]], firstCalls: [], lastCalls: [] },
+    { key: 'Home', moveCalls: [], firstCalls: [[]], lastCalls: [] },
+    { key: 'End', moveCalls: [], firstCalls: [], lastCalls: [[]] },
+  ] as const)('performs navigation on $key in an open select', ({ key, moveCalls, firstCalls, lastCalls }) => {
     const { navigation, openOptions, press } = setupKeyboard(true);
 
     const preventDefault = press(key);
@@ -81,19 +81,9 @@ describe('useDrSelectTriggerKeyboard', () => {
     expect(preventDefault).toHaveBeenCalledOnce();
     expect(openOptions).not.toHaveBeenCalled();
 
-    if (action === 'move') {
-      expect(navigation.moveActiveItem).toHaveBeenCalledWith(offset);
-      expect(navigation.activateFirstItem).not.toHaveBeenCalled();
-      expect(navigation.activateLastItem).not.toHaveBeenCalled();
-    } else if (action === 'first') {
-      expect(navigation.activateFirstItem).toHaveBeenCalledOnce();
-      expect(navigation.moveActiveItem).not.toHaveBeenCalled();
-      expect(navigation.activateLastItem).not.toHaveBeenCalled();
-    } else {
-      expect(navigation.activateLastItem).toHaveBeenCalledOnce();
-      expect(navigation.moveActiveItem).not.toHaveBeenCalled();
-      expect(navigation.activateFirstItem).not.toHaveBeenCalled();
-    }
+    expect(navigation.moveActiveItem.mock.calls).toStrictEqual(moveCalls);
+    expect(navigation.activateFirstItem.mock.calls).toStrictEqual(firstCalls);
+    expect(navigation.activateLastItem.mock.calls).toStrictEqual(lastCalls);
   });
 
   it.each([false, true])('closes the select on Tab with isOpen=$isOpen without preventDefault', (isOpen) => {

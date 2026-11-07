@@ -18,7 +18,7 @@ const { mountedCallbacks } = vi.hoisted(() => ({
   mountedCallbacks: new Array<() => void>(),
 }));
 
-vi.mock('vue', async (importOriginal) => {
+vi.mock(import('vue'), async (importOriginal) => {
   const vue = await importOriginal<typeof Vue>();
 
   return {
@@ -30,10 +30,6 @@ vi.mock('vue', async (importOriginal) => {
 });
 
 const scopes = createTestEffectScopeCollector();
-
-afterEach(() => {
-  mountedCallbacks.splice(0);
-});
 
 function mountComposable(): void {
   const callback = mountedCallbacks.shift();
@@ -173,6 +169,10 @@ function setupDateModel(value: Temporal.PlainDate) {
 }
 
 describe('useDrTypedInputModel', () => {
+  afterEach(() => {
+    mountedCallbacks.splice(0);
+  });
+
   it('retains hidden time through incomplete edits and resets it after external updates and clearing', async () => {
     const model = createModel(Temporal.PlainTime.from('12:34:56.123456789'));
 
@@ -215,15 +215,15 @@ describe('useDrTypedInputModel', () => {
   it('emits no status before mount and publishes the latest status on mount', () => {
     const result = setupModel(null, 'A', false);
 
-    expect(result.statuses).toEqual([]);
+    expect(result.statuses).toStrictEqual([]);
 
     result.updateInputValue('pending');
 
-    expect(result.statuses).toEqual([]);
+    expect(result.statuses).toStrictEqual([]);
 
     mountComposable();
 
-    expect(result.statuses).toEqual(['incomplete']);
+    expect(result.statuses).toStrictEqual(['incomplete']);
   });
 
   it.each([
@@ -233,7 +233,7 @@ describe('useDrTypedInputModel', () => {
     const result = setupModel(modelValue);
 
     expect(result.inputValue.value).toBe(expectedInput);
-    expect(result.statuses).toEqual([expectedStatus]);
+    expect(result.statuses).toStrictEqual([expectedStatus]);
   });
 
   it.each([
@@ -281,7 +281,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value).toBe(2);
     expect(result.inputValue.value).toBe('value:002');
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it('clears the pending request when ModelRef defers applying it', async () => {
@@ -290,7 +290,7 @@ describe('useDrTypedInputModel', () => {
 
     result.updateInputValue('value:002');
 
-    expect(controlledModel.requestedValues).toEqual([2]);
+    expect(controlledModel.requestedValues).toStrictEqual([2]);
     expect(result.model.value).toBe(1);
     expect(result.inputValue.value).toBe('value:002');
 
@@ -326,7 +326,7 @@ describe('useDrTypedInputModel', () => {
     await nextTick();
 
     expect(result.inputValue.value).toBe('A:8');
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it('synchronizes external value → value → null → value transitions', async () => {
@@ -343,7 +343,7 @@ describe('useDrTypedInputModel', () => {
     result.model.value = 3;
     await nextTick();
     expect(result.inputValue.value).toBe('A:3');
-    expect(result.statuses).toEqual(['valid', 'empty', 'valid']);
+    expect(result.statuses).toStrictEqual(['valid', 'empty', 'valid']);
   });
 
   it('lets an external update override pending user text', async () => {
@@ -355,7 +355,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value).toBe(9);
     expect(result.inputValue.value).toBe('A:9');
-    expect(result.statuses).toEqual(['valid', 'incomplete', 'valid']);
+    expect(result.statuses).toStrictEqual(['valid', 'incomplete', 'valid']);
   });
 
   it('lets an external null override pending valid user text', async () => {
@@ -367,7 +367,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value).toBeNull();
     expect(result.inputValue.value).toBe('');
-    expect(result.statuses).toEqual(['valid', 'empty']);
+    expect(result.statuses).toStrictEqual(['valid', 'empty']);
   });
 
   it('canonicalizes its own valid input when a format dependency changes', async () => {
@@ -379,7 +379,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value).toBe(2);
     expect(result.inputValue.value).toBe('B:2');
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it('resets invalid pending input when a format dependency changes', async () => {
@@ -391,7 +391,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value).toBeNull();
     expect(result.inputValue.value).toBe('');
-    expect(result.statuses).toEqual(['valid', 'invalid', 'empty']);
+    expect(result.statuses).toStrictEqual(['valid', 'invalid', 'empty']);
   });
 
   it('accepts an external model transition to null after a format dependency changes', async () => {
@@ -406,7 +406,7 @@ describe('useDrTypedInputModel', () => {
     await nextTick();
 
     expect(result.inputValue.value).toBe('');
-    expect(result.statuses).toEqual(['valid', 'empty']);
+    expect(result.statuses).toStrictEqual(['valid', 'empty']);
   });
 
   it('handles simultaneous changes to the external model and a format dependency', async () => {
@@ -418,7 +418,7 @@ describe('useDrTypedInputModel', () => {
     await nextTick();
 
     expect(result.inputValue.value).toBe('B:5');
-    expect(result.statuses).toEqual(['valid', 'incomplete', 'valid']);
+    expect(result.statuses).toStrictEqual(['valid', 'incomplete', 'valid']);
   });
 
   it('emits only actual status changes', () => {
@@ -432,7 +432,7 @@ describe('useDrTypedInputModel', () => {
     result.updateInputValue('invalid');
     result.updateInputValue('value:3');
 
-    expect(result.statuses).toEqual(['empty', 'incomplete', 'valid', 'invalid', 'valid']);
+    expect(result.statuses).toStrictEqual(['empty', 'incomplete', 'valid', 'invalid', 'valid']);
   });
 
   it('integrates with the real time format interface', async () => {
@@ -465,10 +465,11 @@ describe('useDrTypedInputModel', () => {
 
     expect(model.value?.equals(Temporal.PlainTime.from('23:59'))).toBe(true);
     expect(result.inputValue.value).toBe('23:59');
-    expect(statuses).toEqual(['valid']);
+    expect(statuses).toStrictEqual(['valid']);
   });
 
   it('reformats a date from its unchanged model without interpreting the old day/month order', async () => {
+    expect.assertions(13);
     const initialValue = Temporal.PlainDate.from('2026-02-01');
     const result = setupDateModel(initialValue);
 
@@ -482,7 +483,7 @@ describe('useDrTypedInputModel', () => {
 
       expect(result.inputValue.value).toBe(expected);
       expect(result.model.value).toBe(initialValue);
-      expect(result.requestedValues).toEqual([]);
+      expect(result.requestedValues).toStrictEqual([]);
     }
 
     result.locale.value = 'en-US';
@@ -492,7 +493,7 @@ describe('useDrTypedInputModel', () => {
 
     expect(result.model.value?.toString()).toBe('2026-01-02');
     expect(result.requestedValues).toHaveLength(1);
-    expect(result.statuses).toEqual(['valid']);
+    expect(result.statuses).toStrictEqual(['valid']);
   });
 
   it.each(['01.02.', '31.02.2026', '14.09.275760'])(
@@ -505,14 +506,14 @@ describe('useDrTypedInputModel', () => {
 
       expect(result.inputValue.value).toBe(draft);
       expect(result.model.value).toBeNull();
-      expect(result.requestedValues).toEqual([null]);
+      expect(result.requestedValues).toStrictEqual([null]);
 
       result.locale.value = 'en-US';
       await nextTick();
 
       expect(result.inputValue.value).toBe('');
       expect(result.model.value).toBeNull();
-      expect(result.requestedValues).toEqual([null]);
+      expect(result.requestedValues).toStrictEqual([null]);
       expect(result.statuses.at(-1)).toBe('empty');
     },
   );
