@@ -1,6 +1,6 @@
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createProtoConfig } from '@protoapps/eslint-config-vue';
+import { createProtoConfig } from '@protoapps/eslint-config';
 import { globalIgnores } from 'eslint/config';
 import globals from 'globals';
 
@@ -10,7 +10,7 @@ const browserFileIgnores = ['**/*.vitest.ts', '**/*.pwtest.ts'];
 const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'tests/**/*.{js,ts}', '**/*.{vitest,pwtest}.ts'];
 
 export default createProtoConfig(
-  { tsconfigRootDir, vueVersion: '3.5.39' },
+  { tsconfigRootDir, vue: { version: '3.5.39' } },
   globalIgnores([
     'node_modules/**', 'dist/**', 'gallery-dist/**', 'coverage/**', '*.log',
     'test-results/**', 'playwright-report/**', '.stryker-tmp/**', 'reports/**',
