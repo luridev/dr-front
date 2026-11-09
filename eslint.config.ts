@@ -7,7 +7,7 @@ import globals from 'globals';
 const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 const browserFiles = ['src/**/*.{js,ts}', '**/*.vue', 'gallery/**/*.{js,ts}'];
 const browserFileIgnores = ['**/*.vitest.ts', '**/*.pwtest.ts'];
-const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'tests/**/*.{js,ts}', '**/*.{vitest,pwtest}.ts'];
+const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'scripts/**/*.ts', 'tests/**/*.{js,ts}', '**/*.{vitest,pwtest}.ts'];
 
 export default createProtoConfig(
   { tsconfigRootDir, vue: { version: '3.5.39' }, vitest: true },
@@ -43,7 +43,7 @@ export default createProtoConfig(
   },
   {
     name: 'dr-front/tooling-imports',
-    files: ['*.config.ts', 'config/**/*.{js,ts}'],
+    files: ['*.config.ts', 'config/**/*.{js,ts}', 'scripts/**/*.ts'],
     rules: { '@typescript-eslint/no-restricted-imports': 'off' },
   },
 );

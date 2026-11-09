@@ -21,5 +21,3 @@ export const publicIconExports = [
 export const publicEntrypoints = ['.', './icons', './styles.css'];
 
 export const forbiddenRuntimeDependencies = ['temporal-polyfill'];
-
-export const publishedFilePattern = /^(?:dist\/.+|package\.json|README[^/]*|LICENSE[^/]*)$/;

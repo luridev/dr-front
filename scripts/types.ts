@@ -2,6 +2,7 @@ import type { SpawnSyncReturns } from 'node:child_process';
 
 export type PackageManifest = {
   name: string;
+  version: string;
   dependencies: Record<string, string>;
   optionalDependencies?: Record<string, string>;
   devDependencies: Record<string, string>;
@@ -12,7 +13,10 @@ export type PackageManifest = {
 
 export type NpmPackResult = {
   filename: string;
-  files: Array<{ path: string }>;
+};
+
+export type PackageLock = {
+  packages: Record<string, unknown>;
 };
 
 export type RunNpmOptions = {

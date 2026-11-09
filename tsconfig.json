@@ -34,10 +34,11 @@
     "src/**/*.ts",
     "src/**/*.vue",
     "config/**/*.ts",
+    "scripts/**/*.ts",
+    "scripts/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.vue",
     "*.config.ts",
-    "config/**/*.vue",
     "gallery/**/*.ts",
     "gallery/**/*.vue"
   ],

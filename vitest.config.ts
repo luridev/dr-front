@@ -13,7 +13,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.vitest.ts', 'config/build/**/*.vitest.ts'],
     exclude: [...configDefaults.exclude, '**/.stryker-tmp/**'],
-    setupFiles: ['config/vitestSetup.ts'],
+    setupFiles: ['tests/vitest/setup.ts'],
     mockReset: true,
     unstubGlobals: true,
   },

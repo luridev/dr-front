@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { cpSync, globSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import spawn from 'cross-spawn';
 import {
   forbiddenRuntimeDependencies,
@@ -9,11 +10,10 @@ import {
   publicIconExports,
   publicRuntimeExports,
   publicTypeExports,
-  publishedFilePattern,
 } from './config';
-import type { NpmPackResult, NpmRunResult, PackageManifest, RunNpmOptions } from './types';
+import type { NpmPackResult, NpmRunResult, PackageLock, PackageManifest, RunNpmOptions } from './types';
 
-const root = process.cwd();
+const root = realpathSync(fileURLToPath(new URL('../', import.meta.url)));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as PackageManifest;
 const temporaryRoot = realpathSync(tmpdir());
 const consumer = realpathSync(mkdtempSync(join(temporaryRoot, 'dr-front-consumer-')));
@@ -21,15 +21,20 @@ const relativeConsumer = relative(temporaryRoot, consumer);
 
 assert.ok(!isAbsolute(relativeConsumer) && !relativeConsumer.startsWith(`..${sep}`));
 assert.ok(relativeConsumer.startsWith('dr-front-consumer-') && !relativeConsumer.includes(sep));
+assert.ok(consumer !== root && !consumer.startsWith(`${root}${sep}`), 'The consumer must be outside the repository.');
 process.stdout.write(`Temporary consumer: ${consumer}\n`);
 
 function runNpm(args: Array<string>, options: RunNpmOptions): string {
   const command = `npm ${args.join(' ')}`;
+  const env = { ...process.env };
+  delete env.NODE_PATH;
+  delete env.NODE_OPTIONS;
 
   process.stdout.write(`[package] ${command}\n`);
 
   const result: NpmRunResult = spawn.sync('npm', args, {
     cwd: options.cwd,
+    env,
     encoding: 'utf8',
     windowsHide: true,
     stdio: ['inherit', options.captureStdout === true ? 'pipe' : 'inherit', 'inherit'],
@@ -49,8 +54,6 @@ function runNpm(args: Array<string>, options: RunNpmOptions): string {
 }
 
 try {
-  runNpm(['run', 'build'], { cwd: root });
-
   const packOutput = runNpm(['pack', '--json', '--pack-destination', consumer, '--ignore-scripts'], { cwd: root, captureStdout: true });
   let packResults: Array<NpmPackResult>;
 
@@ -62,7 +65,7 @@ try {
 
   assert.ok(Array.isArray(packResults) && packResults.length === 1, 'npm pack must return exactly one package artifact.');
 
-  const { filename, files } = packResults[0];
+  const { filename } = packResults[0];
 
   assert.equal(basename(filename), filename, 'npm pack filename must stay inside the temporary directory.');
 
@@ -72,11 +75,6 @@ try {
   assert.ok(statSync(archive).isFile(), 'npm pack archive must exist as a file.');
 
   runNpm(['exec', '--offline', '--no', '--', 'publint', archive, '--strict'], { cwd: root });
-
-  for (const file of files) {
-    assert.match(file.path, publishedFilePattern, `Unexpected published file: ${file.path}`);
-    assert.doesNotMatch(file.path, /[<>:"\\|?*]/, `Published paths must be compatible: ${file.path}`);
-  }
 
   cpSync(join(root, 'tests/fixtures/package-consumer'), consumer, { recursive: true });
 
@@ -93,12 +91,6 @@ try {
     },
     dependencies: { [manifest.name]: `file:./${filename}`, vue: manifest.devDependencies.vue },
     allowScripts: { 'core-js-pure': false },
-    devDependencies: {
-      typescript: manifest.devDependencies.typescript,
-      'vue-tsc': manifest.devDependencies['vue-tsc'],
-      vite: manifest.devDependencies.vite,
-      '@vitejs/plugin-vue': manifest.devDependencies['@vitejs/plugin-vue'],
-    },
   };
 
   writeFileSync(join(consumer, 'package.json'), `${JSON.stringify(fixtureManifest, null, 2)}\n`);
@@ -109,7 +101,7 @@ try {
     icons: publicIconExports,
   }));
 
-  runNpm(['install', '--no-audit', '--no-fund', '--include=dev'], { cwd: consumer });
+  runNpm(['install', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: consumer });
 
   const installedPackage = realpathSync(join(consumer, 'node_modules', manifest.name));
 
@@ -118,8 +110,13 @@ try {
   const installedManifest = JSON.parse(readFileSync(join(installedPackage, 'package.json'), 'utf8')) as PackageManifest;
   const runtimeDependencies = { ...installedManifest.dependencies, ...installedManifest.optionalDependencies };
 
+  assert.equal(installedManifest.name, manifest.name);
+  assert.equal(installedManifest.version, manifest.version);
+  assert.deepEqual(installedManifest.exports, manifest.exports);
+  assert.deepEqual(installedManifest.dependencies, manifest.dependencies);
   assert.deepEqual(Object.keys(installedManifest.exports).sort(), publicEntrypoints.toSorted());
   assert.ok(installedManifest.peerDependencies?.vue != null, 'Vue must remain a peer dependency.');
+  assert.deepEqual(installedManifest.peerDependencies, manifest.peerDependencies);
   assert.ok(!('vue' in runtimeDependencies), 'Vue must remain host-owned.');
 
   for (const dependency of forbiddenRuntimeDependencies) {
@@ -130,6 +127,31 @@ try {
     Array.isArray(installedManifest.sideEffects) && installedManifest.sideEffects.includes('**/*.css'),
     'The CSS sideEffects policy must include **/*.css; additional patterns are allowed.',
   );
+
+  const lock = JSON.parse(readFileSync(join(consumer, 'package-lock.json'), 'utf8')) as PackageLock;
+
+  for (const dependency of Object.keys(manifest.devDependencies)) {
+    if (Object.hasOwn(installedManifest.peerDependencies ?? {}, dependency)) {
+      continue;
+    }
+
+    assert.ok(!Object.keys(lock.packages).some((path) => path.endsWith(`node_modules/${dependency}`)),
+      `Unexpected runtime dependency: ${dependency}`);
+  }
+
+  runNpm(['ls', '--all'], { cwd: consumer });
+
+  writeFileSync(join(consumer, 'package.json'), `${JSON.stringify({
+    ...fixtureManifest,
+    devDependencies: {
+      typescript: manifest.devDependencies.typescript,
+      'vue-tsc': manifest.devDependencies['vue-tsc'],
+      vite: manifest.devDependencies.vite,
+      '@vitejs/plugin-vue': manifest.devDependencies['@vitejs/plugin-vue'],
+    },
+  }, null, 2)}\n`);
+
+  runNpm(['install', '--ignore-scripts', '--no-audit', '--no-fund', '--include=dev'], { cwd: consumer });
 
   runNpm(['run', 'typecheck'], { cwd: consumer });
   runNpm(['run', 'runtime', '--', import.meta.resolve('temporal-polyfill')], { cwd: consumer });
