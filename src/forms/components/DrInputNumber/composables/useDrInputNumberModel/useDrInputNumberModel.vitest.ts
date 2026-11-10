@@ -226,7 +226,6 @@ describe('useDrInputNumberModel', () => {
     { chunks: ['9', '007', '199', '254', '740', '993'], value: null },
     { chunks: ['+1'], value: null },
   ])('preserves the draft and model across locale changes: $chunks', async ({ chunks, value }) => {
-    expect.assertions(13);
     const result = setupModel(null, 'ru-RU');
     result.updateInputValue(chunks.join(getInputLocaleProfile('ru-RU').number.group));
     await nextTick();

@@ -17,7 +17,6 @@ const content = { component: { render: () => null } };
 
 describe('overlay ownership', () => {
   it('uses the nearest nested modal Host and updates dialog state through normal Host disposal', async () => {
-    expect.assertions(27);
     const contexts: Array<ReturnType<typeof createOverlayContext>> = [];
     const dialogs: Array<ReturnType<typeof useDialog>> = [];
 

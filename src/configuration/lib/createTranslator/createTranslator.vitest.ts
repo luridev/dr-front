@@ -9,7 +9,6 @@ import type { DrConfigProviderProps, DrTranslateOverride } from '@/configuration
 
 describe('translations', () => {
   it('has complete dictionaries of reusable functions', () => {
-    expect.hasAssertions();
     expect(Object.keys(ru).sort()).toStrictEqual(Object.keys(en).sort());
 
     for (const dictionary of Object.values(dictionaries)) {

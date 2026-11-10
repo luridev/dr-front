@@ -10,49 +10,131 @@ type LocalizationWindow = Window & { localization: ReturnType<typeof createLocal
 
 let server: ViteDevServer;
 let render: typeof renderLocalization;
-let serverHTML = '';
+let serverHTML: string;
 const moduleURL = `/@fs/${resolve('tests/localization/app.support.ts').replaceAll('\\', '/')}`;
 
-test.beforeAll(async () => {
-  server = await createServer({
-    configFile: resolve('vite.gallery.config.ts'),
-    server: { host: '127.0.0.1', port: 0, hmr: false },
-    plugins: [{
-      name: 'localization-ssr-test',
-      configureServer(vite) {
-        vite.middlewares.use('/localization-hydration', (_request, response) => {
-          response.setHeader('Content-Type', 'text/html; charset=utf-8');
-          response.end(`<!doctype html><html><head><meta charset="utf-8"></head><body><div id="hydration">${serverHTML}</div></body></html>`);
-        });
-      },
-    }],
+test.describe('DrFrontProviderLocalization', () => {
+  test.beforeAll(async () => {
+    serverHTML = '';
+
+    server = await createServer({
+      configFile: resolve('vite.gallery.config.ts'),
+      server: { host: '127.0.0.1', port: 0, hmr: false },
+      plugins: [{
+        name: 'localization-ssr-test',
+        configureServer(vite) {
+          vite.middlewares.use('/localization-hydration', (_request, response) => {
+            response.setHeader('Content-Type', 'text/html; charset=utf-8');
+            response.end(`<!doctype html><html><head><meta charset="utf-8"></head><body><div id="hydration">${serverHTML}</div></body></html>`);
+          });
+        },
+      }],
+    });
+
+    await server.listen();
+    const module = await server.ssrLoadModule(resolve('tests/localization/ssr.support.ts')) as { renderLocalization: typeof renderLocalization };
+
+    render = module.renderLocalization;
   });
 
-  await server.listen();
-  const module = await server.ssrLoadModule(resolve('tests/localization/ssr.support.ts')) as { renderLocalization: typeof renderLocalization };
+  test.afterAll(async () => {
+    await server.close();
+  });
 
-  render = module.renderLocalization;
-});
+  const cases: Array<{ name: string; options: LocalizationOptions; date: string; time: string; number: string }> = [
+    { name: 'providerless defaults', options: { provider: 'none' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
+    { name: 'Front defaults', options: {}, date: '12/31/2026', time: '11:45', number: '1,234,567' },
+    { name: 'language ru', options: { language: 'ru' }, date: '31.12.2026', time: '23:45', number: '1\u00a0234\u00a0567' },
+    { name: 'locale ru-RU', options: { locale: 'ru-RU' }, date: '31.12.2026', time: '23:45', number: '1\u00a0234\u00a0567' },
+    { name: 'locale en-US', options: { locale: 'en-US' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
+    { name: 'Config locale en-GB', options: { provider: 'config', locale: 'en-GB' }, date: '31/12/2026', time: '23:45', number: '1,234,567' },
+    { name: 'independent language and locale', options: { language: 'ru', locale: 'en-US' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
+    { name: 'nested providers and translation fallback', options: { language: 'ru', locale: 'en-GB', nested: true }, date: '31/12/2026', time: '23:45', number: '1,234,567' },
+  ];
 
-test.afterAll(async () => {
-  await server.close();
-});
+  test.use({ locale: 'de-DE', timezoneId: 'Pacific/Honolulu' });
 
-const cases: Array<{ name: string; options: LocalizationOptions; date: string; time: string; number: string }> = [
-  { name: 'providerless defaults', options: { provider: 'none' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
-  { name: 'Front defaults', options: {}, date: '12/31/2026', time: '11:45', number: '1,234,567' },
-  { name: 'language ru', options: { language: 'ru' }, date: '31.12.2026', time: '23:45', number: '1\u00a0234\u00a0567' },
-  { name: 'locale ru-RU', options: { locale: 'ru-RU' }, date: '31.12.2026', time: '23:45', number: '1\u00a0234\u00a0567' },
-  { name: 'locale en-US', options: { locale: 'en-US' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
-  { name: 'Config locale en-GB', options: { provider: 'config', locale: 'en-GB' }, date: '31/12/2026', time: '23:45', number: '1,234,567' },
-  { name: 'independent language and locale', options: { language: 'ru', locale: 'en-US' }, date: '12/31/2026', time: '11:45', number: '1,234,567' },
-  { name: 'nested providers and translation fallback', options: { language: 'ru', locale: 'en-GB', nested: true }, date: '31/12/2026', time: '23:45', number: '1,234,567' },
-];
+  for (const sample of cases) {
+    test(`SSR and real hydration: ${sample.name}`, async ({ page }) => {
+      const diagnostics: Array<string> = [];
 
-test.use({ locale: 'de-DE', timezoneId: 'Pacific/Honolulu' });
+      page.on('pageerror', (error) => {
+        diagnostics.push(error.message);
+      });
 
-for (const sample of cases) {
-  test(`SSR and real hydration: ${sample.name}`, async ({ page }) => {
+      page.on('console', (message) => {
+        if (message.type() === 'warning' || message.type() === 'error') {
+          diagnostics.push(message.text().split('\n')[0]);
+        }
+      });
+
+      const result = await render(sample.options);
+
+      expect(result.warnings).toEqual([]);
+      expect(result.updates).toEqual([0, 0, 0, 0]);
+      expect(result.textareaUpdates).toBe(0);
+      serverHTML = result.html;
+      await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
+      const number = page.getByRole('spinbutton', { name: 'Number', exact: true });
+      const date = page.getByRole('textbox', { name: 'Date', exact: true });
+      const time = page.getByRole('textbox', { name: 'Time', exact: true });
+      const textarea = page.getByRole('textbox', { name: 'Textarea', exact: true });
+
+      const counterText = sample.options.locale === 'ru-RU' || (sample.options.language === 'ru' && sample.options.locale === undefined)
+        ? '1\u00a0234 / 1\u00a0500'
+        : '1,234 / 1,500';
+
+      await expect(number).toHaveValue(sample.number);
+      await expect(date).toHaveValue(sample.date);
+      await expect(time).toHaveValue(sample.time);
+      await expect(page.getByText(counterText, { exact: true })).toBeVisible();
+      await expect(textarea).toHaveValue('x'.repeat(1234));
+      const inputs = await page.locator('input').elementHandles();
+
+      await page.evaluate(async ({ url, options }) => {
+        // eslint-disable-next-line playwright/no-unsafe-references -- typeof is erased; import resolves in the browser.
+        const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
+        const localization = module.createLocalizationApp(options);
+
+        (window as unknown as LocalizationWindow).localization = localization;
+        localization.app.mount('#hydration');
+      }, { url: moduleURL, options: sample.options });
+
+      await expect(number).toHaveValue(sample.number);
+      await expect(date).toHaveValue(sample.date);
+      await expect(time).toHaveValue(sample.time);
+      await expect(page.getByText(counterText, { exact: true })).toBeVisible();
+      await expect(textarea).toHaveValue('x'.repeat(1234));
+      await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,0');
+      await expect(page.getByTestId('identity')).toHaveText('true,true');
+
+      for (const input of inputs) {
+        expect(await input.evaluate((element) => element.isConnected)).toBe(true);
+      }
+
+      expect(await page.evaluate(() => navigator.language)).toBe('de-DE');
+      expect(await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone)).toBe('Pacific/Honolulu');
+
+      await expect(page.getByRole('button', { name: 'Custom clear (en)', exact: true }))
+        .toHaveCount(sample.options.nested === true ? 3 : 0);
+
+      await time.fill(sample.time.startsWith('23') ? '23:46' : '11:46');
+      await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:46:56.123456789|123456');
+      await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
+
+      await expect(textarea).toHaveValue('x'.repeat(1234));
+
+      expect(await page.evaluate(() => {
+        const { state } = (window as unknown as LocalizationWindow).localization;
+
+        return { text: state.textarea, updates: state.textareaUpdates };
+      })).toEqual({ text: 'x'.repeat(1234), updates: 0 });
+
+      expect(diagnostics).toEqual([]);
+    });
+  }
+
+  test('language and locale update independently after hydration', async ({ page }) => {
     const diagnostics: Array<string> = [];
 
     page.on('pageerror', (error) => {
@@ -65,95 +147,61 @@ for (const sample of cases) {
       }
     });
 
-    const result = await render(sample.options);
-
+    const options: LocalizationOptions = { language: 'ru', locale: 'en-US' };
+    const result = await render(options);
     expect(result.warnings).toEqual([]);
-    expect(result.updates).toEqual([0, 0, 0, 0]);
-    expect(result.textareaUpdates).toBe(0);
     serverHTML = result.html;
     await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
+
+    await page.evaluate(async ({ url, options: hydrationOptions }) => {
+      // eslint-disable-next-line playwright/no-unsafe-references -- typeof is erased; import resolves in the browser.
+      const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
+      const localization = module.createLocalizationApp(hydrationOptions);
+      (window as unknown as LocalizationWindow).localization = localization;
+      localization.app.mount('#hydration');
+    }, { url: moduleURL, options });
+
     const number = page.getByRole('spinbutton', { name: 'Number', exact: true });
     const date = page.getByRole('textbox', { name: 'Date', exact: true });
     const time = page.getByRole('textbox', { name: 'Time', exact: true });
     const textarea = page.getByRole('textbox', { name: 'Textarea', exact: true });
-
-    const counterText = sample.options.locale === 'ru-RU' || (sample.options.language === 'ru' && sample.options.locale === undefined)
-      ? '1\u00a0234 / 1\u00a0500'
-      : '1,234 / 1,500';
-
-    await expect(number).toHaveValue(sample.number);
-    await expect(date).toHaveValue(sample.date);
-    await expect(time).toHaveValue(sample.time);
-    await expect(page.getByText(counterText, { exact: true })).toBeVisible();
-    await expect(textarea).toHaveValue('x'.repeat(1234));
-    const inputs = await page.locator('input').elementHandles();
-
-    await page.evaluate(async ({ url, options }) => {
-      const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
-      const localization = module.createLocalizationApp(options);
-
-      (window as unknown as LocalizationWindow).localization = localization;
-      localization.app.mount('#hydration');
-    }, { url: moduleURL, options: sample.options });
-
-    await expect(number).toHaveValue(sample.number);
-    await expect(date).toHaveValue(sample.date);
-    await expect(time).toHaveValue(sample.time);
-    await expect(page.getByText(counterText, { exact: true })).toBeVisible();
-    await expect(textarea).toHaveValue('x'.repeat(1234));
-    await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,0');
-    await expect(page.getByTestId('identity')).toHaveText('true,true');
-
-    for (const input of inputs) {
-      expect(await input.evaluate((element) => element.isConnected)).toBe(true);
-    }
-
-    expect(await page.evaluate(() => navigator.language)).toBe('de-DE');
-    expect(await page.evaluate(() => Intl.DateTimeFormat().resolvedOptions().timeZone)).toBe('Pacific/Honolulu');
-
-    if (sample.options.nested === true) {
-      await expect(page.getByRole('button', { name: 'Custom clear (en)', exact: true })).toHaveCount(3);
-    }
-
-    await time.fill(sample.time.startsWith('23') ? '23:46' : '11:46');
+    await expect(time).toHaveValue('11:45');
+    await time.fill('11:46');
     await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:46:56.123456789|123456');
     await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
 
-    if (sample.name === 'independent language and locale') {
-      await page.evaluate(() => {
-        (window as unknown as LocalizationWindow).localization.state.language = 'en';
-      });
+    await page.evaluate(() => {
+      (window as unknown as LocalizationWindow).localization.state.language = 'en';
+    });
 
-      await expect(page.getByRole('button', { name: 'Switch Time to AM', exact: true })).toBeVisible();
-      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Switch Time to AM', exact: true })).toBeVisible();
+    await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
 
-      await page.evaluate(() => {
-        (window as unknown as LocalizationWindow).localization.state.language = 'ru';
-      });
+    await page.evaluate(() => {
+      (window as unknown as LocalizationWindow).localization.state.language = 'ru';
+    });
 
-      await expect(page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true })).toBeVisible();
-      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true })).toBeVisible();
+    await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
 
-      await page.evaluate(() => {
-        (window as unknown as LocalizationWindow).localization.state.locale = 'ru-RU';
-      });
+    await page.evaluate(() => {
+      (window as unknown as LocalizationWindow).localization.state.locale = 'ru-RU';
+    });
 
-      await expect(number).toHaveValue('1\u00a0234\u00a0567');
-      await expect(date).toHaveValue('31.12.2026');
-      await expect(time).toHaveValue('23:46');
-      await expect(page.getByRole('textbox', { name: 'Masked code' })).toHaveValue('123-456');
-      await expect(page.getByText('1\u00a0234 / 1\u00a0500', { exact: true })).toBeVisible();
-      await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
+    await expect(number).toHaveValue('1\u00a0234\u00a0567');
+    await expect(date).toHaveValue('31.12.2026');
+    await expect(time).toHaveValue('23:46');
+    await expect(page.getByRole('textbox', { name: 'Masked code' })).toHaveValue('123-456');
+    await expect(page.getByText('1\u00a0234 / 1\u00a0500', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,1,0');
 
-      await page.evaluate(() => {
-        (window as unknown as LocalizationWindow).localization.state.locale = 'en-US';
-      });
+    await page.evaluate(() => {
+      (window as unknown as LocalizationWindow).localization.state.locale = 'en-US';
+    });
 
-      await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
-      await page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true }).click();
-      await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|11:46:56.123456789|123456');
-    }
-
+    await expect(page.getByText('1,234 / 1,500', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Переключить поле «Time» на AM', exact: true }).click();
+    await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|11:46:56.123456789|123456');
     await expect(textarea).toHaveValue('x'.repeat(1234));
 
     expect(await page.evaluate(() => {
@@ -164,47 +212,48 @@ for (const sample of cases) {
 
     expect(diagnostics).toEqual([]);
   });
-}
 
-test('masked Number normalizes after hydration without mismatches or duplicate updates', async ({ page }) => {
-  const diagnostics: Array<string> = [];
-  page.on('pageerror', (error) => diagnostics.push(error.message));
+  test('masked Number normalizes after hydration without mismatches or duplicate updates', async ({ page }) => {
+    const diagnostics: Array<string> = [];
+    page.on('pageerror', (error) => diagnostics.push(error.message));
 
-  page.on('console', (message) => {
-    if (message.type() === 'warning' || message.type() === 'error') {
-      diagnostics.push(message.text());
-    }
+    page.on('console', (message) => {
+      if (message.type() === 'warning' || message.type() === 'error') {
+        diagnostics.push(message.text());
+      }
+    });
+
+    const options = { maskedValue: '1', maskedNumberMin: 5 };
+    const result = await render(options);
+    expect(result.warnings).toEqual([]);
+    expect(result.updates).toEqual([0, 0, 0, 0]);
+    serverHTML = result.html;
+    await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
+    const input = page.getByRole('textbox', { name: 'Masked code', exact: true });
+    await expect(input).toHaveValue('5');
+    await expect(page.getByTestId('models')).toContainText('|1');
+    const original = await input.elementHandle();
+
+    await page.evaluate(async ({ url, options: hydrationOptions }) => {
+      // eslint-disable-next-line playwright/no-unsafe-references -- typeof is erased; import resolves in the browser.
+      const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
+      const localization = module.createLocalizationApp(hydrationOptions);
+      (window as unknown as LocalizationWindow).localization = localization;
+      localization.app.mount('#hydration');
+    }, { url: moduleURL, options });
+
+    await expect(input).toHaveValue('5');
+    await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
+    await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,1');
+    expect(await original.evaluate((element) => element.isConnected)).toBe(true);
+
+    await page.evaluate(() => {
+      (window as unknown as LocalizationWindow).localization.state.masked = '2';
+    });
+
+    await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,2');
+    await expect(input).toHaveValue('5');
+    await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
+    expect(diagnostics).toEqual([]);
   });
-
-  const options = { maskedValue: '1', maskedNumberMin: 5 };
-  const result = await render(options);
-  expect(result.warnings).toEqual([]);
-  expect(result.updates).toEqual([0, 0, 0, 0]);
-  serverHTML = result.html;
-  await page.goto(new URL('/localization-hydration', server.resolvedUrls?.local[0]).href);
-  const input = page.getByRole('textbox', { name: 'Masked code', exact: true });
-  await expect(input).toHaveValue('5');
-  await expect(page.getByTestId('models')).toContainText('|1');
-  const original = await input.elementHandle();
-
-  await page.evaluate(async ({ url, options: hydrationOptions }) => {
-    const module = await import(url) as { createLocalizationApp: typeof createLocalizationApp };
-    const localization = module.createLocalizationApp(hydrationOptions);
-    (window as unknown as LocalizationWindow).localization = localization;
-    localization.app.mount('#hydration');
-  }, { url: moduleURL, options });
-
-  await expect(input).toHaveValue('5');
-  await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
-  await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,1');
-  expect(await original.evaluate((element) => element.isConnected)).toBe(true);
-
-  await page.evaluate(() => {
-    (window as unknown as LocalizationWindow).localization.state.masked = '2';
-  });
-
-  await expect(page.getByTestId('models')).toHaveAttribute('data-updates', '0,0,0,2');
-  await expect(input).toHaveValue('5');
-  await expect(page.getByTestId('models')).toHaveText('1234567|2026-12-31|23:45:56.123456789|5');
-  expect(diagnostics).toEqual([]);
 });

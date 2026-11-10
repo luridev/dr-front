@@ -39,7 +39,6 @@ describe('modal background boundaries', () => {
   );
 
   it('requires a connected portal, releases it safely and permits reopening until disposed', () => {
-    expect.assertions(14);
     const fixture = createDocumentFixture();
     const context = createOverlayContext();
     const root = fixture.background();

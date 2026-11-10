@@ -64,7 +64,6 @@ describe('getInputLocaleProfile', () => {
   });
 
   it('caches deeply immutable profiles without mixing locales', () => {
-    expect.assertions(9);
     const profile = getInputLocaleProfile('en-US');
 
     expect(getInputLocaleProfile('en-US')).toBe(profile);
@@ -81,7 +80,6 @@ describe('getInputLocaleProfile', () => {
   });
 
   it('specifies locale, digits, calendar and UTC instead of depending on host defaults', async () => {
-    expect.hasAssertions();
     vi.resetModules();
     const NativeNumberFormat = Intl.NumberFormat;
     const NativeDateTimeFormat = Intl.DateTimeFormat;

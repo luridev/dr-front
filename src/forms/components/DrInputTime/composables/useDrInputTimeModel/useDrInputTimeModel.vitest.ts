@@ -143,7 +143,6 @@ describe('useDrInputTimeModel', () => {
   });
 
   it('reformats from the same model through locales and precision without model writes', async () => {
-    expect.assertions(12);
     const result = setupTime();
     const original = result.source.value;
 

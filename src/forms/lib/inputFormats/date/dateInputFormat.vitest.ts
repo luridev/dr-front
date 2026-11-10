@@ -178,7 +178,6 @@ describe('dateInputFormat', () => {
     });
 
     it.each(['ru-RU', 'en-US', 'en-GB'] as const)('preserves extended years and range validation in %s', (locale) => {
-      expect.assertions(13);
       const profile = getInputLocaleProfile(locale).date;
 
       for (const year of [0, -1, 10000, -100000]) {

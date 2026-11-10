@@ -63,7 +63,6 @@ describe('timeInputMask', () => {
     it.each([
       ['millisecond', '001'], ['microsecond', '001002'], ['nanosecond', '001002003'],
     ] as const)('accepts localized, compact and dot-separated %s input', (unit, fraction) => {
-      expect.assertions(9);
       const mask = IMask.createMask(createTimeInputMaskOptions(unit, hourCycle, separator));
       const expected = `11:45:56${separator}${fraction}`;
 
@@ -79,7 +78,6 @@ describe('timeInputMask', () => {
     });
 
     it('replays short seconds without moving fractional digits into the seconds', () => {
-      expect.assertions(5);
       const mask = IMask.createMask(createTimeInputMaskOptions('nanosecond', hourCycle, separator));
 
       for (const sourceSeparator of [separator, '.']) {

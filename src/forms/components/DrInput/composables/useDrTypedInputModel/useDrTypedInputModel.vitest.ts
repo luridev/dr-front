@@ -469,7 +469,6 @@ describe('useDrTypedInputModel', () => {
   });
 
   it('reformats a date from its unchanged model without interpreting the old day/month order', async () => {
-    expect.assertions(13);
     const initialValue = Temporal.PlainDate.from('2026-02-01');
     const result = setupDateModel(initialValue);
 

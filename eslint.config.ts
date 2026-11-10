@@ -10,26 +10,26 @@ const browserFileIgnores = ['**/*.vitest.ts', '**/*.pwtest.ts'];
 const nodeFiles = ['*.config.{js,ts}', 'config/**/*.{js,ts}', 'scripts/**/*.ts', 'tests/**/*.{js,ts}', '**/*.{vitest,pwtest}.ts'];
 
 export default createProtoConfig(
-  { tsconfigRootDir, vue: { version: '3.5.39' }, vitest: true },
+  {
+    tsconfigRootDir,
+    vue: { version: '3.5.39' },
+    vitest: true,
+    playwright: {
+      files: [
+        '**/*.pwtest.ts',
+        'tests/playwright/fixtures.ts',
+        'tests/playwright/lib/**/*.ts',
+        'src/actions/components/DrButton/DrButtonFocusRing/focusRing.support.ts',
+        'src/forms/components/DrControl/DrControlFocusSpacing.support.ts',
+        'src/forms/components/DrInput/DrInputMasking/playwright.support.ts',
+      ],
+    },
+  },
   globalIgnores([
     'node_modules/**', 'dist/**', 'gallery-dist/**', 'coverage/**', '*.log',
     'test-results/**', 'playwright-report/**', '.stryker-tmp/**', 'reports/**',
     'tests/fixtures/package-consumer/**',
   ], 'dr-front/ignores'),
-  {
-    name: 'dr-front/vitest-date-assertions',
-    files: ['src/forms/lib/inputFormats/date/dateInputFormat.vitest.ts'],
-    rules: {
-      'vitest/expect-expect': ['error', { assertFunctionNames: ['expect', 'assert', 'expectValidDate'] }],
-    },
-  },
-  {
-    name: 'dr-front/vitest-time-assertions',
-    files: ['src/forms/lib/inputFormats/time/timeInputFormat.vitest.ts'],
-    rules: {
-      'vitest/expect-expect': ['error', { assertFunctionNames: ['expect', 'assert', 'expectValidTime'] }],
-    },
-  },
   {
     name: 'dr-front/browser',
     files: browserFiles,

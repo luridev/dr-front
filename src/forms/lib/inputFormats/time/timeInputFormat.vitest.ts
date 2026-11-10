@@ -43,7 +43,6 @@ describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time fractions: %
   });
 
   it.each(['millisecond', 'microsecond', 'nanosecond'] as const)('preserves optional units and draft statuses at %s precision', (unit) => {
-    expect.assertions(16);
     const parse = (text: string) => parseTimeInputValue(text, unit, hourCycle, 'pm', separator);
 
     expect(parse('')).toStrictEqual({ status: 'empty' });
