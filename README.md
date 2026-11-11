@@ -14,7 +14,7 @@ npm install @protoapps/dr-front
 
 - **Vue:** `^3.5.40` (peer dependency).
 - **TypeScript:** 6.0+, with published declarations validated using `moduleResolution: "Bundler"`.
-- **Browsers:** Baseline Widely Available as of 2026-09-25.
+- **Browsers:** Baseline Widely Available at the end of 2026.
 - **Temporal:** `DrInputDate` and `DrInputTime` require a global `Temporal` implementation, either native or supplied by your application through a polyfill. Dr Front does not install a runtime polyfill automatically. Other components do not require Temporal.
 
 ## Usage

@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { getBrowserTargets } from '@protoapps/browser-targets';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
-import { widelyAvailableOnDate } from './config/browserPolicy/config.ts';
+import { widelyAvailableOnYear } from './config/browserPolicy/config.ts';
 
 export default defineConfig({
   root: fileURLToPath(new URL('./gallery', import.meta.url)),
@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   build: {
-    target: getBrowserTargets({ widelyAvailableOnDate }),
+    target: getBrowserTargets({ widelyAvailableOnYear }),
     outDir: fileURLToPath(new URL('./gallery-dist', import.meta.url)),
     emptyOutDir: true,
   },
