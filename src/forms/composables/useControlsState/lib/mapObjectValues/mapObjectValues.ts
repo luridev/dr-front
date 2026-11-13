@@ -9,7 +9,12 @@ export function mapObjectValues<TObject extends Record<string, unknown>, TValue>
   };
 
   for (const key of Object.keys(object) as Array<keyof TObject>) {
-    result[key] = mapValue(key, object[key]);
+    Object.defineProperty(result, key, {
+      value: mapValue(key, object[key]),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
   }
 
   return result;
