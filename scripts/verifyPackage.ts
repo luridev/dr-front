@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
-import { cpSync, globSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import spawn from 'cross-spawn';
+import { cpSync, globSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { join, sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRunner, lintPackage, packPackage, withTemporaryDirectory } from '@protoapps/package-verifier';
 import {
   forbiddenRuntimeDependencies,
   publicEntrypoints,
@@ -11,79 +10,16 @@ import {
   publicRuntimeExports,
   publicTypeExports,
 } from './config';
-import type { NpmRunResult, PackageLock, PackageManifest, RunNpmOptions } from './types';
+import type { PackageLock, PackageManifest } from './types';
 
 const root = realpathSync(fileURLToPath(new URL('../', import.meta.url)));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as PackageManifest;
-const temporaryRoot = realpathSync(tmpdir());
-const consumer = realpathSync(mkdtempSync(join(temporaryRoot, 'dr-front-consumer-')));
-const relativeConsumer = relative(temporaryRoot, consumer);
+const runner = createRunner({ cwd: root, output: 'inherit', timeout: 600_000 });
 
-assert.ok(!isAbsolute(relativeConsumer) && !relativeConsumer.startsWith(`..${sep}`));
-assert.ok(relativeConsumer.startsWith('dr-front-consumer-') && !relativeConsumer.includes(sep));
-assert.ok(consumer !== root && !consumer.startsWith(`${root}${sep}`), 'The consumer must be outside the repository.');
-process.stdout.write(`Temporary consumer: ${consumer}\n`);
-
-function runNpm(args: Array<string>, options: RunNpmOptions): string {
-  const command = `npm ${args.join(' ')}`;
-  const env = { ...process.env };
-  delete env.NODE_PATH;
-  delete env.NODE_OPTIONS;
-
-  process.stdout.write(`[package] ${command}\n`);
-
-  const result: NpmRunResult = spawn.sync('npm', args, {
-    cwd: options.cwd,
-    env,
-    encoding: 'utf8',
-    windowsHide: true,
-    stdio: ['inherit', options.captureStdout === true ? 'pipe' : 'inherit', 'inherit'],
-  });
-
-  if (result.error != null || result.status !== 0 || result.signal != null) {
-    if (result.stdout != null && result.stdout !== '') {
-      process.stderr.write(result.stdout);
-    }
-
-    throw new Error(
-      `${command} failed in ${options.cwd} (status: ${result.status}, signal: ${result.signal}): ${result.error?.message ?? ''}`,
-    );
-  }
-
-  return result.stdout ?? '';
-}
-
-try {
-  const packOutput = runNpm(['pack', '--json', '--pack-destination', consumer, '--ignore-scripts'], { cwd: root, captureStdout: true });
-  let packData: unknown;
-
-  try {
-    packData = JSON.parse(packOutput);
-  } catch (error) {
-    throw new Error(`npm pack returned invalid JSON:\n${packOutput}`, { cause: error });
-  }
-
-  assert.ok(typeof packData === 'object' && packData !== null, 'npm pack must return an array or object.');
-
-  const packResults: Array<unknown> = Array.isArray(packData) ? packData : Object.values(packData);
-
-  assert.equal(packResults.length, 1, 'npm pack must return exactly one package artifact.');
-
-  const [tarball] = packResults;
-
-  assert.ok(typeof tarball === 'object' && tarball !== null, 'npm pack must return package metadata.');
-  assert.ok('filename' in tarball && typeof tarball.filename === 'string', 'npm pack must return a filename.');
-
-  const { filename } = tarball;
-
-  assert.equal(basename(filename), filename, 'npm pack filename must stay inside the temporary directory.');
-
-  const archive = realpathSync(join(consumer, filename));
-
-  assert.equal(dirname(archive), consumer, 'npm pack archive must stay inside the temporary directory.');
-  assert.ok(statSync(archive).isFile(), 'npm pack archive must exist as a file.');
-
-  runNpm(['exec', '--offline', '--no', '--', 'publint', archive, '--strict'], { cwd: root });
+await withTemporaryDirectory(async (consumer) => {
+  assert.ok(consumer !== root && !consumer.startsWith(`${root}${sep}`), 'The consumer must be outside the repository.');
+  const { path: archive } = await packPackage({ cwd: root, destination: consumer, runner });
+  await lintPackage(archive);
 
   cpSync(join(root, 'tests/fixtures/package-consumer'), consumer, { recursive: true });
 
@@ -98,7 +34,7 @@ try {
       isolation: 'node isolation.mjs',
       browser: 'node browser.mjs',
     },
-    dependencies: { [manifest.name]: `file:./${filename}`, vue: manifest.devDependencies.vue },
+    dependencies: { [manifest.name]: pathToFileURL(archive).href, vue: manifest.devDependencies.vue },
     allowScripts: { 'core-js-pure': false },
   };
 
@@ -110,7 +46,7 @@ try {
     icons: publicIconExports,
   }));
 
-  runNpm(['install', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: consumer });
+  runner.npm(['install', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: consumer });
 
   const installedPackage = realpathSync(join(consumer, 'node_modules', manifest.name));
 
@@ -139,7 +75,7 @@ try {
 
   const lock = JSON.parse(readFileSync(join(consumer, 'package-lock.json'), 'utf8')) as PackageLock;
 
-  for (const dependency of Object.keys(manifest.devDependencies)) {
+  for (const dependency of [...Object.keys(manifest.devDependencies), 'cross-spawn', '@types/cross-spawn', 'publint']) {
     if (Object.hasOwn(installedManifest.peerDependencies ?? {}, dependency)) {
       continue;
     }
@@ -148,7 +84,7 @@ try {
       `Unexpected runtime dependency: ${dependency}`);
   }
 
-  runNpm(['ls', '--all'], { cwd: consumer });
+  runner.npm(['ls', '--all'], { cwd: consumer });
 
   writeFileSync(join(consumer, 'package.json'), `${JSON.stringify({
     ...fixtureManifest,
@@ -160,13 +96,13 @@ try {
     },
   }, null, 2)}\n`);
 
-  runNpm(['install', '--ignore-scripts', '--no-audit', '--no-fund', '--include=dev'], { cwd: consumer });
+  runner.npm(['install', '--ignore-scripts', '--no-audit', '--no-fund', '--include=dev'], { cwd: consumer });
 
-  runNpm(['run', 'typecheck'], { cwd: consumer });
-  runNpm(['run', 'runtime', '--', import.meta.resolve('temporal-polyfill')], { cwd: consumer });
-  runNpm(['run', 'build'], { cwd: consumer });
-  runNpm(['run', 'isolation'], { cwd: consumer });
-  runNpm(['run', 'browser', '--', import.meta.resolve('@playwright/test')], { cwd: consumer });
+  runner.npm(['run', 'typecheck'], { cwd: consumer });
+  runner.npm(['run', 'runtime', '--', import.meta.resolve('temporal-polyfill')], { cwd: consumer });
+  runner.npm(['run', 'build'], { cwd: consumer });
+  runner.npm(['run', 'isolation'], { cwd: consumer });
+  runner.npm(['run', 'browser', '--', import.meta.resolve('@playwright/test')], { cwd: consumer });
 
   const css = globSync('dist/**/*.css', { cwd: consumer }).map((file) => readFileSync(join(consumer, file), 'utf8')).join('\n');
 
@@ -174,6 +110,4 @@ try {
   assert.match(css, /\.DrButton/);
   assert.match(css, /\.DrInputTime__periodButton/);
   process.stdout.write('Package verified successfully.\n');
-} finally {
-  rmSync(consumer, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
-}
+}, { prefix: 'dr-front-consumer-' });
