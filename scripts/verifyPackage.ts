@@ -11,7 +11,7 @@ import {
   publicRuntimeExports,
   publicTypeExports,
 } from './config';
-import type { NpmPackResult, NpmRunResult, PackageLock, PackageManifest, RunNpmOptions } from './types';
+import type { NpmRunResult, PackageLock, PackageManifest, RunNpmOptions } from './types';
 
 const root = realpathSync(fileURLToPath(new URL('../', import.meta.url)));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as PackageManifest;
@@ -55,17 +55,26 @@ function runNpm(args: Array<string>, options: RunNpmOptions): string {
 
 try {
   const packOutput = runNpm(['pack', '--json', '--pack-destination', consumer, '--ignore-scripts'], { cwd: root, captureStdout: true });
-  let packResults: Array<NpmPackResult>;
+  let packData: unknown;
 
   try {
-    packResults = JSON.parse(packOutput) as Array<NpmPackResult>;
+    packData = JSON.parse(packOutput);
   } catch (error) {
     throw new Error(`npm pack returned invalid JSON:\n${packOutput}`, { cause: error });
   }
 
-  assert.ok(Array.isArray(packResults) && packResults.length === 1, 'npm pack must return exactly one package artifact.');
+  assert.ok(typeof packData === 'object' && packData !== null, 'npm pack must return an array or object.');
 
-  const { filename } = packResults[0];
+  const packResults: Array<unknown> = Array.isArray(packData) ? packData : Object.values(packData);
+
+  assert.equal(packResults.length, 1, 'npm pack must return exactly one package artifact.');
+
+  const [tarball] = packResults;
+
+  assert.ok(typeof tarball === 'object' && tarball !== null, 'npm pack must return package metadata.');
+  assert.ok('filename' in tarball && typeof tarball.filename === 'string', 'npm pack must return a filename.');
+
+  const { filename } = tarball;
 
   assert.equal(basename(filename), filename, 'npm pack filename must stay inside the temporary directory.');
 

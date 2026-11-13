@@ -11,10 +11,6 @@ export type PackageManifest = {
   sideEffects: boolean | Array<string>;
 };
 
-export type NpmPackResult = {
-  filename: string;
-};
-
 export type PackageLock = {
   packages: Record<string, unknown>;
 };
