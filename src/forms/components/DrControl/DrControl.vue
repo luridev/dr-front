@@ -61,7 +61,7 @@ const controlClasses = computed(() => ({
       class="DrControl__label"
       :class="labelClasses"
     >
-      <slot name="label"></slot>
+      <slot name="label" />
     </span>
 
     <label
@@ -70,7 +70,7 @@ const controlClasses = computed(() => ({
       :class="labelClasses"
       :for="controlId"
     >
-      <slot name="label"></slot>
+      <slot name="label" />
     </label>
 
     <div
@@ -84,7 +84,7 @@ const controlClasses = computed(() => ({
         :state="props.state"
         :disabled="props.disabled"
         :described-by="messageId"
-      ></slot>
+      />
     </div>
 
     <div

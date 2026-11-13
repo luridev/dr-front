@@ -177,7 +177,7 @@ function handleKeydown(event: KeyboardEvent, index: number) {
         :item="tab.item"
         :index="tab.index"
         :selected="tab.selected"
-      ></slot>
+      />
     </button>
   </div>
 </template>

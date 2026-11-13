@@ -1,9 +1,9 @@
 import { readonly, ref, useId } from 'vue';
 import DrDialogOverlayContent from '@/dialogs/components/DrDialogOverlayContent/DrDialogOverlayContent.vue';
-import { useComponent } from '@/dynamic-components/composables/useComponent/useComponent';
+import { useComponent } from '@/dynamicComponents/composables/useComponent/useComponent';
 import { useOverlay } from '@/overlays/composables/useOverlay/useOverlay';
 import type { DialogEventHandlers, DialogOpenOptions, UseDialog, UseDialogOptions } from '@/dialogs/types';
-import type { DrComponentEventHandler } from '@/dynamic-components/types';
+import type { DrComponentEventHandler } from '@/dynamicComponents/types';
 import type { OverlayHandle } from '@/overlays/types';
 
 function isDrComponentEventHandler(value: unknown): value is DrComponentEventHandler {

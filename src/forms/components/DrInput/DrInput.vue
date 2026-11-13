@@ -127,7 +127,7 @@ defineExpose({
         <slot
           name="start"
           :input-id="slot.id"
-        ></slot>
+        />
 
         <input
           :id="slot.id"
@@ -179,7 +179,7 @@ defineExpose({
         <slot
           name="end"
           :input-id="slot.id"
-        ></slot>
+        />
       </div>
     </template>
   </DrControl>

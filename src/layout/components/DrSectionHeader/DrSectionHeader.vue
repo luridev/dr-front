@@ -27,7 +27,7 @@ const slots = defineSlots<DrSectionHeaderSlots>();
       v-if="slots.actions != null"
       class="DrSectionHeader__actions"
     >
-      <slot name="actions"></slot>
+      <slot name="actions" />
     </div>
   </header>
 </template>

@@ -62,7 +62,7 @@ defineExpose<DrSelectMobileDialogExposed>({
             <slot
               name="item"
               v-bind="itemSlotProps"
-            ></slot>
+            />
           </template>
         </DrSelectList>
       </DrDialog>

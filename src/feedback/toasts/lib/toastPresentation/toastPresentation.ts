@@ -1,9 +1,9 @@
 import {
-  toastTitleKeys,
+  baseToastDuration,
   maxToastDuration,
   minToastDuration,
-  baseToastDuration,
   toastDurationPerCharacter,
+  toastTitleKeys,
 } from '@/feedback/toasts/config';
 import type { DrTranslate } from '@/configuration/types';
 import type { DrToastItem } from '@/feedback/toasts/types';

@@ -1,4 +1,4 @@
-import { expect, test as base } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
 import type { ConsoleMessage, Page, Request } from '@playwright/test';
 import type { ComponentTest, HostWindow, MountParams, StoryProps } from '~/tests/playwright/types';
 

@@ -20,11 +20,11 @@ const slots = defineSlots<DrSectionSlots>();
         v-if="slots.actions != null"
         #actions
       >
-        <slot name="actions"></slot>
+        <slot name="actions" />
       </template>
     </DrSectionHeader>
 
-    <slot></slot>
+    <slot />
   </section>
 </template>
 

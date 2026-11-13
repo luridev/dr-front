@@ -1,4 +1,4 @@
-import type { DrControlMessage, ControlState } from '@/forms/components/DrControl/types';
+import type { ControlState, DrControlMessage } from '@/forms/components/DrControl/types';
 import type { DrInputAria } from '@/forms/components/DrInput/types';
 import type { DrInputTimeSmallestUnit } from '@/forms/components/DrInputTime/types';
 

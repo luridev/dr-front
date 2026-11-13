@@ -43,11 +43,11 @@ const slots = defineSlots<DrExpandableSectionSlots>();
         v-if="slots.params != null"
         class="DrExpandableSection__params"
       >
-        <slot name="params"></slot>
+        <slot name="params" />
       </div>
 
       <div class="DrExpandableSection__content">
-        <slot></slot>
+        <slot />
       </div>
     </div>
   </details>

@@ -1,5 +1,5 @@
 import type { DrConfigContext } from '@/configuration/types';
-import type { DrComponentDefinition } from '@/dynamic-components/types';
+import type { DrComponentDefinition } from '@/dynamicComponents/types';
 import type { DrToastService } from '@/feedback/toasts/types';
 
 export type OverlayContextSnapshot = {

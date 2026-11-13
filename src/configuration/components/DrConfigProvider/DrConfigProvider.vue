@@ -17,5 +17,5 @@ watchEffect(() => context.value);
 </script>
 
 <template>
-  <slot></slot>
+  <slot />
 </template>

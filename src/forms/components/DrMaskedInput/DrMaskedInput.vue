@@ -93,14 +93,14 @@ defineExpose({
       <slot
         name="start"
         :input-id="inputId"
-      ></slot>
+      />
     </template>
 
     <template #end="{ inputId }">
       <slot
         name="end"
         :input-id="inputId"
-      ></slot>
+      />
     </template>
   </DrInput>
 </template>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createSSRApp, defineComponent, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
-import { DrButton, DrInput, DrToastHost, DrModalHost, useDrToast } from '@/index';
+import { DrButton, DrInput, DrModalHost, DrToastHost, useDrToast } from '@/index';
 import type { DrToastService } from '@/feedback/toasts/types';
 
 describe('Host providers during SSR', () => {

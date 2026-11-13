@@ -1,11 +1,11 @@
 import { computed, readonly, ref } from 'vue';
 import { mapObjectValues } from '@/forms/composables/useControlsState/lib/mapObjectValues/mapObjectValues';
 import type {
-  ControlStateDescriptor,
-  ControlStateItem,
   ControlsState,
   ControlsStateDescriptors,
   ControlsStateRefs,
+  ControlStateDescriptor,
+  ControlStateItem,
   UseControlsStateOptions,
   UseControlsStateResult,
 } from '@/forms/composables/useControlsState/types';

@@ -1,4 +1,4 @@
-import type { DrComponentDefinition } from '@/dynamic-components/types';
+import type { DrComponentDefinition } from '@/dynamicComponents/types';
 
 export type DrDialogOverlayContentProps = {
   id: string;

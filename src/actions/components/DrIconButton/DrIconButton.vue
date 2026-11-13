@@ -35,7 +35,7 @@ function handleClick(event: MouseEvent) {
     @pointerdown="handlePointerdown"
     @click="handleClick"
   >
-    <slot></slot>
+    <slot />
   </button>
 </template>
 

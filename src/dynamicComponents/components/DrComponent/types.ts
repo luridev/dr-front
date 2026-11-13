@@ -1,5 +1,5 @@
 import type { Slot } from 'vue';
-import type { DrComponentDefinition } from '@/dynamic-components/types';
+import type { DrComponentDefinition } from '@/dynamicComponents/types';
 
 export type DrComponentProps = {
   definition: DrComponentDefinition;

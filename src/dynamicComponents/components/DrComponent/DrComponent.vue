@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, unref } from 'vue';
-import { DrComponentSlotRenderer } from '@/dynamic-components/components/DrComponent/DrComponentSlotRenderer';
-import type { DrComponentProps } from '@/dynamic-components/components/DrComponent/types';
+import { DrComponentSlotRenderer } from '@/dynamicComponents/components/DrComponent/DrComponentSlotRenderer';
+import type { DrComponentProps } from '@/dynamicComponents/components/DrComponent/types';
 
 defineOptions({
   inheritAttrs: false,

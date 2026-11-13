@@ -33,11 +33,11 @@ const isCounterVisible = computed(
     class="DrTextareaPanel"
     :class="$attrs.class"
   >
-    <slot></slot>
+    <slot />
 
     <div class="DrTextareaPanel__footer">
       <div class="DrTextareaPanel__actions">
-        <slot name="actions"></slot>
+        <slot name="actions" />
       </div>
 
       <span

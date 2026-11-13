@@ -25,6 +25,6 @@ const isVisible = computed(() => props.current === props.panelId);
     role="tabpanel"
     :aria-labelledby="labelledBy"
   >
-    <slot></slot>
+    <slot />
   </section>
 </template>

@@ -4,7 +4,7 @@ import DrOverlayLayer from '@/overlays/components/DrOverlayLayer/DrOverlayLayer.
 import { useOverlayLifecycle } from '@/overlays/composables/useOverlayLifecycle/useOverlayLifecycle';
 import { drOverlayKey } from '@/overlays/keys';
 import { createOverlayContext } from '@/overlays/lib/overlayContext/overlayContext';
-import type { RenderedOverlayLayer, DrModalHostProps } from '@/overlays/components/DrModalHost/types';
+import type { DrModalHostProps, RenderedOverlayLayer } from '@/overlays/components/DrModalHost/types';
 
 defineOptions({
   inheritAttrs: false,
@@ -51,7 +51,7 @@ onScopeDispose(context.dispose);
 </script>
 
 <template>
-  <slot></slot>
+  <slot />
 
   <Teleport
     v-if="portalContainer != null"

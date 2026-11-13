@@ -3,7 +3,7 @@ import type {
   DrComponentDefinition,
   DrComponentProperties,
   DrComponentSlots,
-} from '@/dynamic-components/types';
+} from '@/dynamicComponents/types';
 
 export type DialogEventHandler<TArguments extends Array<unknown>> = (...args: TArguments) => void | Promise<void>;
 

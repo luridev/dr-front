@@ -1,4 +1,4 @@
-import { assert, afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, assert, describe, expect, it, vi } from 'vitest';
 import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import type { DrLocale } from '@/configuration/types';
 import type { InputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/types';

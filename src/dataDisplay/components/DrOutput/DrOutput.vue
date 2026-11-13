@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DrOutputProps } from '@/data-display/components/DrOutput/types';
+import type { DrOutputProps } from '@/dataDisplay/components/DrOutput/types';
 
 defineOptions({
   inheritAttrs: false,
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<DrOutputProps>(), {
     aria-atomic="true"
     :aria-busy="props.loading"
   >
-    <slot></slot>
+    <slot />
   </output>
 </template>
 

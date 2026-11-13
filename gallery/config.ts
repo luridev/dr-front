@@ -106,7 +106,7 @@ export const galleryGroups: Array<GalleryGroup> = [
     title: 'Output and feedback',
     stories: [
       {
-        id: 'data-display/components/DrOutput/DrOutputGallery',
+        id: 'dataDisplay/components/DrOutput/DrOutputGallery',
         title: 'DrOutput',
         description: 'Results and loading.',
       },

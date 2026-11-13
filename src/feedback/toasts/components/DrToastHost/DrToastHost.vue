@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <slot></slot>
+  <slot />
 
   <Teleport
     v-if="isMounted"

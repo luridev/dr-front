@@ -152,7 +152,7 @@ defineExpose({
               :state="slot.state"
               :disabled="slot.disabled"
               :described-by="slot.describedBy"
-            ></slot>
+            />
           </div>
         </div>
 
@@ -162,7 +162,7 @@ defineExpose({
             name="actions"
             :disabled="slot.disabled"
             :readonly="props.readonly"
-          ></slot>
+          />
 
           <DrButton
             v-if="isClearButtonVisible"

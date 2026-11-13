@@ -346,7 +346,7 @@ defineExpose<DrSelectExposed>({
                 <slot
                   name="item"
                   v-bind="itemSlotProps"
-                ></slot>
+                />
               </template>
             </DrSelectList>
           </div>
@@ -378,7 +378,7 @@ defineExpose<DrSelectExposed>({
           <slot
             name="item"
             v-bind="itemSlotProps"
-          ></slot>
+          />
         </template>
       </DrSelectMobileDialog>
     </template>

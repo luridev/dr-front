@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DrDialog from '@/dialogs/components/DrDialog/DrDialog.vue';
-import DrComponent from '@/dynamic-components/components/DrComponent/DrComponent.vue';
+import DrComponent from '@/dynamicComponents/components/DrComponent/DrComponent.vue';
 import type { DrDialogOverlayContentProps } from '@/dialogs/components/DrDialogOverlayContent/types';
 
 defineOptions({

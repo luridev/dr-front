@@ -64,7 +64,7 @@ defineExpose<DrSelectTriggerExposed>({
       class="DrSelectTrigger__value"
       :class="{ DrSelectTrigger__value_placeholder: props.isPlaceholder }"
     >
-      <slot></slot>
+      <slot />
     </span>
 
     <component

@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { projectRootURL, icons, iconsOutputPath, iconsSourcePath } from './config';
+import { icons, iconsOutputPath, iconsSourcePath, projectRootURL } from './config';
 import { generateIcon } from './generateIcon';
 
 const check = process.argv.includes('--check');

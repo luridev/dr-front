@@ -1,4 +1,4 @@
-import type { FactoryReturnMasked, FactoryOpts } from 'imask';
+import type { FactoryOpts, FactoryReturnMasked } from 'imask';
 import type { Ref } from 'vue';
 import type { DrInputEditorParams } from '@/forms/components/DrInput/composables/useDrInputEditor/types';
 

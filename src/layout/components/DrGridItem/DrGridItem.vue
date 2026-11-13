@@ -60,7 +60,7 @@ const rootStyles = computed(() => {
     :class="[rootClasses, $attrs.class]"
     :style="rootStyles"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>
 

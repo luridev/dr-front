@@ -32,7 +32,7 @@ const rootStyles = computed(() => ({
     :class="[labelPositionClasses[props.labelPosition], $attrs.class]"
     :style="rootStyles"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>
 

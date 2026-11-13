@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, provide, useTemplateRef } from 'vue';
 import { drConfigKey } from '@/configuration/keys';
-import DrComponent from '@/dynamic-components/components/DrComponent/DrComponent.vue';
+import DrComponent from '@/dynamicComponents/components/DrComponent/DrComponent.vue';
 import { drToastKey } from '@/feedback/toasts/keys';
 import { dialogReturnFocusKey } from '@/overlays/lib/dialogFocus/dialogFocus';
 import { getDocumentModality } from '@/overlays/lib/documentModality/documentModality';

@@ -67,14 +67,14 @@ provide(floatingScopeKey, {
       </header>
 
       <div class="DrDialog__body">
-        <slot></slot>
+        <slot />
       </div>
 
       <footer
         v-if="slots.footer != null"
         class="DrDialog__footer"
       >
-        <slot name="footer"></slot>
+        <slot name="footer" />
       </footer>
     </div>
 

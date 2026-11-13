@@ -5,7 +5,7 @@ export { default as DrConfigProvider } from '@/configuration/components/DrConfig
 export type { DrLanguage, DrLocale, DrConfigProviderProps, DrMessageKey, DrTranslationRequest, DrTranslateOverride } from '@/configuration/types';
 export { default as DrButton } from '@/actions/components/DrButton/DrButton.vue';
 export { default as DrIconButton } from '@/actions/components/DrIconButton/DrIconButton.vue';
-export { default as DrOutput } from '@/data-display/components/DrOutput/DrOutput.vue';
+export { default as DrOutput } from '@/dataDisplay/components/DrOutput/DrOutput.vue';
 export { default as DrAlert } from '@/feedback/components/DrAlert/DrAlert.vue';
 export { default as DrToastHost } from '@/feedback/toasts/components/DrToastHost/DrToastHost.vue';
 export { useDrToast } from '@/feedback/toasts/composables/useDrToast/useDrToast';

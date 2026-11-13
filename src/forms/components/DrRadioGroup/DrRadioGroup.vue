@@ -98,7 +98,7 @@ async function handleChange(item: T) {
               :index="index"
               :checked="isChecked(item)"
               :disabled="slot.disabled"
-            ></slot>
+            />
           </span>
         </label>
       </div>

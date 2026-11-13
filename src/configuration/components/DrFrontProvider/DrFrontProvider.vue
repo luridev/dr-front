@@ -17,7 +17,7 @@ const props = defineProps<DrFrontProviderProps>();
   >
     <DrToastHost>
       <DrModalHost :background-root="props.backgroundRoot ?? null">
-        <slot></slot>
+        <slot />
       </DrModalHost>
     </DrToastHost>
   </DrConfigProvider>

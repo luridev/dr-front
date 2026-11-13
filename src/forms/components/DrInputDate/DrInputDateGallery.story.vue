@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef, ref } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import { dateGalleryPartLabels, dateGalleryStatusLabels } from '@/forms/components/DrInputDate/config.support';
 import { getInputLocaleProfile } from '@/forms/lib/getInputLocaleProfile/getInputLocaleProfile';
 import { DrButton, DrConfigProvider, DrInputDate } from '@/index';

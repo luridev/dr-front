@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { createServer } from 'vite';
 import type { ViteDevServer } from 'vite';
 import type { createLocalizationApp } from '~/tests/localization/app.support';

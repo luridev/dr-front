@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { maskingStoryId as storyId, maskingStoryInitialTime } from '@/forms/components/DrInput/DrInputMasking/config.support';
+import { maskingStoryInitialTime, maskingStoryId as storyId } from '@/forms/components/DrInput/DrInputMasking/config.support';
 import { getInput, pasteInput, readSelection, replaceInput, selectInputRange } from '@/forms/components/DrInput/DrInputMasking/playwright.support';
 import { expect, test } from '~/tests/playwright/fixtures';
 
