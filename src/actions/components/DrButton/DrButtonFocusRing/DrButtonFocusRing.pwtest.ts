@@ -28,9 +28,8 @@ test.describe('DrButtonFocusRing', () => {
     expect(await readFocusRing(action)).toEqual(outside);
     await expect(action).not.toHaveAttribute('data-dr-focus-inset');
     const before = await layout();
-    const rings = [];
 
-    for (const focusRing of ['inside', 'outside', 'inside'] as const) {
+    async function switchRing(focusRing: 'inside' | 'outside') {
       await root.update({ focusRing });
       await expect(action).toBeFocused();
       expect(await nativeButton.evaluate((element) => element === document.activeElement)).toBe(true);
@@ -39,10 +38,13 @@ test.describe('DrButtonFocusRing', () => {
       expect(ring.style).toBe('solid');
       expect(ring.focusVisible).toBe(true);
 
-      rings.push(ring);
+      return ring;
     }
 
-    const [firstInside, restoredOutside, secondInside] = rings;
+    const firstInside = await switchRing('inside');
+    const restoredOutside = await switchRing('outside');
+    const secondInside = await switchRing('inside');
+
     expect(firstInside.offset + firstInside.width).toBeLessThanOrEqual(0);
     expect(restoredOutside).toEqual(outside);
     expect(secondInside.offset + secondInside.width).toBeLessThanOrEqual(0);

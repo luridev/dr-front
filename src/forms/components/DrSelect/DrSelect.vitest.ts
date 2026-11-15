@@ -8,8 +8,10 @@ import type { SelectGalleryItem } from '@/forms/components/DrSelect/types.suppor
 
 describe('DrSelect SSR', () => {
   it('resolves a readonly reactive model to its raw item in the trigger slot', async () => {
-    const items = [{ id: 1 }, { id: 1 }];
-    const modelValue = readonly(ref(items[1]).value);
+    const first = { id: 1 };
+    const second = { id: 1 };
+    const items = [first, second];
+    const modelValue = readonly(ref(second).value);
     const update = vi.fn();
     const renderItem = vi.fn((slot: DrSelectItemSlotProps<SelectGalleryItem>) => h('span', String(slot.index)));
 

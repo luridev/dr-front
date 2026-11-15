@@ -2,30 +2,30 @@ import type { HTMLAttributes } from 'vue';
 import type { DrControlFieldProps } from '@/forms/components/DrControl/types';
 
 export type DrInputAria = {
-  ariaInvalid?: boolean;
+  ariaInvalid?: boolean | undefined;
   role?: string;
-  ariaValueMin?: number;
-  ariaValueMax?: number;
-  ariaValueNow?: number;
-  ariaValueText?: string;
-  clearButtonAriaLabel?: string;
+  ariaValueMin?: number | undefined;
+  ariaValueMax?: number | undefined;
+  ariaValueNow?: number | undefined;
+  ariaValueText?: string | undefined;
+  clearButtonAriaLabel?: string | undefined;
 };
 
 export type DrInputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url';
 
 export type DrInputProps = DrControlFieldProps & {
-  type?: DrInputType;
+  type?: DrInputType | undefined;
   clearable?: boolean;
   readonly?: boolean;
-  placeholder?: string;
-  maxLength?: number;
-  autocomplete?: 'on' | 'off' | (string & {});
+  placeholder?: string | undefined;
+  maxLength?: number | undefined;
+  autocomplete?: 'on' | 'off' | (string & {}) | undefined;
   inputMode?: HTMLAttributes['inputmode'];
   enterKeyHint?: HTMLAttributes['enterkeyhint'];
   spellCheck?: HTMLAttributes['spellcheck'];
   autoCapitalize?: HTMLAttributes['autocapitalize'];
   autoCorrect?: HTMLAttributes['autocorrect'];
-  aria?: DrInputAria;
+  aria?: DrInputAria | undefined;
 };
 
 export type DrInputEmits = {

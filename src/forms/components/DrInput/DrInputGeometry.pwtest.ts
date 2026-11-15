@@ -131,8 +131,8 @@ test.describe('DrInputGeometry', () => {
             field.right - left - width - outset,
             field.bottom - top - height - outset,
           ),
-          hitArea: [[1, button.height / 2], [button.width - 1, button.height / 2],
-            [button.width / 2, 1], [button.width / 2, button.height - 1]]
+          hitArea: ([[1, button.height / 2], [button.width - 1, button.height / 2],
+            [button.width / 2, 1], [button.width / 2, button.height - 1]] satisfies Array<[number, number]>)
             .every(([x, y]) => element.contains(document.elementFromPoint(button.left + x, button.top + y))),
         };
       });

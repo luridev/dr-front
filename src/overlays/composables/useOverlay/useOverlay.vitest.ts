@@ -38,8 +38,14 @@ describe('overlay ownership', () => {
     }));
 
     await renderToString(app);
-    expect(contexts[0]).toBe(contexts[2]);
-    expect(contexts[0]).not.toBe(contexts[1]);
+    const outer = requireValue(contexts[0]);
+    const inner = requireValue(contexts[1]);
+    const outerDialog = requireValue(dialogs[0]);
+    const innerDialog = requireValue(dialogs[1]);
+    const siblingDialog = requireValue(dialogs[2]);
+
+    expect(outer).toBe(contexts[2]);
+    expect(outer).not.toBe(inner);
 
     for (const dialog of dialogs) {
       expect(dialog.canOpenModal.value).toBe(false);
@@ -53,10 +59,10 @@ describe('overlay ownership', () => {
 
     const fixture = createDocumentFixture();
 
-    contexts[0].setBackgroundRoot(fixture.background());
-    contexts[1].setBackgroundRoot(fixture.background());
-    contexts[0].setPortalTarget(fixture.background());
-    contexts[1].setPortalTarget(fixture.background());
+    outer.setBackgroundRoot(fixture.background());
+    inner.setBackgroundRoot(fixture.background());
+    outer.setPortalTarget(fixture.background());
+    inner.setPortalTarget(fixture.background());
 
     for (const dialog of dialogs) {
       expect(dialog.canOpenModal.value).toBe(true);
@@ -64,19 +70,19 @@ describe('overlay ownership', () => {
       expect(dialog.isOpen.value).toBe(true);
     }
 
-    expect(contexts[0].layers.value).toHaveLength(2);
-    expect(contexts[1].layers.value).toHaveLength(1);
-    contexts[1].setBackgroundRoot(null);
-    expect(dialogs[1].canOpenModal.value).toBe(false);
-    expect(dialogs[1].isOpen.value).toBe(false);
-    expect(dialogs[0].isOpen.value).toBe(true);
-    contexts[0].dispose();
-    expect(dialogs[0].canOpenModal.value).toBe(false);
-    expect(dialogs[0].isOpen.value).toBe(false);
-    expect(dialogs[2].isOpen.value).toBe(false);
-    dialogs[0].open();
-    expect(dialogs[0].isOpen.value).toBe(false);
-    expect(contexts[0].layers.value).toStrictEqual([]);
+    expect(outer.layers.value).toHaveLength(2);
+    expect(inner.layers.value).toHaveLength(1);
+    inner.setBackgroundRoot(null);
+    expect(innerDialog.canOpenModal.value).toBe(false);
+    expect(innerDialog.isOpen.value).toBe(false);
+    expect(outerDialog.isOpen.value).toBe(true);
+    outer.dispose();
+    expect(outerDialog.canOpenModal.value).toBe(false);
+    expect(outerDialog.isOpen.value).toBe(false);
+    expect(siblingDialog.isOpen.value).toBe(false);
+    outerDialog.open();
+    expect(outerDialog.isOpen.value).toBe(false);
+    expect(outer.layers.value).toStrictEqual([]);
   });
 
   it('captures only known dependencies and disposes an owner without closing another owner', () => {
@@ -116,9 +122,9 @@ describe('overlay ownership', () => {
     owner.open({ content, onClose: () => order.push(2) });
     const returnOwnedFocus = getDocumentModality(fixture.document).focusReturnFor(owned.layer.token);
 
-    expect(context.layers.value[0].context.toast).toBe(toast);
-    expect(context.layers.value[1].closeOnBackdrop).toBe(false);
-    expect(context.layers.value[0].closeOnBackdrop).toBe(true);
+    expect(retained.layer.context.toast).toBe(toast);
+    expect(owned.layer.closeOnBackdrop).toBe(false);
+    expect(retained.layer.closeOnBackdrop).toBe(true);
     scope.stop();
     expect(owner.canOpenModal.value).toBe(false);
     expect(other.canOpenModal.value).toBe(true);

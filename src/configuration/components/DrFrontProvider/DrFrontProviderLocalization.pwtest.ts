@@ -64,7 +64,7 @@ test.describe('DrFrontProviderLocalization', () => {
 
       page.on('console', (message) => {
         if (message.type() === 'warning' || message.type() === 'error') {
-          diagnostics.push(message.text().split('\n')[0]);
+          diagnostics.push(message.text().replace(/\n[\s\S]*/u, ''));
         }
       });
 
@@ -143,7 +143,7 @@ test.describe('DrFrontProviderLocalization', () => {
 
     page.on('console', (message) => {
       if (message.type() === 'warning' || message.type() === 'error') {
-        diagnostics.push(message.text().split('\n')[0]);
+        diagnostics.push(message.text().replace(/\n[\s\S]*/u, ''));
       }
     });
 

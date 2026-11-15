@@ -22,18 +22,26 @@ const selectedIndex = computed(() => items.value.findIndex((item) => toRaw(item)
 const updates = ref(0);
 const receivedIndex = ref(-1);
 
+function selectItemAt(index: number) {
+  const item = items.value[index];
+
+  if (item !== undefined) {
+    selected.value = item;
+  }
+}
+
 watch(() => props.values, (values) => {
   items.value = values === 'mixed' ? [1, '1'] : [{ id: 1 }, { id: 1 }];
-  selected.value = items.value[0];
+  selectItemAt(0);
 }, { immediate: true });
 
 watch(() => props.operation, (operation) => {
   switch (operation) {
     case 'select-first':
-      selected.value = items.value[0];
+      selectItemAt(0);
       break;
     case 'select-last':
-      selected.value = items.value[items.value.length - 1];
+      selectItemAt(items.value.length - 1);
       break;
     case 'clone-model':
       if (typeof selected.value === 'object') {

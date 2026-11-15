@@ -41,11 +41,19 @@ const clearButtonAriaLabel = computed(() =>
   resolveClearButtonAriaLabel(t, props.label, props.aria?.clearButtonAriaLabel),
 );
 
-const { handleInput, inputMode, getInputValue } = useDrInputEditor({
+const {
+  handleInput: maybeHandleInput,
+  inputMode,
+  getInputValue,
+} = useDrInputEditor({
   input: inputElement,
   model,
   readonly: () => props.readonly || props.disabled,
 });
+
+function handleInput(event: InputEvent): void {
+  maybeHandleInput?.(event);
+}
 
 function handleFocus(event: FocusEvent) {
   emit('focus', event);

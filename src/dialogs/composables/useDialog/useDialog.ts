@@ -59,9 +59,9 @@ export function useDialog<TProps extends object = object, TEvents extends object
 
     const content = useComponent({
       component: options.component,
-      props: options.props,
+      ...(options.props === undefined ? {} : { props: options.props }),
       events: completionEvents,
-      slots: options.slots,
+      ...(options.slots === undefined ? {} : { slots: options.slots }),
     });
 
     const dialogContent = useComponent({
@@ -76,9 +76,9 @@ export function useDialog<TProps extends object = object, TEvents extends object
     });
 
     const openedOverlayHandle = overlay.open({
-      opener: openOptions?.opener,
+      ...(openOptions?.opener === undefined ? {} : { opener: openOptions.opener }),
       content: dialogContent,
-      closeOnBackdrop: options.closeOnBackdrop,
+      ...(options.closeOnBackdrop === undefined ? {} : { closeOnBackdrop: options.closeOnBackdrop }),
       onClose: () => {
         if (currentOverlayHandle !== openedOverlayHandle) {
           return;

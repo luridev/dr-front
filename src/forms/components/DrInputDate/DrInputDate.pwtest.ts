@@ -42,7 +42,7 @@ test.describe('DrInputDate', () => {
     for (const [text, model] of [
       ['01010000', '0000-01-01'], ['01010001', '0001-01-01'], ['0201-100000', '-100000-02-01'],
       ['0419-271821', '-271821-04-19'], ['0913275760', '+275760-09-13'],
-    ]) {
+    ] satisfies Array<[text: string, model: string]>) {
       await replaceInput(input, text);
       await expect(root.getByTestId('date-model')).toHaveText(model);
       await input.press('Enter');
@@ -50,7 +50,7 @@ test.describe('DrInputDate', () => {
       await expect(root.getByTestId('date-model')).toHaveText(model);
     }
 
-    for (const [model, text] of [['0000-01-01', '01/01/0000'], ['0010-02-01', '02/01/0010'], ['-000001-02-01', '02/01/-0001']]) {
+    for (const [model, text] of [['0000-01-01', '01/01/0000'], ['0010-02-01', '02/01/0010'], ['-000001-02-01', '02/01/-0001']] satisfies Array<[model: string, text: string]>) {
       await root.update({ externalDate: model });
       await expect(input).toHaveValue(text);
     }
@@ -59,7 +59,7 @@ test.describe('DrInputDate', () => {
     await pasteInput(input, '02/01/-100000');
     await expect(root.getByTestId('date-model')).toHaveText('-100000-02-01');
 
-    for (const [text, status] of [['02312026', 'invalid'], ['0914275760', 'out-of-range'], ['0101-', 'incomplete']]) {
+    for (const [text, status] of [['02312026', 'invalid'], ['0914275760', 'out-of-range'], ['0101-', 'incomplete']] satisfies Array<[text: string, status: string]>) {
       await replaceInput(input, text);
       await expect(root.getByTestId('date-model')).toHaveText('null');
       await expect(root.getByTestId('date-status')).toHaveText(status);
@@ -130,7 +130,7 @@ test.describe('DrInputDate', () => {
       ['en-US', '02/01/2026', 'MM/DD/YYYY'],
       ['en-GB', '01/02/2026', 'DD/MM/YYYY'],
       ['ru-RU', '01.02.2026', 'DD.MM.YYYY'],
-    ]) {
+    ] satisfies Array<[locale: string, text: string, placeholder: string]>) {
       await localeSelect.selectOption(locale);
       await expect(input).toHaveValue(text);
       await expect(readonlyInput).toHaveValue(text);
@@ -145,7 +145,7 @@ test.describe('DrInputDate', () => {
       ['ru-RU', '01.02.2026', '2026-02-01'],
       ['en-US', '01/02/2026', '2026-01-02'],
       ['en-GB', '01/02/2026', '2026-02-01'],
-    ]) {
+    ] satisfies Array<[locale: string, text: string, iso: string]>) {
       await localeSelect.selectOption(locale);
       await replaceInput(input, '01022026');
       await expect(input).toHaveValue(text);

@@ -40,10 +40,9 @@ export function createToastState() {
     }
 
     const queuedToastIndex = queuedToasts.findIndex((queuedToast) => queuedToast.key === toastItem.key);
+    const queuedToast = queuedToasts[queuedToastIndex];
 
-    if (queuedToastIndex !== -1) {
-      const queuedToast = queuedToasts[queuedToastIndex];
-
+    if (queuedToast !== undefined) {
       queuedToasts[queuedToastIndex] = { ...toastItem, uid: queuedToast.uid };
 
       return queuedToast.uid;

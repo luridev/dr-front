@@ -1,4 +1,4 @@
 export type DrCheckboxGalleryProps = {
-  externalConsent?: boolean;
+  externalConsent?: boolean | undefined;
   disabled?: boolean;
 };

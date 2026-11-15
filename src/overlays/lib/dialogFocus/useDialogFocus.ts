@@ -41,13 +41,15 @@ export function useDialogFocus(context: DialogFocusSetup) {
         delayInitialFocus: false,
         initialFocus: () => root.querySelector<HTMLElement>('[data-dr-dialog-initial-focus], [autofocus]') ?? root,
         fallbackFocus: root,
-        setReturnFocus: context.returnFocus == null
-          ? undefined
-          : () => {
-              const target = context.returnFocus?.();
+        ...(context.returnFocus == null
+          ? {}
+          : {
+              setReturnFocus: () => {
+                const target = context.returnFocus?.();
 
-              return target != null && target !== false && isFocusable(target) ? target : false;
-            },
+                return target != null && target !== false && isFocusable(target) ? target : false;
+              },
+            }),
       });
 
       trap.activate();

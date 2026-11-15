@@ -23,7 +23,7 @@ export type DrButtonProps = {
   state?: DrButtonState;
   variant?: DrButtonVariant;
   size?: DrButtonSize;
-  focusRing?: DrFocusRing;
+  focusRing?: DrFocusRing | undefined;
   disabled?: boolean;
   loading?: boolean;
   message?: DrButtonMessage;

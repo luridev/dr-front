@@ -20,10 +20,10 @@ export type DrTextareaProps = DrControlFieldProps &
 
 export type DrTextareaContentSlotProps = {
   id: string;
-  labelId?: string;
+  labelId?: string | undefined;
   state: ControlState;
   disabled: boolean;
-  describedBy?: string;
+  describedBy?: string | undefined;
 };
 
 export type DrTextareaActionsSlotProps = {

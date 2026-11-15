@@ -6,8 +6,10 @@ import type { RadioGroupCheckedSlot, RadioGroupGalleryItem } from '@/forms/compo
 
 describe('DrRadioGroup', () => {
   it.each(['same reference', 'Vue proxy', 'equal copy'])('SSR keeps radio and slot selection consistent for %s', async (selection) => {
-    const items = [{ id: 1 }, { id: 1 }];
-    const modelValue = selection === 'Vue proxy' ? readonly(ref(items[0]).value) : selection === 'same reference' ? items[0] : { ...items[0] };
+    const first = { id: 1 };
+    const second = { id: 1 };
+    const items = [first, second];
+    const modelValue = selection === 'Vue proxy' ? readonly(ref(first).value) : selection === 'same reference' ? first : { ...first };
     const update = vi.fn();
 
     const html = await renderToString(createSSRApp(() => h(DrRadioGroup<RadioGroupGalleryItem>, {

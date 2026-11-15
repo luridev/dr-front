@@ -2,8 +2,8 @@ import type { DrLanguage, DrLocale } from '@/configuration/types';
 
 export type LocalizationOptions = {
   provider?: 'none' | 'config' | 'front';
-  language?: DrLanguage;
-  locale?: DrLocale;
+  language?: DrLanguage | undefined;
+  locale?: DrLocale | undefined;
   nested?: boolean;
   maskedValue?: string;
   maskedNumberMin?: number;

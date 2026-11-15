@@ -9,17 +9,21 @@ export async function generateIcon(source: string, componentName: string, source
       fn(root) {
         const svg = root.children[0];
 
-        if (root.children.length !== 1 || svg.type !== 'element' || svg.name !== 'svg') {
+        if (root.children.length !== 1 || svg?.type !== 'element' || svg.name !== 'svg') {
           throw new Error('Expected a single SVG root.');
         }
 
-        if (!Object.hasOwn(svg.attributes, 'viewBox')) {
+        const rawViewBox = svg.attributes.viewBox;
+
+        if (!Object.hasOwn(svg.attributes, 'viewBox') || rawViewBox === undefined) {
           throw new Error('SVG must have a viewBox.');
         }
 
-        const viewBox = svg.attributes.viewBox.trim().split(/[\s,]+/).map(Number);
+        const viewBox = rawViewBox.trim().split(/[\s,]+/).map(Number);
 
-        if (viewBox.length !== 4 || !viewBox.every(Number.isFinite) || viewBox[2] <= 0 || viewBox[3] <= 0) {
+        const validCoordinates = viewBox.every((value, index) => Number.isFinite(value) && (index < 2 || value > 0));
+
+        if (viewBox.length !== 4 || !validCoordinates) {
           throw new Error('SVG must have a valid viewBox with positive width and height.');
         }
 
@@ -55,7 +59,7 @@ export async function generateIcon(source: string, componentName: string, source
 
   const svg = /^<svg\b([^>]*?)(?:\/>|>([\s\S]*)<\/svg>)$/.exec(data);
 
-  if (svg == null) {
+  if (svg?.[1] === undefined) {
     throw new Error('Unexpected serialized SVG root.');
   }
 

@@ -8,7 +8,7 @@ export type DrInputEditorParams = {
 
 export type DrInputEditor = {
   inputMode?: MaybeRef<HTMLAttributes['inputmode']>;
-  handleInput?: () => void;
+  handleInput?: (event?: InputEvent) => void;
   getInputValue?: () => string;
 };
 

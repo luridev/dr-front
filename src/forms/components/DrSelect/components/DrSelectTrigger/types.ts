@@ -2,9 +2,9 @@ import type { DrSelectPresentation } from '@/forms/components/DrSelect/types';
 
 export type DrSelectTriggerAria = {
   expanded: boolean;
-  controls?: string;
+  controls?: string | undefined;
   hasPopup: DrSelectPresentation;
-  activeDescendant?: string;
+  activeDescendant?: string | undefined;
 };
 
 export type DrSelectTriggerProps = {
@@ -13,9 +13,9 @@ export type DrSelectTriggerProps = {
   isPlaceholder: boolean;
   aria: DrSelectTriggerAria;
   accessibleLabel: string;
-  labelledBy?: string;
+  labelledBy?: string | undefined;
   invalid: boolean;
-  describedBy?: string;
+  describedBy?: string | undefined;
 };
 
 export type DrSelectTriggerEmits = {

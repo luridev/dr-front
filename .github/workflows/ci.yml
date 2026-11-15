@@ -24,7 +24,7 @@ jobs:
 
       - run: npx playwright install --with-deps chromium firefox webkit
 
-      - run: npm run check:release
+      - run: npm run check:all
 
       - name: Upload Playwright diagnostics
         if: failure()

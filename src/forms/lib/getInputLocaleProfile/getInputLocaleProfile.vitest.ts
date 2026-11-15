@@ -32,7 +32,7 @@ describe('getInputLocaleProfile', () => {
     const fractionIndex = timeParts.findIndex((part) => part.type === 'fractionalSecond');
 
     expect(profile.time.fractionalSecondSeparator).toBe(locale === 'ru-RU' ? ',' : '.');
-    expect(profile.time.fractionalSecondSeparator).toBe(timeParts[fractionIndex - 1].value);
+    expect(profile.time.fractionalSecondSeparator).toBe(timeParts[fractionIndex - 1]?.value);
 
     expect(profile.number).toStrictEqual({
       group: numberParts.find((part) => part.type === 'group')?.value,

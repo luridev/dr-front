@@ -2,14 +2,14 @@ import type { HTMLAttributes } from 'vue';
 
 export type DrTextareaBaseAria = {
   ariaInvalid?: boolean;
-  ariaDescribedBy?: string;
+  ariaDescribedBy?: string | undefined;
 };
 
 export type DrTextareaBaseProps = {
-  id?: string;
-  maxLength?: number;
-  placeholder?: string;
-  rows?: number;
+  id?: string | undefined;
+  maxLength?: number | undefined;
+  placeholder?: string | undefined;
+  rows?: number | undefined;
   disabled?: boolean;
   readonly?: boolean;
   inputMode?: HTMLAttributes['inputmode'];

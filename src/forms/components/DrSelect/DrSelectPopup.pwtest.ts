@@ -89,7 +89,7 @@ test.describe('DrSelectPopup', () => {
     await expect(list.getByRole('option').last()).toBeInViewport({ ratio: 1 });
     const scroll = await frame.evaluate((element) => [element.scrollTop, scrollY]);
 
-    for (const [key, name] of [['Home', 'Option 1'], ['ArrowDown', 'Option 2'], ['End', 'Option 40']]) {
+    for (const [key, name] of [['Home', 'Option 1'], ['ArrowDown', 'Option 2'], ['End', 'Option 40']] satisfies Array<[key: string, name: string]>) {
       await trigger.press(key);
       await expect(list.getByRole('option', { name, exact: true })).toBeInViewport({ ratio: 1 });
     }
@@ -165,7 +165,7 @@ test.describe('DrSelectPopup', () => {
     await page.setViewportSize({ width: 390, height: 320 });
     await expectActiveVisible('Option 40');
 
-    for (const [key, name] of [['Home', 'Option 1'], ['End', 'Option 40']]) {
+    for (const [key, name] of [['Home', 'Option 1'], ['End', 'Option 40']] satisfies Array<[key: string, name: string]>) {
       await list.press(key);
       await expectActiveVisible(name);
     }
@@ -200,7 +200,7 @@ test.describe('DrSelectPopup', () => {
       await expect(selected).toHaveCSS('outline-style', 'solid');
       const selectedId = await selected.getAttribute('id');
 
-      for (const [key, name] of [['ArrowUp', 'Option 39'], ['Home', 'Option 1'], ['ArrowDown', 'Option 2'], ['End', 'Option 40']]) {
+      for (const [key, name] of [['ArrowUp', 'Option 39'], ['Home', 'Option 1'], ['ArrowDown', 'Option 2'], ['End', 'Option 40']] satisfies Array<[key: string, name: string]>) {
         await list.press(key);
         const active = list.getByRole('option', { name, exact: true });
         await expect(list).toHaveAttribute('aria-activedescendant', await active.getAttribute('id') ?? '');
@@ -277,7 +277,7 @@ test.describe('DrSelectPopup', () => {
   }
 
   test('Tab with a teleported popup follows the trigger in both directions', async ({ mount, page }) => {
-    for (const [key, name] of [['Tab', 'After select'], ['Shift+Tab', 'Before select']]) {
+    for (const [key, name] of [['Tab', 'After select'], ['Shift+Tab', 'Before select']] satisfies Array<[key: string, name: string]>) {
       for (const opening of ['keyboard', 'pointer']) {
         await page.goto('about:blank');
         const closedRoot = await mount(story);

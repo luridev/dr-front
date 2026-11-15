@@ -33,7 +33,7 @@ describe('Host providers during SSR', () => {
     await renderToString(createSSRApp(App));
     expect(new Set(services).size).toBe(6);
     await Promise.resolve();
-    expect(services[0].success({ message: 'after await' })).toBeGreaterThan(0);
+    expect(services[0]?.success({ message: 'after await' })).toBeGreaterThan(0);
   });
 
   it('reports missing setup/Host but ordinary components render without initialization', async () => {

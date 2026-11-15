@@ -60,7 +60,7 @@ export function createOverlayContext() {
       token,
       document: root.ownerDocument,
       context,
-      content: options.content,
+      ...(options.content === undefined ? {} : { content: options.content }),
       closeOnBackdrop: options.closeOnBackdrop ?? defaultOverlayCloseOnBackdrop,
       close,
     };

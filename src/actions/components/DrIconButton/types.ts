@@ -6,7 +6,7 @@ export type DrIconButtonAria = {
 export type DrIconButtonProps = {
   aria: DrIconButtonAria;
   disabled?: boolean;
-  tabindex?: number;
+  tabindex?: number | undefined;
 };
 
 export type DrIconButtonEmits = {

@@ -5,7 +5,7 @@ import { generateIcon } from './generateIcon';
 const check = process.argv.includes('--check');
 
 for (const name of icons) {
-  const componentName = `Dr${name.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Icon`;
+  const componentName = `Dr${name.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}Icon`;
   const sourcePath = `${iconsSourcePath}/${name}.svg`;
   const outputURL = new URL(`${iconsOutputPath}/${componentName}/${componentName}.generated.vue`, projectRootURL);
   const source = await readFile(new URL(sourcePath, projectRootURL), 'utf8');

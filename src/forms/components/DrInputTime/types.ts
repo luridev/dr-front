@@ -9,8 +9,8 @@ export type DrInputTimeStatus = TimeInputStatus;
 export type DrInputTimeAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
 export type DrInputTimeProps = Omit<DrInputProps, 'aria' | 'type' | 'maxLength' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'> & {
-  smallestUnit?: DrInputTimeSmallestUnit;
-  aria?: DrInputTimeAria;
+  smallestUnit?: DrInputTimeSmallestUnit | undefined;
+  aria?: DrInputTimeAria | undefined;
 };
 
 export type DrInputTimeAffixSlotProps = {

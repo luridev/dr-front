@@ -60,7 +60,7 @@ describe.each(['ru-RU', 'en-US', 'en-GB'] as const)('localized time fractions: %
     for (const [text, expected] of [
       [`${hour}:45`, '23:45:00'], [`${hour}:45:56`, '23:45:56'],
       [`${hour}:45:56${separator}12`, '23:45:56.12'], [`${hour}:45:56.12`, '23:45:56.12'],
-    ]) {
+    ] satisfies Array<[text: string, expected: string]>) {
       const result = parse(text);
 
       assert(result.status === 'valid');

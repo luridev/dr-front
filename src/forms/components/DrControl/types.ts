@@ -7,14 +7,14 @@ export type DrControlLabelPosition = 'top' | 'left' | 'right';
 export type DrControlMessage = string | ReadonlyArray<string>;
 
 export type DrControlBaseProps = {
-  labelPosition?: DrControlLabelPosition;
+  labelPosition?: DrControlLabelPosition | undefined;
   disabled?: boolean;
-  state?: ControlState;
-  message?: DrControlMessage;
+  state?: ControlState | undefined;
+  message?: DrControlMessage | undefined;
 };
 
 export type DrControlFieldProps = DrControlBaseProps & {
-  label?: string;
+  label?: string | undefined;
 };
 
 export type DrControlProps = DrControlBaseProps & {

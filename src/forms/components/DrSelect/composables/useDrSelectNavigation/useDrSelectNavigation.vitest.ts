@@ -23,8 +23,10 @@ function setupNavigation(initialItems: Array<string> = ['alpha', 'beta', 'gamma'
 
 describe('useDrSelectNavigation', () => {
   it('initializes and navigates from the raw item represented by a readonly reactive model', () => {
-    const items = [{ id: 1 }, { id: 1 }, { id: 3 }];
-    const selected = readonly(ref(items[1]).value);
+    const first = { id: 1 };
+    const second = { id: 1 };
+    const items = [first, second, { id: 3 }];
+    const selected = readonly(ref(second).value);
 
     const navigation = scopes.run(() => useDrSelectNavigation({
       getItems: () => items,

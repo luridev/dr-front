@@ -27,7 +27,8 @@ export function getDateInputMaskOptions(profile: InputLocaleProfile['date']): Ma
   const blocks = { day: 'D', month: 'M', year: 'Y' };
 
   const mask = profile.order.map((part, index) => {
-    const literal = index === 2 ? '' : `{${profile.separators[index].replaceAll(/./gs, '\\$&')}}\``;
+    const separator = profile.separators[index];
+    const literal = separator === undefined ? '' : `{${separator.replaceAll(/./gs, '\\$&')}}\``;
 
     return blocks[part] + literal;
   }).join('');

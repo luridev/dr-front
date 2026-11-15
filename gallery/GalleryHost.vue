@@ -147,8 +147,8 @@ function handleCatalogClick(event: MouseEvent) {
       >{{ props.state.error }}</p>
 
       <DrToastHost
-        v-if="props.state.component"
-        :key="props.state.storyId ?? undefined"
+        v-if="props.state.component && props.state.storyId !== null"
+        :key="props.state.storyId"
       >
         <DrModalHost :background-root="props.backgroundRoot">
           <component

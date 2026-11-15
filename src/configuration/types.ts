@@ -22,14 +22,14 @@ export type DrTranslationRequest = {
 export type DrTranslateOverride = (request: DrTranslationRequest) => string | undefined;
 
 export type DrConfigProviderProps = {
-  language?: DrLanguage;
-  locale?: DrLocale;
-  translate?: DrTranslateOverride;
+  language?: DrLanguage | undefined;
+  locale?: DrLocale | undefined;
+  translate?: DrTranslateOverride | undefined;
 };
 
 export type DrResolvedConfig = Readonly<{
-  explicitLanguage?: DrLanguage;
-  explicitLocale?: DrLocale;
+  explicitLanguage?: DrLanguage | undefined;
+  explicitLocale?: DrLocale | undefined;
   language: DrLanguage;
   locale: DrLocale;
   translators: ReadonlyArray<DrTranslateOverride>;

@@ -5,6 +5,7 @@ import { createTranslator } from '@/configuration/lib/createTranslator/createTra
 import { resolveConfig } from '@/configuration/lib/resolveConfig/resolveConfig';
 import { en } from '@/configuration/messages/en';
 import { ru } from '@/configuration/messages/ru';
+import { requireValue } from '~/tests/vitest/setup.support';
 import type { DrConfigProviderProps, DrTranslateOverride } from '@/configuration/types';
 
 describe('translations', () => {
@@ -72,12 +73,12 @@ describe('translations', () => {
     expect(child).toHaveBeenCalledOnce();
     expect(parent).toHaveBeenCalledOnce();
     expect(grandparent).not.toHaveBeenCalled();
-    expect(child.mock.invocationCallOrder[0]).toBeLessThan(parent.mock.invocationCallOrder[0]);
+    expect(child.mock.invocationCallOrder[0]).toBeLessThan(requireValue(parent.mock.invocationCallOrder[0]));
     expect(t('input.clearNamed', { label: 'Email' })).toBe('Outer Email');
     expect(child).toHaveBeenCalledTimes(2);
     expect(parent).toHaveBeenCalledTimes(2);
     expect(grandparent).toHaveBeenCalledOnce();
-    expect(parent.mock.invocationCallOrder[1]).toBeLessThan(grandparent.mock.invocationCallOrder[0]);
+    expect(parent.mock.invocationCallOrder[1]).toBeLessThan(requireValue(grandparent.mock.invocationCallOrder[0]));
     expect(t('filePicker.choose')).toBe('Choose file');
     expect(grandparent).toHaveBeenCalledTimes(2);
     expect(t('toast.error')).toBe('');

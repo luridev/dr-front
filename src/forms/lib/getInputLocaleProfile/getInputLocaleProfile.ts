@@ -22,13 +22,18 @@ function getDateProfile(format: Intl.DateTimeFormat): InputLocaleProfile['date']
     }
   }
 
-  if (order.length !== 3 || new Set(order).size !== 3) {
+  const [first, second, third] = order;
+  const [firstSeparator, secondSeparator] = separators;
+
+  if (order.length !== 3 || new Set(order).size !== 3 ||
+    first === undefined || second === undefined || third === undefined ||
+    firstSeparator === undefined || secondSeparator === undefined) {
     throw new Error('Input locale date format must contain day, month and year.');
   }
 
   return Object.freeze({
-    order: Object.freeze([order[0], order[1], order[2]] as const),
-    separators: Object.freeze([separators[0], separators[1]] as const),
+    order: Object.freeze([first, second, third] as const),
+    separators: Object.freeze([firstSeparator, secondSeparator] as const),
   });
 }
 

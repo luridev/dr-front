@@ -7,7 +7,7 @@ export type DrInputDateStatus = DateInputStatus;
 export type DrInputDateAria = Pick<DrInputAria, 'ariaInvalid' | 'clearButtonAriaLabel'>;
 
 export type DrInputDateProps = Omit<DrInputProps, 'aria' | 'type' | 'maxLength' | 'spellCheck' | 'autoCapitalize' | 'autoCorrect'> & {
-  aria?: DrInputDateAria;
+  aria?: DrInputDateAria | undefined;
 };
 
 export type DrInputDateAffixSlotProps = {

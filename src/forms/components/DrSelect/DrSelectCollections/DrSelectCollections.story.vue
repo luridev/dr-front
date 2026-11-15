@@ -16,7 +16,13 @@ function createItem(id: number): SelectCollectionItem {
 
 const initialItems = Array.from({ length: 40 }, (_, index) => createItem(index + 1));
 const items = ref(initialItems);
-const selected = ref(initialItems[19]);
+const initialSelection = initialItems[19];
+
+if (initialSelection === undefined) {
+  throw new Error('Missing initial gallery selection.');
+}
+
+const selected = ref(initialSelection);
 
 watch(() => props.operation, (operation) => {
   if (operation == null) {

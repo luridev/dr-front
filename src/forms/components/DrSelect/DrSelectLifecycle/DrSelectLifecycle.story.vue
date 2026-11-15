@@ -22,7 +22,11 @@ const backgroundRoot = useTemplateRef<HTMLElement>('backgroundRoot');
 const selected = shallowRef(lifecycleItems[0]);
 
 watch(() => props.selectedIndex, (index) => {
-  selected.value = lifecycleItems[index];
+  const item = lifecycleItems[index];
+
+  if (item !== undefined) {
+    selected.value = item;
+  }
 });
 </script>
 

@@ -95,7 +95,7 @@ test.describe('DrInputMasking', () => {
     const root = await mount(storyId);
     await root.update({ disabled: true, externalDate: '0010-02-01', externalNumber: 12345, externalTime: '01:02:03.004005006' });
 
-    for (const [name, text] of [['date', '02/01/0010'], ['number', `12${numberGroup}345`], ['time', '01:02']]) {
+    for (const [name, text] of [['date', '02/01/0010'], ['number', `12${numberGroup}345`], ['time', '01:02']] satisfies Array<[name: string, text: string]>) {
       await expect(getInput(root, name)).toBeDisabled();
       await expect(getInput(root, name)).toHaveValue(text);
     }

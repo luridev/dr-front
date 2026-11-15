@@ -110,6 +110,15 @@ const textareaProps: typeof textarea.$props = { modelValue: 'text', maxLength: 5
 textarea.$emit('focus', new FocusEvent('focus'));
 textarea.$emit('update:modelValue', 'next');
 textarea.$emit('limitExceeded', 50);
+
+const forwardedProps = [
+  { focusRing: undefined } satisfies typeof button.$props,
+  { modelValue: '', type: undefined, labelPosition: undefined, state: undefined, autocomplete: undefined } satisfies typeof textInput.$props,
+  { modelValue: null, step: undefined } satisfies typeof numberInput.$props,
+  { modelValue: null, smallestUnit: undefined } satisfies typeof timeInput.$props,
+  { modelValue: '', rows: undefined } satisfies typeof textarea.$props,
+];
+
 textarea.focus();
 textarea.focus({ preventScroll: true });
 // @ts-expect-error Exposed focus must retain its typed options.
@@ -179,4 +188,4 @@ translate({ language: 'en', key: 'input.clearNamed', params: { label: 'Email', e
 // @ts-expect-error Only a string or undefined may be returned.
 const badTranslate: DrTranslateOverride = () => null;
 
-void [frontComponentProps, emptyFrontProps, emptyFrontComponentProps, undefinedComponentRoot, invalidRoot, destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps];
+void [forwardedProps, frontComponentProps, emptyFrontProps, emptyFrontComponentProps, undefinedComponentRoot, invalidRoot, destructured, providerProps, badLanguage, badLocale, badProvider, badTranslate, useToast, toastOptions, variantOptions, buttonProps, textProps, invalidText, maskedProps, invalidMask, numberProps, timeProps, dateProps, invalidDateProps, textareaProps, toastId, disabled, iconProps];

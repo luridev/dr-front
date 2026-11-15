@@ -40,6 +40,19 @@ assert.throws(() => import.meta.resolve('temporal-polyfill'), { code: 'ERR_MODUL
 const { Temporal: hostTemporal } = await import(process.argv[2]);
 globalThis.Temporal = hostTemporal;
 
+for (const [component, model, forwarded] of [
+  [root.DrButton, {}, { focusRing: undefined }],
+  [root.DrInput, { modelValue: '' }, { labelPosition: undefined, state: undefined, type: undefined, autocomplete: undefined }],
+  [root.DrInputNumber, { modelValue: 3 }, { step: undefined, autocomplete: undefined }],
+  [root.DrInputTime, { modelValue: hostTemporal.PlainTime.from('10:15:23') }, { smallestUnit: undefined }],
+  [root.DrTextarea, { modelValue: '' }, { labelPosition: undefined, rows: undefined }],
+]) {
+  const omitted = await renderToString(createSSRApp(component, model));
+  const explicit = await renderToString(createSSRApp(component, { ...model, ...forwarded }));
+
+  assert.equal(explicit, omitted, Object.keys(forwarded).join(', '));
+}
+
 for (const [locale, dateText, timeText] of [
   ['ru-RU', '31.12.2026', '23:45'],
   ['en-US', '12/31/2026', '11:45'],

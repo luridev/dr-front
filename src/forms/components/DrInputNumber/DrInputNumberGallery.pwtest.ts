@@ -84,7 +84,7 @@ test.describe('DrInputNumberGallery', () => {
     await expect(input).toHaveValue('10');
     await expect(input).not.toHaveAttribute('aria-invalid');
 
-    for (const [draft, expectedStatus] of [['-', 'incomplete'], ['+1', 'invalid'], ['9'.repeat(400), 'out-of-range']]) {
+    for (const [draft, expectedStatus] of [['-', 'incomplete'], ['+1', 'invalid'], ['9'.repeat(400), 'out-of-range']] satisfies Array<[draft: string, expectedStatus: string]>) {
       await input.fill(draft);
       await expect(status).toHaveText(expectedStatus);
       await expect(input).not.toHaveAttribute('aria-invalid');
@@ -147,7 +147,7 @@ test.describe('DrInputNumberGallery', () => {
     await expect(status).toHaveText('valid');
     const validUpdates = await status.getAttribute('data-updates');
 
-    for (const [draft, value] of [['-001', '-1'], ['-0', '0'], ['3000000000', '3000000000']]) {
+    for (const [draft, value] of [['-001', '-1'], ['-0', '0'], ['3000000000', '3000000000']] satisfies Array<[draft: string, value: string]>) {
       await input.fill(draft);
       await expect(model).toHaveText(value);
       await expect(input).toHaveAttribute('aria-valuenow', value);
@@ -332,7 +332,7 @@ test.describe('DrInputNumberGallery', () => {
           ['Increase Optional', '1234568'],
           ['Decrease Optional', '1234567'],
           ['Change sign of Optional', '-1234567'],
-        ]) {
+        ] satisfies Array<[name: string, value: string]>) {
           const button = root.getByRole('button', { name, exact: true });
 
           await expect(button).toHaveAttribute('tabindex', '-1');
@@ -381,7 +381,7 @@ test.describe('DrInputNumberGallery', () => {
           ['Increase Optional', '1234568'],
           ['Decrease Optional', '1234567'],
           ['Change sign of Optional', '-1234567'],
-        ]) {
+        ] satisfies Array<[name: string, value: string]>) {
           await selectInputRange(input, 2, 5);
           await root.getByRole('button', { name, exact: true })[interaction === 'touch' ? 'tap' : 'click']();
           await expect(model).toHaveText(value);
@@ -420,7 +420,7 @@ test.describe('DrInputNumberGallery', () => {
       await root.getByRole('combobox', { name: 'Locale', exact: true }).selectOption(locale);
       const separator = getInputLocaleProfile(locale).number.group;
 
-      for (const [source, display, value] of [['-0', '-0', '0'], ['-00123', `-00${separator}123`, '-123']]) {
+      for (const [source, display, value] of [['-0', '-0', '0'], ['-00123', `-00${separator}123`, '-123']] satisfies Array<[source: string, display: string, value: string]>) {
         await replaceInput(input, source);
         await expect(input).toHaveValue(display);
         await expect(model).toHaveText(value);

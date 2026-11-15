@@ -1,5 +1,7 @@
 node_modules/
 dist/
+artifacts/
+.local/
 gallery-dist/
 coverage/
 *.tsbuildinfo

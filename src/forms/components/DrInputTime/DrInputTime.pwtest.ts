@@ -9,7 +9,7 @@ const minutesPeriodButtonSelector = '.DrInputTimeGallery__minutes .DrInputTime__
 test.describe('DrInputTime', () => {
   for (const [locale, text] of [
     ['ru-RU', '23:45:56,123'], ['en-GB', '23:45:56.123'], ['en-US', '11:45:56.123'],
-  ]) {
+  ] satisfies Array<[locale: string, text: string]>) {
     test(`time types localized milliseconds in ${locale}`, async ({ mount }) => {
       const root = await mount(timeStoryId, { smallestUnit: 'millisecond' });
       const input = root.getByRole('textbox', { name: 'Minutes', exact: true });
@@ -47,7 +47,7 @@ test.describe('DrInputTime', () => {
     for (const [locale, text] of [
       ['ru-RU', '23:45:56,123456789'], ['en-US', '11:45:56.123456789'],
       ['en-GB', '23:45:56.123456789'], ['ru-RU', '23:45:56,123456789'],
-    ]) {
+    ] satisfies Array<[locale: string, text: string]>) {
       await localeSelect.selectOption(locale);
       await expect(input).toHaveValue(text);
       await expect(model).toHaveText('23:45:56.123456789');
@@ -333,7 +333,7 @@ test.describe('DrInputTime', () => {
       ['minute', '1159', '23:59:00'], ['second', '115958', '23:59:58'],
       ['millisecond', '115958001', '23:59:58.001'], ['microsecond', '115958000001', '23:59:58.000001'],
       ['nanosecond', '115958123456789', '23:59:58.123456789'],
-    ]) {
+    ] satisfies Array<[smallestUnit: string, text: string, model: string]>) {
       await root.update({ smallestUnit });
       await input.fill('');
 
@@ -413,7 +413,7 @@ test.describe('DrInputTime', () => {
     for (const [text, am, pm] of [
       ['1200', '00:00:56.123456789', '12:00:56.123456789'],
       ['1159', '11:59:56.123456789', '23:59:56.123456789'],
-    ]) {
+    ] satisfies Array<[text: string, am: string, pm: string]>) {
       await input.fill(text);
       await expect(model).toHaveText(pm);
       await periodButton.click();
@@ -476,7 +476,7 @@ test.describe('DrInputTime', () => {
       element.setAttribute('data-retained', 'yes');
     });
 
-    for (const [locale, text] of [['ru-RU', '23:45'], ['en-US', '11:45'], ['en-GB', '23:45'], ['en-US', '11:45']]) {
+    for (const [locale, text] of [['ru-RU', '23:45'], ['en-US', '11:45'], ['en-GB', '23:45'], ['en-US', '11:45']] satisfies Array<[locale: string, text: string]>) {
       await localeSelect.selectOption(locale);
       await expect(input).toHaveValue(text);
       await expect(input).toHaveAttribute('data-retained', 'yes');

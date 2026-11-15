@@ -6,7 +6,13 @@ import type { SelectPopupProps } from '@/forms/components/DrSelect/types.support
 defineOptions({ inheritAttrs: false });
 const props = withDefaults(defineProps<SelectPopupProps>(), { before: true, after: true });
 const items = Array.from({ length: 40 }, (_, id) => ({ id, label: `Option ${id + 1}` }));
-const selected = shallowRef(items[39]);
+const initialSelection = items[39];
+
+if (initialSelection === undefined) {
+  throw new Error('Missing initial gallery selection.');
+}
+
+const selected = shallowRef(initialSelection);
 </script>
 
 <template>

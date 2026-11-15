@@ -6,20 +6,20 @@
     "allowImportingTsExtensions": true,
     "lib": [
       "ESNext",
-      "DOM",
-      "DOM.Iterable"
+      "DOM"
     ],
     "types": [
       "node",
       "vite/client"
     ],
-    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
     "noEmit": true,
     "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "jsx": "preserve",
     "paths": {
       "@/*": [

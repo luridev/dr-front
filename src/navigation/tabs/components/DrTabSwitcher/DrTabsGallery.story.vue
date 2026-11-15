@@ -5,12 +5,28 @@ import { galleryTabs } from '@/navigation/tabs/components/DrTabSwitcher/config.s
 
 defineOptions({ inheritAttrs: false });
 
+const props = defineProps({ sparse: Boolean });
 const current = ref<string>('Overview');
 const vertical = ref(false);
 const reverseOrder = ref(false);
 const projectName = ref('Gallery project');
 const orientation = computed(() => (vertical.value ? 'vertical' : 'horizontal'));
-const tabs = computed(() => (reverseOrder.value ? [...galleryTabs].reverse() : galleryTabs));
+
+const tabs = computed(() => {
+  const ordered = reverseOrder.value ? [...galleryTabs].reverse() : galleryTabs;
+
+  if (!props.sparse) {
+    return ordered;
+  }
+
+  const sparse: Array<string> = [];
+
+  ordered.forEach((item, index) => {
+    sparse[index * 2 + 1] = item;
+  });
+
+  return sparse;
+});
 </script>
 
 <template>

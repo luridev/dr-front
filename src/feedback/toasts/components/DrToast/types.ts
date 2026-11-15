@@ -5,7 +5,7 @@ export type DrToastProps = {
   variant: DrToastVariant;
   title: string;
   message: string;
-  closeButtonTabindex?: number;
+  closeButtonTabindex?: number | undefined;
 };
 
 export type DrToastEmits = {

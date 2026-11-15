@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import type { ConsoleMessage, Page, Request } from '@playwright/test';
-import type { ComponentTest, HostWindow, MountParams, StoryProps } from '~/tests/playwright/types';
+import type { ComponentTest, HostWindow, StoryProps } from '~/tests/playwright/types';
 
 const componentTest: ComponentTest = base;
 
@@ -76,12 +76,12 @@ export const test = componentTest.extend({
     }
   },
   mount: async ({ baseURL, page }, use) => {
-    const callMount = (params: MountParams) =>
+    const callMount = (story: string, storyProps?: StoryProps) =>
       page.evaluate(async (mountParams) => {
         const hostWindow = window as unknown as HostWindow;
 
         await hostWindow.mount(mountParams);
-      }, params);
+      }, storyProps === undefined ? { story } : { story, props: storyProps });
 
     await use(async (storyId, props) => {
       if (baseURL == null) {
@@ -90,10 +90,10 @@ export const test = componentTest.extend({
 
       await openReadyHost(page, baseURL);
 
-      await callMount({ story: storyId, props });
+      await callMount(storyId, props);
 
       return Object.assign(page.locator('#root'), {
-        update: (newProps?: unknown) => callMount({ story: storyId, props: newProps as StoryProps | undefined }),
+        update: (newProps?: StoryProps) => callMount(storyId, newProps),
         unmount: () => page.evaluate(async () => {
           const hostWindow = window as unknown as HostWindow;
 

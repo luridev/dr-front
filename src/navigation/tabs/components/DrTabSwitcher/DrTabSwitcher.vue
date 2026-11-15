@@ -27,6 +27,9 @@ const tabButtonRefs = new Map<T, HTMLButtonElement>();
 
 const rootAriaOrientation = computed(() => (props.orientation === 'vertical' ? 'vertical' : undefined));
 
+// flat(0) skips array holes so rendering, keyboard navigation and slot indices agree.
+const items = computed(() => props.items.flat(0));
+
 const selectedIndex = computed(() => {
   const index = getCurrentIndex();
 
@@ -34,7 +37,7 @@ const selectedIndex = computed(() => {
 });
 
 const tabItems = computed(() =>
-  props.items.map((item, index) => {
+  items.value.map((item, index) => {
     const selected = isSelected(item);
     const focusable = index === selectedIndex.value;
 
@@ -55,11 +58,11 @@ function isSelected(item: T) {
 }
 
 function getCurrentIndex() {
-  return props.items.findIndex((item) => isSelected(item));
+  return items.value.findIndex((item) => isSelected(item));
 }
 
 function getLoopedIndex(index: number) {
-  const itemsCount = props.items.length;
+  const itemsCount = items.value.length;
 
   if (itemsCount === 0) {
     return -1;
@@ -77,11 +80,11 @@ function setTabButtonRef(item: T, element: Element | ComponentPublicInstance | n
 }
 
 function activateTabAtIndex(index: number) {
-  if (index < 0 || index >= props.items.length) {
+  const item = items.value[index];
+
+  if (item === undefined) {
     return;
   }
-
-  const item = props.items[index];
 
   model.value = item;
 
@@ -108,7 +111,7 @@ function handleKeydown(event: KeyboardEvent, index: number) {
 
     case 'End':
       event.preventDefault();
-      activateTabAtIndex(props.items.length - 1);
+      activateTabAtIndex(items.value.length - 1);
 
       return;
   }

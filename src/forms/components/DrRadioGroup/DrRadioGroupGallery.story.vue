@@ -18,9 +18,17 @@ const updates = ref(0);
 const receivedIndex = ref(-1);
 const selectedIndex = computed(() => items.value.findIndex((item) => toRaw(item) === toRaw(selected.value)));
 
+function selectItemAt(index: number) {
+  const item = items.value[index];
+
+  if (item !== undefined) {
+    selected.value = item;
+  }
+}
+
 watch(() => props.values, (values) => {
   items.value = values === 'mixed' ? [1, '1'] : [{ id: 1 }, { id: 1 }];
-  selected.value = items.value[0];
+  selectItemAt(0);
 }, { immediate: true });
 
 function handleSelection(item: RadioGroupGalleryItem) {
@@ -60,11 +68,11 @@ watch(() => props.operation, (operation) => {
       items.value = items.value.map((item) => typeof item === 'object' ? { ...item } : item);
       break;
     case 'select-first':
-      selected.value = items.value[0];
+      selectItemAt(0);
       break;
     case 'select-last-async':
       setTimeout(() => {
-        selected.value = items.value[items.value.length - 1];
+        selectItemAt(items.value.length - 1);
       }, 0);
 
       break;

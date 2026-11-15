@@ -29,42 +29,54 @@ export function readFocusRing(indicator: Locator) {
     }
 
     function channels(color: string) {
-      return color.match(/[\d.]+/g)?.map(Number) ?? [];
+      const [red, green, blue, alpha = 1] = color.match(/[\d.]+/g)?.map(Number) ?? [];
+
+      if (red === undefined || green === undefined || blue === undefined) {
+        throw new Error(`Expected an RGB color: ${color}`);
+      }
+
+      return [red, green, blue, alpha] satisfies [number, number, number, number];
     }
 
-    const background = [0, 0, 0];
+    const rgb = [0, 1, 2] as const;
+    const background: [number, number, number] = [0, 0, 0];
     let remaining = 1;
 
     const backgroundOwner = outset > 0 ? element.parentElement : element;
 
     for (let node: Element | null = backgroundOwner; node != null; node = node.parentElement) {
       const color = channels(getComputedStyle(node).backgroundColor);
-      const alpha = color[3] ?? 1;
+      const alpha = color[3];
 
-      for (let channel = 0; channel < 3; channel += 1) {
+      for (const channel of rgb) {
         background[channel] += color[channel] * alpha * remaining;
       }
 
       remaining *= 1 - alpha;
     }
 
-    const backdrop = background.map((channel) => channel + 255 * remaining);
     const outline = channels(style.outlineColor);
-    const alpha = outline[3] ?? 1;
-    const foreground = backdrop.map((channel, index) => outline[index] * alpha + channel * (1 - alpha));
+    const alpha = outline[3];
+    const weights = [0.2126, 0.7152, 0.0722] as const;
+    let backdropLuminance = 0;
+    let foregroundLuminance = 0;
 
-    function luminance(color: Array<number>) {
-      const linear = color.map((channel) => {
-        const value = channel / 255;
+    function linearIntensity(channel: number) {
+      const value = channel / 255;
 
-        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-      });
-
-      return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+      return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
     }
 
-    const light = Math.max(luminance(foreground), luminance(backdrop));
-    const dark = Math.min(luminance(foreground), luminance(backdrop));
+    for (const channel of rgb) {
+      const backdrop = background[channel] + 255 * remaining;
+      const foreground = outline[channel] * alpha + backdrop * (1 - alpha);
+
+      backdropLuminance += linearIntensity(backdrop) * weights[channel];
+      foregroundLuminance += linearIntensity(foreground) * weights[channel];
+    }
+
+    const light = Math.max(foregroundLuminance, backdropLuminance);
+    const dark = Math.min(foregroundLuminance, backdropLuminance);
 
     return {
       style: style.outlineStyle,

@@ -4,7 +4,7 @@ export type DrToastOptions = {
   variant?: DrToastVariant;
   title?: string;
   message: string;
-  duration?: number;
+  duration?: number | undefined;
 };
 
 export type DrToastItem = {

@@ -3,11 +3,11 @@ import type { DrSelectItemSlot } from '@/forms/components/DrSelect/types';
 export type DrSelectListProps<T> = {
   id: string;
   items: ReadonlyArray<T>;
-  selectedItem?: T;
+  selectedItem?: T | undefined;
   hasSelection: boolean;
-  activeIndex?: number;
+  activeIndex?: number | undefined;
   accessibleLabel: string;
-  labelledBy?: string;
+  labelledBy?: string | undefined;
   tabindex?: -1 | 0;
 };
 
